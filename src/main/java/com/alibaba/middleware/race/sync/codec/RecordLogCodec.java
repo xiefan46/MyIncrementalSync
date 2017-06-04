@@ -7,6 +7,7 @@ import com.alibaba.middleware.race.sync.model.Record;
  * @author wangkai
  *
  */
+//FIXME 处理 startId，endId
 public class RecordLogCodec {
 	
 	private static RecordLogCodec recordLogCodec = new RecordLogCodec();
@@ -15,7 +16,8 @@ public class RecordLogCodec {
 		return recordLogCodec;
 	}
 	
-	public Record decode(byte[] data, int offset, int last) {
+	//FIXME compare start end ids
+	public Record decode(byte[] data, int offset, int last,int startId,int endId) {
 		Record r = new Record();
 //		r.setTimestamp(parseLong(data, offset + 11, offset + 24));
 //		int off = offset + 25;

@@ -65,8 +65,17 @@ public class MainThread implements Runnable {
 		}
 
 		// 倒序
-		Context finalContext = contexts[contexts.length - 1];
-		for (int i = contexts.length - 2; i > 0; i--) {
+//		Context finalContext = contexts[contexts.length - 1];
+//		for (int i = contexts.length - 2; i > 0; i--) {
+//			Context c = contexts[i];
+//			for (Record r : c.getRecords().values()) {
+//				receiver.received(finalContext, r);
+//			}
+//		}
+		
+		// 正序
+		Context finalContext = contexts[0];
+		for (int i = 0; i < channels.length; i++) {
 			Context c = contexts[i];
 			for (Record r : c.getRecords().values()) {
 				receiver.received(finalContext, r);
