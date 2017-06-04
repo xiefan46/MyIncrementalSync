@@ -20,9 +20,9 @@ public class TestRecordLogCodec {
 
 		String tableSchema = "test|user";
 		
-		Record rI = codec.decode(data, 26 + tableSchema.length(), 77);
-		Record rU = codec.decode(data, 78 + 26 + tableSchema.length(), 146);
-		Record rD = codec.decode(data, 147 + 26 + tableSchema.length(), 254);
+		Record rI = codec.decode(data, 26 + tableSchema.length(), 77,0,1000);
+		Record rU = codec.decode(data, 78 + 26 + tableSchema.length(), 146,0,1000);
+		Record rD = codec.decode(data, 147 + 26 + tableSchema.length(), 254,0,1000);
 
 		System.out.println(JSONObject.toJSONString(rI));
 		System.out.println(JSONObject.toJSONString(rU));

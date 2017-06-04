@@ -18,7 +18,7 @@ public class Context {
 	private Map<Long, Record>	records	= new HashMap<>();
 	private int				startId;
 	private String				tableSchema;
-	
+
 	public Context(ReadChannel channel, int endId, RecordLogReceiver receiver, int startId,
 			String tableSchema) {
 		this.channel = channel;

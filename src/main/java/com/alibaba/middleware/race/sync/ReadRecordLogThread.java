@@ -41,7 +41,7 @@ public class ReadRecordLogThread implements Runnable {
 
 		for (; channel.hasRemaining();) {
 
-			Record r = channelReader.read(channel, tableSchemaBytes);
+			Record r = channelReader.read(channel, tableSchemaBytes,startId,endId);
 
 			if (r == null) {
 				continue;

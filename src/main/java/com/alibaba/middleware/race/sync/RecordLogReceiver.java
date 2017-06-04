@@ -9,5 +9,7 @@ import com.alibaba.middleware.race.sync.model.Record;
 public interface RecordLogReceiver {
 
 	void received(Context context, Record record) throws Exception;
+	
+	void receivedFinal(Context context, Record record) throws Exception;
 
 }
