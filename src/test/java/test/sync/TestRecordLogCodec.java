@@ -8,33 +8,34 @@ import com.alibaba.middleware.race.sync.ChannelReader;
 import com.alibaba.middleware.race.sync.RAFInputStream;
 import com.alibaba.middleware.race.sync.ReadChannel;
 import com.alibaba.middleware.race.sync.model.Record;
+import org.junit.Test;
 
 /**
  * @author wangkai
- *
  */
 public class TestRecordLogCodec {
 
-	public static void main(String[] args) throws Exception {
-		
-		RandomAccessFile file = new RandomAccessFile(new File("D:/GIT/MyIncrementalSync/01.txt"), "r");
-		
-		RAFInputStream inputStream = new RAFInputStream(file);
-		
-		ReadChannel channel = new ReadChannel("test",inputStream , 128);
-		
-		ChannelReader reader = ChannelReader.get();
-		
-		byte [] cs = "test|user".getBytes();
-		
-		for(;channel.hasRemaining();){
-			
-			Record r = reader.read(channel, cs, 0, 9999);
-			if (r == null) {
-				continue;
-			}
-			System.out.println(JSONObject.toJSONString(r));
-		}
-		
-	}
+
+    public static void main(String[] args) throws Exception {
+
+        RandomAccessFile file = new RandomAccessFile(new File("D:/GIT/MyIncrementalSync/01.txt"), "r");
+
+        RAFInputStream inputStream = new RAFInputStream(file);
+
+        ReadChannel channel = new ReadChannel("test", inputStream, 128);
+
+        ChannelReader reader = ChannelReader.get();
+
+        byte[] cs = "test|user".getBytes();
+
+        for (; channel.hasRemaining(); ) {
+
+            Record r = reader.read(channel, cs, 0, 9999);
+            if (r == null) {
+                continue;
+            }
+            System.out.println(JSONObject.toJSONString(r));
+        }
+
+    }
 }

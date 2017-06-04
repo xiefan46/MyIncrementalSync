@@ -7,50 +7,49 @@ import com.alibaba.middleware.race.sync.model.Record;
 
 /**
  * @author wangkai
- *
  */
 public class ReadRecordLogThread implements Runnable {
 
-	private Logger		logger	= LoggerFactory.getLogger(getClass());
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
-	private Context	context;
+    private Context context;
 
-	public ReadRecordLogThread(Context context) {
-		this.context = context;
-	}
+    public ReadRecordLogThread(Context context) {
+        this.context = context;
+    }
 
-	@Override
-	public void run() {
-		try {
-			execute(context, context.getTableSchema(), context.getStartId(), context.getEndId());
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
-	}
+    @Override
+    public void run() {
+        try {
+            execute(context, context.getTableSchema(), context.getStartId(), context.getEndId());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
 
-	public void execute(Context context, String tableSchema, int startId, int endId)
-			throws Exception {
+    public void execute(Context context, String tableSchema, long startId, long endId)
+            throws Exception {
 
-		byte[] tableSchemaBytes = tableSchema.getBytes();
+        byte[] tableSchemaBytes = tableSchema.getBytes();
 
-		ChannelReader channelReader = ChannelReader.get();
+        ChannelReader channelReader = ChannelReader.get();
 
-		ReadChannel channel = context.getChannel();
+        ReadChannel channel = context.getChannel();
 
-		RecordLogReceiver recordLogReceiver = context.getReceiver();
+        RecordLogReceiver recordLogReceiver = context.getReceiver();
 
-		for (; channel.hasRemaining();) {
+        for (; channel.hasRemaining(); ) {
 
-			Record r = channelReader.read(channel, tableSchemaBytes,startId,endId);
+            Record r = channelReader.read(channel, tableSchemaBytes, startId, endId);
+            logger.debug("record receive");
+            if (r == null) {
+                continue;
+            }
 
-			if (r == null) {
-				continue;
-			}
+            r.setTableSchema(tableSchema);
 
-			r.setTableSchema(tableSchema);
-
-			recordLogReceiver.received(context, r);
-		}
-	}
+            recordLogReceiver.received(context, r);
+        }
+    }
 
 }

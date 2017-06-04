@@ -140,15 +140,15 @@ public class MockDataUtil {
 
     public static class UserRecord {
 
-        private static final String ID = "id";
+        public static final String ID = "id";
 
-        private static final String NAME = "name";
+        public static final String NAME = "name";
 
-        private static final String SCORE = "score";
+        public static final String SCORE = "score";
 
-        private static final String SCHEMA = "middleware";
+        public static final String SCHEMA = "middleware";
 
-        private static final String TABLE = "user";
+        public static final String TABLE = "user";
 
         int id;
 
