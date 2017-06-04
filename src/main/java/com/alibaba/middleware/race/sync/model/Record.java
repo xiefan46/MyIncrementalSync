@@ -19,13 +19,13 @@ public class Record {
 //	// 数据变更对应的表名
 //	private String			table;
 	// 数据变更对应的库名-表名
-	private String 		tableSchema;
+	private String 			tableSchema;
 	//  I(1)代表insert, U(2)代表update, D(0)代表delete
-	private byte			alterType;
+	private byte				alterType;
 	// 该记录的列信息
-	private Map<String, Column> columns;
+	private Map<String, Column> 	columns;
 	// 该记录的主键
-	private Column			primaryColumn;
+	private PrimaryColumn		primaryColumn;
 
 //	public long getTimestamp() {
 //		return timestamp;
@@ -59,11 +59,11 @@ public class Record {
 		this.columns = new HashMap<>();
 	}
 
-	public Column getPrimaryColumn() {
+	public PrimaryColumn getPrimaryColumn() {
 		return primaryColumn;
 	}
 
-	public void setPrimaryColumn(Column primaryColumn) {
+	public void setPrimaryColumn(PrimaryColumn primaryColumn) {
 		this.primaryColumn = primaryColumn;
 	}
 
