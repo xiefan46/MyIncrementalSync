@@ -11,11 +11,11 @@ import java.util.UUID;
 
 
 /*
-schema ； test
+schema ； middleware
 table   : user
-field:  id int, pk
+field:  id long, pk
         name str
-        score int
+        score long
  */
 public class MockDataUtil {
     private static final long seed = 1234;
@@ -35,9 +35,9 @@ public class MockDataUtil {
 
     private static final String FIELD_SEPERATOR_2 = ":";
 
-    private static final int IS_NUMBER = 1;
+    private static final int IS_NUMBER = 0;
 
-    private static final int IS_STRING = 2;
+    private static final int IS_STRING = 1;
 
     private static final int IS_PK = 1;
 
@@ -77,13 +77,13 @@ public class MockDataUtil {
         sb.append(TestConstant.INSERT + FIELD_SEPERATOR_1);
         sb.append(UserRecord.getIdDesc() + FIELD_SEPERATOR_1);
         sb.append(TestConstant.NULL_FIELD + FIELD_SEPERATOR_1);
-        sb.append(rand.nextInt() + FIELD_SEPERATOR_1);
+        sb.append(randPositiveLong() + FIELD_SEPERATOR_1);
         sb.append(UserRecord.getNameDesc() + FIELD_SEPERATOR_1);
         sb.append(TestConstant.NULL_FIELD + FIELD_SEPERATOR_1);
         sb.append(getRamdonString(20) + FIELD_SEPERATOR_1);
         sb.append(UserRecord.getScoreDesc() + FIELD_SEPERATOR_1);
         sb.append(TestConstant.NULL_FIELD + FIELD_SEPERATOR_1);
-        sb.append(rand.nextInt());
+        sb.append(randPositiveLong());
         return sb.toString();
     }
 
@@ -96,7 +96,7 @@ public class MockDataUtil {
         sb.append(mockLogHeader() + FIELD_SEPERATOR_1);
         sb.append(TestConstant.UPDATE + FIELD_SEPERATOR_1);
         sb.append(UserRecord.getIdDesc() + FIELD_SEPERATOR_1);
-        int id = rand.nextInt();
+        long id = randPositiveLong();
         sb.append(id + FIELD_SEPERATOR_1);
         sb.append(id + FIELD_SEPERATOR_1);
         sb.append(UserRecord.getNameDesc() + FIELD_SEPERATOR_1);
@@ -110,13 +110,13 @@ public class MockDataUtil {
         sb.append(mockLogHeader() + FIELD_SEPERATOR_1);
         sb.append(TestConstant.DELETE + FIELD_SEPERATOR_1);
         sb.append(UserRecord.getIdDesc() + FIELD_SEPERATOR_1);
-        sb.append(rand.nextInt() + FIELD_SEPERATOR_1);
+        sb.append(randPositiveLong() + FIELD_SEPERATOR_1);
         sb.append(TestConstant.NULL_FIELD + FIELD_SEPERATOR_1);
         sb.append(UserRecord.getNameDesc() + FIELD_SEPERATOR_1);
         sb.append(getRamdonString(20) + FIELD_SEPERATOR_1);
         sb.append(TestConstant.NULL_FIELD + FIELD_SEPERATOR_1);
         sb.append(UserRecord.getScoreDesc() + FIELD_SEPERATOR_1);
-        sb.append(rand.nextInt() + FIELD_SEPERATOR_1);
+        sb.append(randPositiveLong() + FIELD_SEPERATOR_1);
         sb.append(TestConstant.NULL_FIELD);
         return sb.toString();
     }
@@ -128,6 +128,10 @@ public class MockDataUtil {
         sb.append(UserRecord.SCHEMA + FIELD_SEPERATOR_1);
         sb.append(UserRecord.TABLE);
         return sb.toString();
+    }
+
+    private static long randPositiveLong() {
+        return Math.abs(rand.nextLong());
     }
 
 
