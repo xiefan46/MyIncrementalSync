@@ -84,6 +84,7 @@ public class MockDataUtil {
         sb.append(UserRecord.getScoreDesc() + FIELD_SEPERATOR_1);
         sb.append(TestConstant.NULL_FIELD + FIELD_SEPERATOR_1);
         sb.append(randPositiveLong());
+        sb.append(FIELD_SEPERATOR_1);
         return sb.toString();
     }
 
@@ -102,6 +103,7 @@ public class MockDataUtil {
         sb.append(UserRecord.getNameDesc() + FIELD_SEPERATOR_1);
         sb.append(getRamdonString(10) + FIELD_SEPERATOR_1);
         sb.append(getRamdonString(10));
+        sb.append(FIELD_SEPERATOR_1);
         return sb.toString();
     }
 
@@ -118,6 +120,7 @@ public class MockDataUtil {
         sb.append(UserRecord.getScoreDesc() + FIELD_SEPERATOR_1);
         sb.append(randPositiveLong() + FIELD_SEPERATOR_1);
         sb.append(TestConstant.NULL_FIELD);
+        sb.append(FIELD_SEPERATOR_1);
         return sb.toString();
     }
 
