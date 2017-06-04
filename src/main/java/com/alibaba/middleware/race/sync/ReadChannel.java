@@ -20,20 +20,14 @@ public class ReadChannel extends InputStream {
 	private String		fileName;
 
 	private InputStream	inputStream;
-	
-	private String		tqName;
-	
-	private String 	tqPrefix;
 
 	private boolean	hasRemaining	= true;
 
 	public ReadChannel(String fileName, InputStream inputStream, int maxBufferLen) {
-		String [] ss = fileName.split("\\.");
-		this.tqName = ss[0];
-		this.tqPrefix = ss[1];
 		this.fileName = fileName;
 		this.inputStream = inputStream;
 		this.buf = UnpooledByteBufAllocator.getHeapInstance().allocate(maxBufferLen);
+		this.buf.limit(0);
 	}
 
 	public int read(ByteBuf buf) throws IOException {
@@ -68,12 +62,5 @@ public class ReadChannel extends InputStream {
 	public String getFileName() {
 		return fileName;
 	}
-	
-	public String getTqName() {
-		return tqName;
-	}
 
-	public String getTqPrefix() {
-		return tqPrefix;
-	}
 }

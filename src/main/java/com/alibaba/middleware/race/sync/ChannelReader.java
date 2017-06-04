@@ -20,7 +20,7 @@ public class ChannelReader {
 
 	private RecordLogCodec codec = RecordLogCodec.get();
 
-	protected Record read(ReadChannel channel, byte[] tableSchema,int startId,int endId) throws IOException {
+	public Record read(ReadChannel channel, byte[] tableSchema,int startId,int endId) throws IOException {
 		ByteBuf buf = channel.getByteBuf();
 		byte[] readBuffer = buf.array();
 		int limit = buf.limit();
@@ -40,11 +40,11 @@ public class ChannelReader {
 			channel.read(buf);
 			return read(channel, tableSchema,startId,endId);
 		}
-		buf.position(offset + end);
-		if (!compare(readBuffer, offset, tableSchema)) {
+		buf.position(offset + end + 1);
+		if (!compare(readBuffer, offset + 25, tableSchema)) {
 			return null;
 		}
-		return codec.decode(readBuffer, offset + 26 + tableSchema.length, end,startId,endId);
+		return codec.decode(readBuffer, offset + 26 + tableSchema.length, end - 1,startId,endId);
 	}
 
 	private boolean compare(byte[] data, int offset, byte[] tableSchema) {
@@ -57,12 +57,14 @@ public class ChannelReader {
 	}
 
 	private int findNextChar(byte[] data, int offset, int end, char c) {
-		for (; offset < end;) {
-			if (data[++offset] == c) {
+		for (;;) {
+			if (data[offset] == c) {
 				return offset;
 			}
+			if (++offset==end) {
+				return -1;
+			}
 		}
-		return -1;
 	}
 
 }

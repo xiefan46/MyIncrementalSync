@@ -1,23 +1,24 @@
 package com.alibaba.middleware.race.sync.codec;
 
 import com.alibaba.middleware.race.sync.model.Column;
+import com.alibaba.middleware.race.sync.model.PrimaryColumn;
 import com.alibaba.middleware.race.sync.model.Record;
 
 /**
  * @author wangkai
  *
  */
-//FIXME 处理 startId，endId
 public class RecordLogCodec {
 	
 	private static RecordLogCodec recordLogCodec = new RecordLogCodec();
+	
+	private final int I_SKIP = 6 + "NULL".length();
 	
 	public static RecordLogCodec get(){
 		return recordLogCodec;
 	}
 	
-	//FIXME compare start end ids
-	public Record decode(byte[] data, int offset, int last,int startId,int endId) {
+	public Record decode(byte[] data, int offset, int last,long startId,long endId) {
 		Record r = new Record();
 //		r.setTimestamp(parseLong(data, offset + 11, offset + 24));
 //		int off = offset + 25;
@@ -33,20 +34,46 @@ public class RecordLogCodec {
 			r.newColumns();
 			for (;;) {
 				end = findNextChar(data, off, ':');
-				Column c = new Column();
-				c.setName(new String(data, off, end - off));
 				if (data[end + 3] == '1') {
+					PrimaryColumn c = new PrimaryColumn();
 					r.setPrimaryColumn(c);
 					c.setPrimary(true);
-				}else{
-					r.addColumn(c);
+					c.setName(new String(data, off, end - off));
+					boolean isNumber = data[end + 1] == '1';
+					off = end + 5;
+					end = findNextChar(data, off, '|');
+					if (isNumber) {
+						c.setNumber(true);
+						c.setBeforeValue(parseLong(data, off, end));
+						off = end + 1;
+						end = findNextChar(data, off, '|');
+						c.setValue(parseLong(data, off, end));
+					} else {
+						c.setBeforeValue(new String(data, off, end - off));
+						off = end + 1;
+						end = findNextChar(data, off, '|');
+						c.setValue(new String(data, off, end - off));
+					}
+					if (!selected((long)c.getBeforeValue(), startId, endId) 
+							|| !selected((long)c.getValue(), startId, endId)) {
+						return null;
+					}
+					off = end + 1;
+					if (off == last) {
+						return r;
+					}
+					continue;
 				}
+				Column c = new Column();
+				c.setName(new String(data, off, end - off));
+				r.addColumn(c);
 				boolean isNumber = data[end + 1] == '1';
 				off = end + 5;
 				end = findNextChar(data, off, '|');
 				off = end + 1;
 				end = findNextChar(data, off, '|');
 				if (isNumber) {
+					c.setNumber(true);
 					c.setValue(parseLong(data, off, end));
 				} else {
 					c.setValue(new String(data, off, end - off));
@@ -60,7 +87,7 @@ public class RecordLogCodec {
 
 		if ('D' == r.getAlterType()) {
 			end = findNextChar(data, off, ':');
-			Column c = new Column();
+			PrimaryColumn c = new PrimaryColumn();
 			c.setName(new String(data, off, end - off));
 			r.setPrimaryColumn(c);
 			c.setPrimary(true);
@@ -74,9 +101,13 @@ public class RecordLogCodec {
 			off = end + 5;
 			end = findNextChar(data, off, '|');
 			if (isNumber) {
+				c.setNumber(true);
 				c.setValue(parseLong(data, off, end));
 			} else {
 				c.setValue(new String(data, off, end - off));
+			}
+			if (!selected((long)c.getValue(), startId, endId)) {
+				return null;
 			}
 			return r;
 		}
@@ -85,18 +116,37 @@ public class RecordLogCodec {
 			r.newColumns();
 			for (;;) {
 				end = findNextChar(data, off, ':');
+				if (data[end + 3] == '1') {
+					PrimaryColumn c = new PrimaryColumn();
+					r.setPrimaryColumn(c);
+					c.setName(new String(data, off, end - off));
+					c.setPrimary(true);
+					boolean isNumber = data[end + 1] == '1';
+					off = end + I_SKIP;
+					end = findNextChar(data, off, '|');
+					if (isNumber) {
+						c.setNumber(true);
+						c.setValue(parseLong(data, off, end));
+					} else {
+						c.setValue(new String(data, off, end - off));
+					}
+					if (!selected((long)c.getValue(), startId, endId)) {
+						return null;
+					}
+					off = end + 1;
+					if (off == last) {
+						return r;
+					}
+					continue;
+				}
 				Column c = new Column();
 				c.setName(new String(data, off, end - off));
-				if (data[end + 3] == '1') {
-					r.setPrimaryColumn(c);
-					c.setPrimary(true);
-				}else{
-					r.addColumn(c);
-				}
+				r.addColumn(c);
 				boolean isNumber = data[end + 1] == '1';
-				off = end + 6;
+				off = end + I_SKIP;
 				end = findNextChar(data, off, '|');
 				if (isNumber) {
+					c.setNumber(true);
 					c.setValue(parseLong(data, off, end));
 				} else {
 					c.setValue(new String(data, off, end - off));
@@ -126,13 +176,9 @@ public class RecordLogCodec {
 			}
 		}
 	}
-
-	private int parseInt(byte[] data, int offset, int end) {
-		int all = 0;
-		for (int i = offset; i < end; i++) {
-			all = all * 10 + (data[i] - 48);
-		}
-		return all;
+	
+	private boolean selected(long id,long startId,long endId){
+		return id > startId && id < endId;
 	}
 
 	public int encode(Record record) {

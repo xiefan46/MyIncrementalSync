@@ -27,7 +27,7 @@ public class Column {
 	}
 
 	public boolean isNumber() {
-		return (flag & NUMBER_FLAG) > 0;
+		return (flag & NUMBER_FLAG) != 0;
 	}
 
 	public void setNumber(boolean number) {
@@ -37,7 +37,7 @@ public class Column {
 	}
 
 	public boolean isPrimary() {
-		return (flag & PRIMARY_FLAG) > 0;
+		return (flag & PRIMARY_FLAG) != 0;
 	}
 
 	public void setPrimary(boolean primary) {
