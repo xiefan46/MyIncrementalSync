@@ -10,5 +10,5 @@ public interface TestConstant {
 
     String DELETE = "D";
 
-    String NULL_FIELD = "<NULL>";
+    String NULL_FIELD = "NULL";
 }
