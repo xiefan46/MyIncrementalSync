@@ -15,7 +15,7 @@ public class ChannelReader {
 
 	//	private final int			HEAD_SKIP		= "000001:106|1489133349000|".length();
 
-	private final int			HEAD_SKIP		= "2d92db14-eefd-4180-b903-c648a01021c0|1422652823552|"
+	private final int			HEAD_SKIP		= "|4e3660bf-06f5-4dd7-bebf-a17131997d0e|1422652823552|"
 			.length();
 
 	private final int			SCHEMA_SKIP	= HEAD_SKIP + 1;
@@ -51,8 +51,8 @@ public class ChannelReader {
 		if (!compare(readBuffer, offset + HEAD_SKIP, tableSchema)) {
 			return null;
 		}
-		return codec.decode(readBuffer, offset + SCHEMA_SKIP + tableSchema.length, end - 1, startId,
-				endId);
+		return codec.decode(readBuffer, offset + SCHEMA_SKIP + tableSchema.length, end - 1,
+				startId, endId);
 	}
 
 	private boolean compare(byte[] data, int offset, byte[] tableSchema) {

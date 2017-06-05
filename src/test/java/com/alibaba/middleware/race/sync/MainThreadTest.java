@@ -24,7 +24,7 @@ public class MainThreadTest {
 
 	File	resultDir	= new File(Constants.RESULT_HOME);
 
-	int	fileNum	= 1;
+	int	fileNum	= 10;
 
 	@Before
 	public void before() throws Exception {
@@ -68,7 +68,7 @@ public class MainThreadTest {
 
 	@After
 	public void after() throws Exception {
-		cleanUpAll();
+
 	}
 
 	private void cleanUpAll() throws Exception {

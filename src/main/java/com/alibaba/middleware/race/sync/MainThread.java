@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.alibaba.middleware.race.sync.util.RecordUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,9 +107,14 @@ public class MainThread implements Runnable {
 			for (Map.Entry<Long, Record> entry : context.getRecords().entrySet()) {
 				finalResult.put(entry.getKey(), entry.getValue());
 			}
+			logger.debug("Final result size : {}", context.getRecords().size());
 			for (Map.Entry<Long, Record> entry : finalResult.entrySet()) {
-
+				String formatRecord = RecordUtil.formatResultString(entry.getValue());
+				logger.debug("Write result : {}", formatRecord);
+				formatRecord += "\n";
+				bos.write(formatRecord.getBytes());
 			}
+			bos.flush();
 		} finally {
 			if (bos != null)
 				bos.close();

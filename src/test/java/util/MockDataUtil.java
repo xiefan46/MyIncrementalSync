@@ -28,13 +28,15 @@ public class MockDataUtil {
 
 	private static final String	FIELD_SEPERATOR_2	= ":";
 
-	private static final int		IS_NUMBER			= 0;
+	private static final int		IS_NUMBER			= 1;
 
-	private static final int		IS_STRING			= 1;
+	private static final int		IS_STRING			= 2;
 
 	private static final int		IS_PK			= 1;
 
 	private static final int		NOT_PK			= 0;
+
+	private static final int		ID_LENGTH			= 10;
 
 	public static String getRamdonString(int length) {
 		char[] randBuffer = new char[length];
@@ -116,6 +118,7 @@ public class MockDataUtil {
 
 	private static String mockLogHeader() throws Exception {
 		StringBuilder sb = new StringBuilder();
+		sb.append(FIELD_SEPERATOR_1);
 		sb.append(getUUID() + FIELD_SEPERATOR_1);
 		sb.append(getRandomTime() + FIELD_SEPERATOR_1);
 		sb.append(UserRecord.SCHEMA + FIELD_SEPERATOR_1);

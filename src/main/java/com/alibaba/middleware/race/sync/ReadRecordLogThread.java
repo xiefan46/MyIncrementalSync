@@ -41,9 +41,15 @@ public class ReadRecordLogThread implements Runnable {
 		for (; channel.hasRemaining();) {
 
 			Record r = channelReader.read(channel, tableSchemaBytes, startId, endId);
-			logger.debug("record receive");
+
 			if (r == null) {
 				continue;
+			}
+
+			logger.debug("Alter type : " + r.getAlterType());
+
+			if (r.getAlterType() == Record.INSERT) {
+				logger.debug("Receive insert record. PK : {}", r.getPrimaryColumn().getValue());
 			}
 
 			r.setTableSchema(tableSchema);
