@@ -6,31 +6,32 @@ import com.alibaba.middleware.race.sync.model.Record;
 
 /**
  * @author wangkai
- *
  */
 public class RecordLogCodec {
-	
-	private static RecordLogCodec recordLogCodec = new RecordLogCodec();
-	
-	private final int I_SKIP = 6 + "NULL".length();
-	
-	public static RecordLogCodec get(){
+
+	private static RecordLogCodec	recordLogCodec	= new RecordLogCodec();
+
+	private final int			I_SKIP		= 6 + "NULL".length();
+
+	public static RecordLogCodec get() {
 		return recordLogCodec;
 	}
-	
-	public Record decode(byte[] data, int offset, int last,long startId,long endId) {
+
+	public Record decode(byte[] data, int offset, int last, long startId, long endId) {
 		Record r = new Record();
-//		r.setTimestamp(parseLong(data, offset + 11, offset + 24));
-//		int off = offset + 25;
-//		int end = findNextChar(data, off, '|');
-//		end = findNextChar(data, end + 1, '|');
-//		r.setTableSchema(new String(data, off, end - off));
-//		off = end + 1;
+
+		//		r.setTimestamp(parseLong(data, offset + 11, offset + 24));
+		//		int off = offset + 25;
+		//		int end = findNextChar(data, off, '|');
+		//		end = findNextChar(data, end + 1, '|');
+		//		r.setTableSchema(new String(data, off, end - off));
+		//		off = end + 1;
+
 		int off = offset;
 		int end;
 		r.setAlterType(data[off]);
 		off += 2;
-		if ('U' == r.getAlterType()) {
+		if (Record.UPDATE == r.getAlterType()) {
 			r.newColumns();
 			for (;;) {
 				end = findNextChar(data, off, ':');
@@ -54,8 +55,8 @@ public class RecordLogCodec {
 						end = findNextChar(data, off, '|');
 						c.setValue(new String(data, off, end - off));
 					}
-					if (!selected((long)c.getBeforeValue(), startId, endId) 
-							|| !selected((long)c.getValue(), startId, endId)) {
+					if (!selected((long) c.getBeforeValue(), startId, endId)
+							|| !selected((long) c.getValue(), startId, endId)) {
 						return null;
 					}
 					off = end + 1;
@@ -85,18 +86,19 @@ public class RecordLogCodec {
 			}
 		}
 
-		if ('D' == r.getAlterType()) {
+		if (Record.DELETE == r.getAlterType()) {
 			end = findNextChar(data, off, ':');
 			PrimaryColumn c = new PrimaryColumn();
 			c.setName(new String(data, off, end - off));
 			r.setPrimaryColumn(c);
 			c.setPrimary(true);
-//			if (data[end + 1] == '1') {
-//				r.setPrimaryColumn(c);
-//				c.setPrimary(true);
-//			}else{
-//				r.addColumn(c);
-//			}
+
+			//			if (data[end + 1] == '1') {
+			//				r.setPrimaryColumn(c);
+			//				c.setPrimary(true);
+			//			}else{
+			//				r.addColumn(c);
+			//			}
 			boolean isNumber = data[end + 1] == '1';
 			off = end + 5;
 			end = findNextChar(data, off, '|');
@@ -106,13 +108,13 @@ public class RecordLogCodec {
 			} else {
 				c.setValue(new String(data, off, end - off));
 			}
-			if (!selected((long)c.getValue(), startId, endId)) {
+			if (!selected((long) c.getValue(), startId, endId)) {
 				return null;
 			}
 			return r;
 		}
 
-		if ('I' == r.getAlterType()) {
+		if (Record.INSERT == r.getAlterType()) {
 			r.newColumns();
 			for (;;) {
 				end = findNextChar(data, off, ':');
@@ -130,7 +132,7 @@ public class RecordLogCodec {
 					} else {
 						c.setValue(new String(data, off, end - off));
 					}
-					if (!selected((long)c.getValue(), startId, endId)) {
+					if (!selected((long) c.getValue(), startId, endId)) {
 						return null;
 					}
 					off = end + 1;
@@ -156,9 +158,17 @@ public class RecordLogCodec {
 					return r;
 				}
 			}
-		}
 
+		}
 		return r;
+	}
+
+	private int findNextChar(byte[] data, int offset, char c) {
+		for (;;) {
+			if (data[++offset] == c) {
+				return offset;
+			}
+		}
 	}
 
 	private long parseLong(byte[] data, int offset, int end) {
@@ -168,25 +178,13 @@ public class RecordLogCodec {
 		}
 		return all;
 	}
-	
-	private int findNextChar(byte[] data, int offset, char c) {
-		for (;;) {
-			if (data[++offset] == c) {
-				return offset;
-			}
-		}
-	}
-	
-	private boolean selected(long id,long startId,long endId){
+
+	private boolean selected(long id, long startId, long endId) {
 		return id > startId && id < endId;
 	}
 
-	public int encode(Record record) {
-		throw new UnsupportedOperationException();
-	}
-
 	public void initialize() {
-		
+
 	}
 
 }

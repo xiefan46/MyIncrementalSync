@@ -8,7 +8,6 @@ import com.generallycloud.baseio.buffer.ByteBuf;
 
 /**
  * @author wangkai
- *
  */
 public class ChannelReader {
 
@@ -20,7 +19,8 @@ public class ChannelReader {
 
 	private RecordLogCodec codec = RecordLogCodec.get();
 
-	public Record read(ReadChannel channel, byte[] tableSchema,int startId,int endId) throws IOException {
+	public Record read(ReadChannel channel, byte[] tableSchema, long startId, long endId)
+			throws IOException {
 		ByteBuf buf = channel.getByteBuf();
 		byte[] readBuffer = buf.array();
 		int limit = buf.limit();
@@ -30,21 +30,23 @@ public class ChannelReader {
 				return null;
 			}
 			channel.read(buf);
-			return read(channel, tableSchema,startId,endId);
+			return read(channel, tableSchema, startId, endId);
 		}
+
 		int end = findNextChar(readBuffer, offset, limit, '\n');
 		if (end == -1) {
 			if (!channel.hasRemaining()) {
 				return null;
 			}
 			channel.read(buf);
-			return read(channel, tableSchema,startId,endId);
+			return read(channel, tableSchema, startId, endId);
 		}
 		buf.position(offset + end + 1);
 		if (!compare(readBuffer, offset + 25, tableSchema)) {
 			return null;
 		}
-		return codec.decode(readBuffer, offset + 26 + tableSchema.length, end - 1,startId,endId);
+		return codec.decode(readBuffer, offset + 26 + tableSchema.length, end - 1, startId,
+				endId);
 	}
 
 	private boolean compare(byte[] data, int offset, byte[] tableSchema) {
@@ -57,11 +59,12 @@ public class ChannelReader {
 	}
 
 	private int findNextChar(byte[] data, int offset, int end, char c) {
+		System.out.println();
 		for (;;) {
 			if (data[offset] == c) {
 				return offset;
 			}
-			if (++offset==end) {
+			if (++offset == end) {
 				return -1;
 			}
 		}

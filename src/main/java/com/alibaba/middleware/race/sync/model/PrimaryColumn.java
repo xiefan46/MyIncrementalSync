@@ -2,9 +2,8 @@ package com.alibaba.middleware.race.sync.model;
 
 /**
  * @author wangkai
- *
  */
-public class PrimaryColumn extends Column{
+public class PrimaryColumn extends Column {
 
 	private Object beforeValue;
 
@@ -15,5 +14,9 @@ public class PrimaryColumn extends Column{
 	public void setBeforeValue(Object beforeValue) {
 		this.beforeValue = beforeValue;
 	}
-	
+
+	public boolean IsPkChange() {
+		return getValue().equals(beforeValue) ? false : true;
+	}
+
 }

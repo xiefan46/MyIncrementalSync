@@ -7,7 +7,6 @@ import com.alibaba.middleware.race.sync.model.Record;
 
 /**
  * @author wangkai
- *
  */
 public class ReadRecordLogThread implements Runnable {
 
@@ -28,7 +27,7 @@ public class ReadRecordLogThread implements Runnable {
 		}
 	}
 
-	public void execute(Context context, String tableSchema, int startId, int endId)
+	public void execute(Context context, String tableSchema, long startId, long endId)
 			throws Exception {
 
 		byte[] tableSchemaBytes = tableSchema.getBytes();
@@ -41,8 +40,8 @@ public class ReadRecordLogThread implements Runnable {
 
 		for (; channel.hasRemaining();) {
 
-			Record r = channelReader.read(channel, tableSchemaBytes,startId,endId);
-
+			Record r = channelReader.read(channel, tableSchemaBytes, startId, endId);
+			logger.debug("record receive");
 			if (r == null) {
 				continue;
 			}
