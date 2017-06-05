@@ -3,6 +3,8 @@ package com.alibaba.middleware.race.sync.codec;
 import com.alibaba.middleware.race.sync.model.Column;
 import com.alibaba.middleware.race.sync.model.PrimaryColumn;
 import com.alibaba.middleware.race.sync.model.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author wangkai
@@ -16,6 +18,8 @@ public class RecordLogCodec {
 	public static RecordLogCodec get() {
 		return recordLogCodec;
 	}
+
+	private static final Logger logger = LoggerFactory.getLogger(RecordLogCodec.class);
 
 	public Record decode(byte[] data, int offset, int last, long startId, long endId) {
 		Record r = new Record();
@@ -132,6 +136,7 @@ public class RecordLogCodec {
 					} else {
 						c.setValue(new String(data, off, end - off));
 					}
+					logger.debug("c value : " + c.getValue().toString());
 					if (!selected((long) c.getValue(), startId, endId)) {
 						return null;
 					}
