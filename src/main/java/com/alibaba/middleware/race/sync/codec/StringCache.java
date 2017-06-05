@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 import com.generallycloud.baseio.common.CloseUtil;
 import com.generallycloud.baseio.common.FileUtil;
 import com.generallycloud.baseio.common.MathUtil;
+import com.generallycloud.baseio.component.ByteArrayBuffer;
 
 /**
  * @author wangkai
@@ -86,7 +87,7 @@ public class StringCache {
 
 	public void save(OutputStream outputStream) throws IOException {
 		byte[] temp = new byte[40];
-		ByteArrayOutputStream out = new ByteArrayOutputStream(1024 * 4, 4);
+		ByteArrayBuffer out = new ByteArrayBuffer(new byte[1024 * 4],4);
 		ByteBuffer buffer = ByteBuffer.wrap(temp);
 		int all = 0;
 		for (Entry<String, byte[]> e : cacheStringMap.entrySet()) {

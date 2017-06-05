@@ -53,7 +53,7 @@
 
         <dependency>
             <groupId>com.generallycloud</groupId>
-            <artifactId>baseio-core</artifactId>
+            <artifactId>baseio-all</artifactId>
             <version>3.1.9-RELEASE</version>
         </dependency>
 
