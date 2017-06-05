@@ -68,7 +68,7 @@ public class MainThreadTest {
 
 	@After
 	public void after() throws Exception {
-		cleanUpAll();
+
 	}
 
 	private void cleanUpAll() throws Exception {
