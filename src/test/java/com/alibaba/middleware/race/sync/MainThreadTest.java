@@ -31,7 +31,7 @@ public class MainThreadTest {
 		cleanUpAll();
 	}
 
-	@Ignore
+//	@Ignore
 	@Test
 	public void createTestData() throws Exception {
 		cleanDir(dataDir);

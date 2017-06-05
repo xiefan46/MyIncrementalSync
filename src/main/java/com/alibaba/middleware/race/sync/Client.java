@@ -1,84 +1,100 @@
 package com.alibaba.middleware.race.sync;
 
+import java.io.File;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.timeout.IdleStateHandler;
-
+import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
+import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
+import com.generallycloud.baseio.buffer.ByteBuf;
+import com.generallycloud.baseio.common.CloseUtil;
+import com.generallycloud.baseio.component.IoEventHandleAdaptor;
+import com.generallycloud.baseio.component.LoggerSocketSEListener;
+import com.generallycloud.baseio.component.NioSocketChannelContext;
+import com.generallycloud.baseio.component.SocketChannelContext;
+import com.generallycloud.baseio.component.SocketSession;
+import com.generallycloud.baseio.configuration.ServerConfiguration;
+import com.generallycloud.baseio.connector.SocketChannelConnector;
+import com.generallycloud.baseio.protocol.ReadFuture;
 
 /**
  * Created by wanshao on 2017/5/25.
  */
 public class Client {
 
-    private final static int port = Constants.SERVER_PORT;
-    // idle时间
-    private static String ip;
-    private EventLoopGroup loop = new NioEventLoopGroup();
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
-    public static void main(String[] args) throws Exception {
-        initProperties();
-        Logger logger = LoggerFactory.getLogger(Client.class);
-        logger.info("Welcome");
-        // 从args获取server端的ip
-        ip = args[0];
-        Client client = new Client();
-        client.connect(ip, port);
+	public static void main(String[] args) throws Exception {
+		initProperties();
 
-    }
+		Client client = new Client();
+		client.connect(args[0], Constants.SERVER_PORT);
+	}
 
-    /**
-     * 初始化系统属性
-     */
-    private static void initProperties() {
-        System.setProperty("middleware.test.home", Constants.TESTER_HOME);
-        System.setProperty("middleware.teamcode", Constants.TEAMCODE);
-        System.setProperty("app.logging.level", Constants.LOG_LEVEL);
-    }
+	/**
+	 * 初始化系统属性
+	 */
+	private static void initProperties() {
+		System.setProperty("middleware.test.home", Constants.TESTER_HOME);
+		System.setProperty("middleware.teamcode", Constants.TEAMCODE);
+		System.setProperty("app.logging.level", Constants.LOG_LEVEL);
+	}
 
-    /**
-     * 连接服务端
-     *
-     * @param host
-     * @param port
-     * @throws Exception
-     */
-    public void connect(String host, int port) throws Exception {
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+	/**
+	 * 连接服务端
+	 *
+	 * @param host
+	 * @param port
+	 * @throws Exception
+	 */
+	@SuppressWarnings("resource")
+	public void connect(String host, int port) throws Exception {
 
-        try {
-            Bootstrap b = new Bootstrap();
-            b.group(workerGroup);
-            b.channel(NioSocketChannel.class);
-            b.option(ChannelOption.SO_KEEPALIVE, true);
-            b.handler(new ChannelInitializer<SocketChannel>() {
+		logger.info("Welcome");
 
-                @Override
-                public void initChannel(SocketChannel ch) throws Exception {
-                    ch.pipeline().addLast(new IdleStateHandler(10, 0, 0));
-                    ch.pipeline().addLast(new ClientIdleEventHandler());
-                    ch.pipeline().addLast(new ClientDemoInHandler());
-                }
-            });
+		IoEventHandleAdaptor eventHandleAdaptor = new IoEventHandleAdaptor() {
+			@Override
+			public void accept(SocketSession session, ReadFuture future) throws Exception {
+				FixedLengthReadFuture f = (FixedLengthReadFuture) future;
+				ByteBuf buf = f.getBuf();
+				writeToFile(buf);
+				CloseUtil.close(session);
+			}
+		};
 
-            // Start the client.
-            ChannelFuture f = b.connect(host, port).sync();
+		ServerConfiguration configuration = new ServerConfiguration(host, port);
 
-            // Wait until the connection is closed.
-            f.channel().closeFuture().sync();
-        } finally {
-            workerGroup.shutdownGracefully();
-        }
+		configuration.setSERVER_ENABLE_MEMORY_POOL(false);
 
-    }
+		SocketChannelContext context = new NioSocketChannelContext(configuration);
 
+		SocketChannelConnector connector = new SocketChannelConnector(context);
+
+		context.setIoEventHandleAdaptor(eventHandleAdaptor);
+
+		context.addSessionEventListener(new LoggerSocketSEListener());
+
+		context.setProtocolFactory(new FixedLengthProtocolFactory());
+
+		connector.connect();
+	}
+
+	private void writeToFile(ByteBuf buf) {
+		OutputStream outputStream = null;
+		try {
+			String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
+			RandomAccessFile raf;
+			raf = new RandomAccessFile(new File(fileName), "rw");
+			outputStream = new RAFOutputStream(raf);
+			outputStream.write(buf.array(), 4, buf.limit());
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+		}finally{
+			CloseUtil.close(outputStream);
+		}
+	}
 
 }

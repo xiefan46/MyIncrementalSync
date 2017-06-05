@@ -7,15 +7,23 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.alibaba.middleware.race.sync.util.RecordUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
+import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
 import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.util.RecordUtil;
+import com.generallycloud.baseio.common.CloseUtil;
+import com.generallycloud.baseio.component.ByteArrayBuffer;
+import com.generallycloud.baseio.component.SocketChannelContext;
+import com.generallycloud.baseio.component.SocketSession;
 
 /**
  * @author wangkai
@@ -92,9 +100,60 @@ public class MainThread implements Runnable {
 			}
 		}
 
+		String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
+
+		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 128);
+
+		writeToByteArrayBuffer(finalContext, byteArrayBuffer);
+
+		writeToFile(byteArrayBuffer, fileName);
+		
+		writeToClient(byteArrayBuffer);
+
 		//TODO send to client
 		//write to local file system for debug
-		writeToLocal(finalContext);
+		//		writeToLocal(finalContext);
+	}
+	
+	private void writeToClient(ByteArrayBuffer buffer){
+		
+		SocketChannelContext channelContext = Server.get().getSocketChannelContext();
+		
+		Map<Integer, SocketSession>  sessions = channelContext.getSessionManager().getManagedSessions();
+		
+		if (sessions.size() == 0) {
+			throw new RuntimeException("null client");
+		}
+		
+		SocketSession session = sessions.values().iterator().next();
+		
+		FixedLengthReadFuture future = new FixedLengthReadFutureImpl(channelContext);
+		
+		future.write(buffer.array(), 0, buffer.size());
+		
+		session.flush(future);
+	}
+
+	private void writeToByteArrayBuffer(Context context, ByteArrayBuffer buffer) {
+		//sort
+		TreeMap<Long, Record> finalResult = new TreeMap<>();
+		for (Map.Entry<Long, Record> entry : context.getRecords().entrySet()) {
+			finalResult.put(entry.getKey(), entry.getValue());
+		}
+		logger.debug("Final result size : {}", context.getRecords().size());
+		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 4);
+		StringBuilder sb = new StringBuilder(1024 * 1024);
+		for (Record r : finalResult.values()) {
+			RecordUtil.formatResultString(r,sb, array);
+			buffer.write(array.array(), 0, array.position());
+		}
+	}
+
+	private void writeToFile(ByteArrayBuffer buffer, String fileName) throws IOException {
+		RandomAccessFile file = new RandomAccessFile(new File(fileName), "rw");
+		RAFOutputStream outputStream = new RAFOutputStream(file);
+		outputStream.write(buffer.array(), 0, buffer.size());
+		CloseUtil.close(outputStream);
 	}
 
 	public void writeToLocal(Context context) throws Exception {
