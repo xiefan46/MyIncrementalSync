@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race.sync;
 
+import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.util.RecordUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -12,6 +14,7 @@ import util.MockDataUtil;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 /**
  * Created by xiefan on 6/4/17.
@@ -31,7 +34,7 @@ public class MainThreadTest {
 		cleanUpAll();
 	}
 
-//	@Ignore
+	//	@Ignore
 	@Test
 	public void createTestData() throws Exception {
 		cleanDir(dataDir);
@@ -64,6 +67,8 @@ public class MainThreadTest {
 		Thread t = new Thread(mainThread);
 		t.start();
 		t.join();
+		RecordUtil.writeResultToLocalFile(mainThread.getFinalContext(),
+				Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME);
 	}
 
 	@After

@@ -21,7 +21,11 @@ public class ReadRecordLogThread implements Runnable {
 	@Override
 	public void run() {
 		try {
+			long startTime = System.currentTimeMillis();
 			execute(context, context.getTableSchema(), context.getStartId(), context.getEndId());
+			logger.info("线程 {} 解析数据完成，用时 : {}. Context中Record数目 : {}",
+					Thread.currentThread().getId(), System.currentTimeMillis() - startTime,
+					context.getRecords().size());
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -46,11 +50,13 @@ public class ReadRecordLogThread implements Runnable {
 				continue;
 			}
 
-			logger.debug("Alter type : " + r.getAlterType());
-
-			if (r.getAlterType() == Record.INSERT) {
-				logger.debug("Receive insert record. PK : {}", r.getPrimaryColumn().getValue());
-			}
+			/*
+			 * logger.debug("Alter type : " + r.getAlterType());
+			 * 
+			 * if (r.getAlterType() == Record.INSERT) {
+			 * logger.debug("Receive insert record. PK : {}",
+			 * r.getPrimaryColumn().getValue()); }
+			 */
 
 			r.setTableSchema(tableSchema);
 

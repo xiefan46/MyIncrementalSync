@@ -25,6 +25,8 @@ import com.generallycloud.baseio.component.ByteArrayBuffer;
 import com.generallycloud.baseio.component.SocketChannelContext;
 import com.generallycloud.baseio.component.SocketSession;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author wangkai
  */
@@ -37,6 +39,8 @@ public class MainThread implements Runnable {
 	private String				table;
 	private long				startId;
 	private long				endId;
+
+	private Context			finalContext;
 
 	public MainThread(RecordLogReceiver receiver, String schema, String table, long startId,
 			long endId) {
@@ -58,7 +62,7 @@ public class MainThread implements Runnable {
 
 	public void startup(RecordLogReceiver receiver, String schema, String table, long startId,
 			long endId) throws Exception {
-
+		long startTime = System.currentTimeMillis();
 		String tableSchema = (schema + "|" + table);
 		File root = new File(Constants.DATA_HOME);
 		File[] files = root.listFiles();
@@ -75,12 +79,15 @@ public class MainThread implements Runnable {
 			contexts[i].initialize();
 			ts[i] = new Thread(new ReadRecordLogThread(contexts[i]));
 		}
+		logger.info("MainThread 初始化耗时 : {}", System.currentTimeMillis() - startTime);
+		startTime = System.currentTimeMillis();
 		for (int i = 0; i < ts.length; i++) {
 			ts[i].start();
 		}
 		for (int i = 0; i < ts.length; i++) {
 			ts[i].join();
 		}
+		logger.info("解析记录耗时 : {}", System.currentTimeMillis() - startTime);
 
 		// 倒序
 		//		Context finalContext = contexts[contexts.length - 1];
@@ -92,92 +99,22 @@ public class MainThread implements Runnable {
 		//		}
 
 		// 正序
-		Context finalContext = contexts[0];
+		startTime = System.currentTimeMillis();
+		finalContext = contexts[0];
 		for (int i = 1; i < channels.length; i++) {
 			Context c = contexts[i];
 			for (Record r : c.getRecords().values()) {
 				receiver.receivedFinal(finalContext, r);
 			}
 		}
+		logger.info("合并各个线程结果耗时 : {}. 记录总数 : {}", System.currentTimeMillis() - startTime,
+				finalContext.getRecords().size());
 
-		String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
-
-		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 128);
-
-		writeToByteArrayBuffer(finalContext, byteArrayBuffer);
-
-		writeToFile(byteArrayBuffer, fileName);
-		
-		writeToClient(byteArrayBuffer);
-
-		//TODO send to client
-		//write to local file system for debug
-		//		writeToLocal(finalContext);
-	}
-	
-	private void writeToClient(ByteArrayBuffer buffer){
-		
-		SocketChannelContext channelContext = Server.get().getSocketChannelContext();
-		
-		Map<Integer, SocketSession>  sessions = channelContext.getSessionManager().getManagedSessions();
-		
-		if (sessions.size() == 0) {
-			throw new RuntimeException("null client");
-		}
-		
-		SocketSession session = sessions.values().iterator().next();
-		
-		FixedLengthReadFuture future = new FixedLengthReadFutureImpl(channelContext);
-		
-		future.write(buffer.array(), 0, buffer.size());
-		
-		session.flush(future);
 	}
 
-	private void writeToByteArrayBuffer(Context context, ByteArrayBuffer buffer) {
-		//sort
-		TreeMap<Long, Record> finalResult = new TreeMap<>();
-		for (Map.Entry<Long, Record> entry : context.getRecords().entrySet()) {
-			finalResult.put(entry.getKey(), entry.getValue());
-		}
-		logger.debug("Final result size : {}", context.getRecords().size());
-		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 4);
-		StringBuilder sb = new StringBuilder(1024 * 1024);
-		for (Record r : finalResult.values()) {
-			RecordUtil.formatResultString(r,sb, array);
-			buffer.write(array.array(), 0, array.position());
-		}
-	}
-
-	private void writeToFile(ByteArrayBuffer buffer, String fileName) throws IOException {
-		RandomAccessFile file = new RandomAccessFile(new File(fileName), "rw");
-		RAFOutputStream outputStream = new RAFOutputStream(file);
-		outputStream.write(buffer.array(), 0, buffer.size());
-		CloseUtil.close(outputStream);
-	}
-
-	public void writeToLocal(Context context) throws Exception {
-		BufferedOutputStream bos = null;
-		try {
-			//sort
-			TreeMap<Long, Record> finalResult = new TreeMap<>();
-			bos = new BufferedOutputStream(new FileOutputStream(
-					Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME));
-			for (Map.Entry<Long, Record> entry : context.getRecords().entrySet()) {
-				finalResult.put(entry.getKey(), entry.getValue());
-			}
-			logger.debug("Final result size : {}", context.getRecords().size());
-			for (Map.Entry<Long, Record> entry : finalResult.entrySet()) {
-				String formatRecord = RecordUtil.formatResultString(entry.getValue());
-				logger.debug("Write result : {}", formatRecord);
-				formatRecord += "\n";
-				bos.write(formatRecord.getBytes());
-			}
-			bos.flush();
-		} finally {
-			if (bos != null)
-				bos.close();
-		}
+	public Context getFinalContext() {
+		checkNotNull(finalContext, "最终结果未计算完成");
+		return finalContext;
 	}
 
 	private ReadChannel[] initChannels(File root) throws IOException {
@@ -188,7 +125,8 @@ public class MainThread implements Runnable {
 			File f = files[i];
 			rcs[i] = new ReadChannel(f.getName(),
 					new BufferedInputStream(new FileInputStream(f)), 128 * 1024);
-			logger.info("File channel ok. File name : " + f.getName());
+			logger.info("File channel ok. File name : {}. File size : {} B", f.getName(),
+					f.length());
 		}
 		return rcs;
 	}
