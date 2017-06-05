@@ -9,8 +9,9 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class RecordUtil {
 
-    public String formatToResult(Record record) {
-        checkState(record.getAlterType() == Record.INSERT, "Fail to format result because of wrong alter type");
-        return null;
-    }
+	public String formatToResult(Record record) {
+		checkState(record.getAlterType() == Record.INSERT,
+				"Fail to format result because of wrong alter type");
+		return null;
+	}
 }

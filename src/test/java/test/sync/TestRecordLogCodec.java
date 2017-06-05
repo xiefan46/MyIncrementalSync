@@ -15,27 +15,27 @@ import org.junit.Test;
  */
 public class TestRecordLogCodec {
 
+	public static void main(String[] args) throws Exception {
 
-    public static void main(String[] args) throws Exception {
+		RandomAccessFile file = new RandomAccessFile(new File("D:/GIT/MyIncrementalSync/01.txt"),
+				"r");
 
-        RandomAccessFile file = new RandomAccessFile(new File("D:/GIT/MyIncrementalSync/01.txt"), "r");
+		RAFInputStream inputStream = new RAFInputStream(file);
 
-        RAFInputStream inputStream = new RAFInputStream(file);
+		ReadChannel channel = new ReadChannel("test", inputStream, 128);
 
-        ReadChannel channel = new ReadChannel("test", inputStream, 128);
+		ChannelReader reader = ChannelReader.get();
 
-        ChannelReader reader = ChannelReader.get();
+		byte[] cs = "test|user".getBytes();
 
-        byte[] cs = "test|user".getBytes();
+		for (; channel.hasRemaining();) {
 
-        for (; channel.hasRemaining(); ) {
+			Record r = reader.read(channel, cs, 0, 9999);
+			if (r == null) {
+				continue;
+			}
+			System.out.println(JSONObject.toJSONString(r));
+		}
 
-            Record r = reader.read(channel, cs, 0, 9999);
-            if (r == null) {
-                continue;
-            }
-            System.out.println(JSONObject.toJSONString(r));
-        }
-
-    }
+	}
 }

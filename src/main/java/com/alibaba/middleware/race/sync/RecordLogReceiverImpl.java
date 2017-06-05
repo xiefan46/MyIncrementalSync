@@ -13,48 +13,49 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class RecordLogReceiverImpl implements RecordLogReceiver {
 
-    @Override
-    public void received(Context context, Record record) throws Exception {
-        checkNotNull(record);
-        Map<Long, Record> records = context.getRecords();
-        checkState(record.getPrimaryColumn().isNumber(), "Primary key is not number type, please check");
-        updatePKIfNeeded(records, record);
-        long pk = (long) (record.getPrimaryColumn().getValue());
-        Record oldRecord = records.get(pk);
+	@Override
+	public void received(Context context, Record record) throws Exception {
+		checkNotNull(record);
+		Map<Long, Record> records = context.getRecords();
+		checkState(record.getPrimaryColumn().isNumber(),
+				"Primary key is not number type, please check");
+		updatePKIfNeeded(records, record);
+		long pk = (long) (record.getPrimaryColumn().getValue());
+		Record oldRecord = records.get(pk);
 
-        if (oldRecord == null) {
-            records.put(pk, record);
-        } else {
-            switch (record.getAlterType()) {
-                case Record.UPDATE:
-                    for (Column c : record.getColumns().values()) {
-                        oldRecord.addColumn(c);
-                    }
-                    break;
-                case Record.DELETE:
-                    records.remove(pk);
-                    break;
-                case Record.INSERT:
-                    throw new RuntimeException("Insert records with same primary key. PK : " + pk);
-            }
-        }
+		if (oldRecord == null) {
+			records.put(pk, record);
+		} else {
+			switch (record.getAlterType()) {
+			case Record.UPDATE:
+				for (Column c : record.getColumns().values()) {
+					oldRecord.addColumn(c);
+				}
+				break;
+			case Record.DELETE:
+				records.remove(pk);
+				break;
+			case Record.INSERT:
+				throw new RuntimeException("Insert records with same primary key. PK : " + pk);
+			}
+		}
 
-    }
+	}
 
-    @Override
-    public void receivedFinal(Context context, Record record) throws Exception {
-        received(context, record);
-    }
+	@Override
+	public void receivedFinal(Context context, Record record) throws Exception {
+		received(context, record);
+	}
 
-    private void updatePKIfNeeded(Map<Long, Record> records, Record record) {
-        if (record.isPKUpdate()) {  //主键变更的特殊情况
-            long pk = (long) (record.getPrimaryColumn().getBeforeValue());
-            Record oldRecord = records.get(pk);
-            oldRecord.setPrimaryColumn(record.getPrimaryColumn());
-            records.remove(pk);
-            long newPk = (long) (record.getPrimaryColumn().getValue());
-            records.put(newPk, oldRecord);
-        }
-    }
+	private void updatePKIfNeeded(Map<Long, Record> records, Record record) {
+		if (record.isPKUpdate()) { //主键变更的特殊情况
+			long pk = (long) (record.getPrimaryColumn().getBeforeValue());
+			Record oldRecord = records.get(pk);
+			oldRecord.setPrimaryColumn(record.getPrimaryColumn());
+			records.remove(pk);
+			long newPk = (long) (record.getPrimaryColumn().getValue());
+			records.put(newPk, oldRecord);
+		}
+	}
 
 }
