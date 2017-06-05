@@ -5,10 +5,10 @@ import java.io.RandomAccessFile;
 
 import com.alibaba.middleware.race.sync.ChannelReader;
 import com.alibaba.middleware.race.sync.Constants;
-import com.alibaba.middleware.race.sync.RAFInputStream;
 import com.alibaba.middleware.race.sync.ReadChannel;
 import com.alibaba.middleware.race.sync.SimpleReadChannel;
 import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.stream.RAFInputStream;
 
 /**
  * @author wangkai

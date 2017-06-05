@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.RAFOutputStream;
+import com.alibaba.middleware.race.sync.stream.RAFOutputStream;
 import com.alibaba.middleware.race.sync.model.Column;
 import com.alibaba.middleware.race.sync.model.Record;
 import com.generallycloud.baseio.common.CloseUtil;
