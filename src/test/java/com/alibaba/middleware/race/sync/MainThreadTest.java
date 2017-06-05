@@ -4,6 +4,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import com.generallycloud.baseio.common.FileUtil;
+
 import util.MockDataUtil;
 
 import java.io.BufferedOutputStream;
@@ -74,11 +77,11 @@ public class MainThreadTest {
 	}
 
 	private void cleanDir(File dir) throws Exception {
-		if (dir == null || !dir.exists())
+		if (dir.exists()) {
+			FileUtil.cleanDirectory(dir);
 			return;
-		for (File f : dir.listFiles()) {
-			f.deleteOnExit();
 		}
+		FileUtil.createDirectory(dir);
 	}
 
 }

@@ -16,7 +16,7 @@ public class PrimaryColumn extends Column {
 	}
 
 	public boolean IsPkChange() {
-		return getValue().equals(beforeValue) ? false : true;
+		return !getValue().equals(beforeValue);
 	}
 
 }

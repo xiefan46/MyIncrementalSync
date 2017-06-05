@@ -7,7 +7,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -85,10 +84,10 @@ public class MainThread implements Runnable {
 
 		// 正序
 		Context finalContext = contexts[0];
-		for (int i = 0; i < channels.length; i++) {
+		for (int i = 1; i < channels.length; i++) {
 			Context c = contexts[i];
 			for (Record r : c.getRecords().values()) {
-				receiver.received(finalContext, r);
+				receiver.receivedFinal(finalContext, r);
 			}
 		}
 
