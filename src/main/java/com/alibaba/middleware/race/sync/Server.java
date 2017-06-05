@@ -1,7 +1,20 @@
 package com.alibaba.middleware.race.sync;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.TreeMap;
 
+import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
+import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
+import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.util.RecordUtil;
+import com.generallycloud.baseio.common.CloseUtil;
+import com.generallycloud.baseio.component.ByteArrayBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,25 +32,25 @@ import com.generallycloud.baseio.protocol.ReadFuture;
  * 服务器类，负责push消息到client Created by wanshao on 2017/5/25.
  */
 public class Server {
-	
+
 	private static Server server = new Server();
-	
-	public static Server get(){
+
+	public static Server get() {
 		return server;
 	}
-	
-	private SocketChannelContext socketChannelContext;
-	
-	private static Logger logger = LoggerFactory.getLogger(Server.class);
-	
-	private MainThread mainThread;
+
+	private SocketChannelContext	socketChannelContext;
+
+	private static Logger		logger	= LoggerFactory.getLogger(Server.class);
+
+	private MainThread			mainThread;
 
 	public static void main(String[] args) throws Exception {
 		initProperties();
 
 		Server server = get();
 
-		server.startServer1(args,5527);
+		server.startServer1(args, 5527);
 
 		logger.info("com.alibaba.middleware.race.sync.Server is running....");
 	}
@@ -57,7 +70,7 @@ public class Server {
 	 * 上面表示，查询的schema为middleware，查询的表为student,主键的查询范围是(100,200)，注意是开区间
 	 * 对应DB的SQL为： select * from middleware.student where id>100 and id<200
 	 */
-	private void startServer1(String[] args,int port) throws IOException {
+	private void startServer1(String[] args, int port) throws Exception {
 		// 第一个参数是Schema Name
 		logger.info("tableSchema:" + args[0]);
 		// 第二个参数是Schema Name
@@ -66,7 +79,7 @@ public class Server {
 		logger.info("start:" + args[2]);
 		// 第四个参数是end pk Id
 		logger.info("end:" + args[3]);
-		
+
 		String schema = args[0];
 		String table = args[1];
 		long startId = Long.parseLong(args[2]);
@@ -90,24 +103,62 @@ public class Server {
 		SocketChannelAcceptor acceptor = new SocketChannelAcceptor(context);
 
 		context.addSessionEventListener(new LoggerSocketSEListener());
-		
+
 		context.setIoEventHandleAdaptor(eventHandleAdaptor);
 
 		context.setProtocolFactory(new FixedLengthProtocolFactory());
 
 		acceptor.bind();
-		
+
 		mainThread = new MainThread(new RecordLogReceiverImpl(), schema, table, startId, endId);
-		
-		new Thread(mainThread).start();
+
+		Thread t = new Thread(mainThread);
+
+		t.start();
+
+		t.join();
+
+		sendResultToClient(mainThread.getFinalContext());
 	}
-	
+
 	public MainThread getMainThread() {
 		return mainThread;
 	}
-	
+
 	public SocketChannelContext getSocketChannelContext() {
 		return socketChannelContext;
 	}
-	
+
+	private void sendResultToClient(Context finalContext) throws Exception {
+		long startTime = System.currentTimeMillis();
+
+		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 128);
+
+		RecordUtil.writeToByteArrayBuffer(finalContext, byteArrayBuffer);
+
+		writeToClient(byteArrayBuffer);
+
+		logger.info("传输结果文件到客户端耗时 : {}", System.currentTimeMillis() - startTime);
+	}
+
+	private void writeToClient(ByteArrayBuffer buffer) {
+
+		SocketChannelContext channelContext = Server.get().getSocketChannelContext();
+
+		Map<Integer, SocketSession> sessions = channelContext.getSessionManager()
+				.getManagedSessions();
+
+		if (sessions.size() == 0) {
+			throw new RuntimeException("null client");
+		}
+
+		SocketSession session = sessions.values().iterator().next();
+
+		FixedLengthReadFuture future = new FixedLengthReadFutureImpl(channelContext);
+
+		future.write(buffer.array(), 0, buffer.size());
+
+		session.flush(future);
+	}
+
 }

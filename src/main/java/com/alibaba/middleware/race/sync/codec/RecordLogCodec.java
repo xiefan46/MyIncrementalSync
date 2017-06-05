@@ -136,7 +136,7 @@ public class RecordLogCodec {
 					} else {
 						c.setValue(new String(data, off, end - off));
 					}
-					logger.debug("c value : " + c.getValue().toString());
+					//logger.debug("c value : " + c.getValue().toString());
 					if (!selected((long) c.getValue(), startId, endId)) {
 						return null;
 					}

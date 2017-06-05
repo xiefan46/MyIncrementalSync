@@ -58,8 +58,11 @@ public class Client {
 		IoEventHandleAdaptor eventHandleAdaptor = new IoEventHandleAdaptor() {
 			@Override
 			public void accept(SocketSession session, ReadFuture future) throws Exception {
+				long startTime = System.currentTimeMillis();
 				FixedLengthReadFuture f = (FixedLengthReadFuture) future;
 				ByteBuf buf = f.getBuf();
+				logger.info("客户端收到文件。文件传输所用时间：{}. ", System.currentTimeMillis() - startTime,
+						buf.limit());
 				writeToFile(buf);
 				CloseUtil.close(session);
 			}
@@ -91,8 +94,8 @@ public class Client {
 			outputStream = new RAFOutputStream(raf);
 			outputStream.write(buf.array(), 4, buf.limit());
 		} catch (Exception e) {
-			logger.error(e.getMessage(),e);
-		}finally{
+			logger.error(e.getMessage(), e);
+		} finally {
 			CloseUtil.close(outputStream);
 		}
 	}
