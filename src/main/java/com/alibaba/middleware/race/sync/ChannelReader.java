@@ -11,7 +11,14 @@ import com.generallycloud.baseio.buffer.ByteBuf;
  */
 public class ChannelReader {
 
-	private static ChannelReader channelReader = new ChannelReader();
+	private static ChannelReader	channelReader	= new ChannelReader();
+
+	//	private final int			HEAD_SKIP		= "000001:106|1489133349000|".length();
+
+	private final int			HEAD_SKIP		= "2d92db14-eefd-4180-b903-c648a01021c0|1422652823552|"
+			.length();
+
+	private final int			SCHEMA_SKIP	= HEAD_SKIP + 1;
 
 	public static ChannelReader get() {
 		return channelReader;
@@ -32,7 +39,6 @@ public class ChannelReader {
 			channel.read(buf);
 			return read(channel, tableSchema, startId, endId);
 		}
-
 		int end = findNextChar(readBuffer, offset, limit, '\n');
 		if (end == -1) {
 			if (!channel.hasRemaining()) {
@@ -41,11 +47,11 @@ public class ChannelReader {
 			channel.read(buf);
 			return read(channel, tableSchema, startId, endId);
 		}
-		buf.position(offset + end + 1);
-		if (!compare(readBuffer, offset + 25, tableSchema)) {
+		buf.position(end + 1);
+		if (!compare(readBuffer, offset + HEAD_SKIP, tableSchema)) {
 			return null;
 		}
-		return codec.decode(readBuffer, offset + 26 + tableSchema.length, end - 1, startId,
+		return codec.decode(readBuffer, offset + SCHEMA_SKIP + tableSchema.length, end - 1, startId,
 				endId);
 	}
 
@@ -59,7 +65,6 @@ public class ChannelReader {
 	}
 
 	private int findNextChar(byte[] data, int offset, int end, char c) {
-		System.out.println();
 		for (;;) {
 			if (data[offset] == c) {
 				return offset;

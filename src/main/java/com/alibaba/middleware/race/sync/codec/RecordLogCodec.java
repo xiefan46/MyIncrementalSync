@@ -154,7 +154,7 @@ public class RecordLogCodec {
 					c.setValue(new String(data, off, end - off));
 				}
 				off = end + 1;
-				if (off == last) {
+				if (off >= last) {
 					return r;
 				}
 			}
