@@ -80,7 +80,6 @@ public class MainThreadTest {
 		if (dir.exists()) {
 			FileUtil.cleanDirectory(dir);
 			return;
-
 		}
 		FileUtil.createDirectory(dir);
 	}

@@ -58,10 +58,10 @@ public class MockDataUtil {
 		return result;
 	}
 
-	public static String getUUID(int length) {
+	public static String getUUID() {
 		UUID uuid = UUID.randomUUID();
 		String str = uuid.toString();
-		return str.substring(0, length);
+		return str;
 	}
 
 	public static String mockInsertLog() throws Exception {
@@ -119,7 +119,7 @@ public class MockDataUtil {
 	private static String mockLogHeader() throws Exception {
 		StringBuilder sb = new StringBuilder();
 		sb.append(FIELD_SEPERATOR_1);
-		sb.append(getUUID(ID_LENGTH) + FIELD_SEPERATOR_1);
+		sb.append(getUUID() + FIELD_SEPERATOR_1);
 		sb.append(getRandomTime() + FIELD_SEPERATOR_1);
 		sb.append(UserRecord.SCHEMA + FIELD_SEPERATOR_1);
 		sb.append(UserRecord.TABLE);

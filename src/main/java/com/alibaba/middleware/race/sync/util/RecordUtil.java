@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.sync.util;
 
+import com.alibaba.middleware.race.sync.model.Column;
 import com.alibaba.middleware.race.sync.model.Record;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -9,9 +10,17 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class RecordUtil {
 
-	public String formatToResult(Record record) {
+	private static final String FIELD_SEPERATOR = "\t";
+
+	public static String formatResultString(Record record) {
 		checkState(record.getAlterType() == Record.INSERT,
 				"Fail to format result because of wrong alter type");
-		return null;
+		StringBuilder sb = new StringBuilder();
+		sb.append(record.getPrimaryColumn().getValue());
+		for (Column c : record.getColumns().values()) {
+			sb.append(FIELD_SEPERATOR);
+			sb.append(c.getValue());
+		}
+		return sb.toString();
 	}
 }

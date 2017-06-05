@@ -17,6 +17,7 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 	public void received(Context context, Record record) throws Exception {
 		checkNotNull(record);
 		Map<Long, Record> records = context.getRecords();
+		checkNotNull(record.getPrimaryColumn(), "Primary column can not be null");
 		checkState(record.getPrimaryColumn().isNumber(),
 				"Primary key is not number type, please check");
 		updatePKIfNeeded(records, record);
