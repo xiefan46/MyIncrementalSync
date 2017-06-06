@@ -1,5 +1,15 @@
 package util;
 
+import com.generallycloud.baseio.common.Logger;
+import com.generallycloud.baseio.common.LoggerFactory;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
@@ -13,6 +23,10 @@ import java.util.UUID;
  * schema ； middleware table : user field: id long, pk name str score long
  */
 public class MockDataUtil {
+
+	private static final Logger	logger			= LoggerFactory
+			.getLogger(MockDataUtil.class);
+
 	private static final long	seed				= 1234;
 
 	public static Random		rand				= new Random(seed);;
@@ -159,6 +173,40 @@ public class MockDataUtil {
 		public static String getScoreDesc() {
 			return SCORE + FIELD_SEPERATOR_2 + IS_NUMBER + FIELD_SEPERATOR_2 + NOT_PK;
 		}
+	}
+
+	/*
+	 * split single file into multi files
+	 */
+	public static void fileSplit(String inputFileName, String outputDir, int fileNum)
+			throws IOException {
+		File f = new File(inputFileName);
+		long length = f.length();
+		long avgLength = length / fileNum;
+		logger.info("total length : {}. avg length : {}", length, avgLength);
+		BufferedReader br = new BufferedReader(
+				new InputStreamReader(new FileInputStream(inputFileName)));
+		if (!outputDir.endsWith("/"))
+			outputDir += "/";
+		int i = 0;
+		long curLength = 0;
+		BufferedOutputStream bos = new BufferedOutputStream(
+				new FileOutputStream(outputDir + i + ".txt"));
+		String line = br.readLine();
+		while (line != null) {
+			byte[] bytes = (line + "\n").getBytes();
+			bos.write(bytes);
+			curLength += bytes.length;
+			if (curLength >= avgLength) {
+				i++;
+				curLength = 0;
+				bos.flush();
+				bos.close();
+				bos = new BufferedOutputStream(new FileOutputStream(outputDir + i + ".txt"));
+			}
+			line = br.readLine();
+		}
+
 	}
 
 }
