@@ -18,6 +18,8 @@ public class ReadRecordLogThread implements Runnable {
 		this.context = context;
 	}
 
+	private int count = 0;
+
 	@Override
 	public void run() {
 		try {
@@ -47,6 +49,7 @@ public class ReadRecordLogThread implements Runnable {
 			Record r = channelReader.read(channel, tableSchemaBytes, startId, endId);
 
 			if (r == null) {
+				//logger.debug("null r");
 				continue;
 			}
 
@@ -57,6 +60,12 @@ public class ReadRecordLogThread implements Runnable {
 			 * logger.debug("Receive insert record. PK : {}",
 			 * r.getPrimaryColumn().getValue()); }
 			 */
+			count++;
+
+			if (count % 100000 == 0) {
+				logger.info("Thread id : {}. Parse record num : {}",
+						Thread.currentThread().getId(), count);
+			}
 
 			r.setTableSchema(tableSchema);
 

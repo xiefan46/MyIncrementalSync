@@ -17,7 +17,7 @@ public class TestRecordLogCodec {
 
 	public static void main(String[] args) throws Exception {
 
-		RandomAccessFile file = new RandomAccessFile(new File("D:/GIT/MyIncrementalSync/01.txt"),
+		RandomAccessFile file = new RandomAccessFile(new File("/home/admin/canal_data/debug.txt"),
 				"r");
 
 		RAFInputStream inputStream = new RAFInputStream(file);
@@ -26,7 +26,7 @@ public class TestRecordLogCodec {
 
 		ChannelReader reader = ChannelReader.get();
 
-		byte[] cs = "test|user".getBytes();
+		byte[] cs = "middleware3|student".getBytes();
 
 		for (; channel.hasRemaining();) {
 

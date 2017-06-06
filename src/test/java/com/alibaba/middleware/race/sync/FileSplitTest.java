@@ -30,6 +30,6 @@ public class FileSplitTest {
 
 	@Test
 	public void test() throws IOException {
-		MockDataUtil.fileSplit(inputFilePath, outputDir, 10);
+		MockDataUtil.fileSplit(inputFilePath, outputDir, 1);
 	}
 }

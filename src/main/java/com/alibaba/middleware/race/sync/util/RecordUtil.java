@@ -35,8 +35,10 @@ public class RecordUtil {
 	private static final Logger	logger			= LoggerFactory.getLogger(RecordUtil.class);
 
 	public static String formatResultString(Record record) {
+
 		checkState(record.getAlterType() == Record.INSERT,
 				"Fail to format result because of wrong alter type");
+
 		StringBuilder sb = new StringBuilder();
 		sb.append(record.getPrimaryColumn().getValue());
 		for (Column c : record.getColumns().values()) {
@@ -46,22 +48,23 @@ public class RecordUtil {
 		return sb.toString();
 	}
 
-	/**
-	 * 
-	 * @param record
-	 * @param array
-	 * @param offset
-	 * @return new offset
-	 */
 	public static void formatResultString(Record record, StringBuilder sb, ByteBuffer buffer) {
-		checkState(record.getAlterType() == Record.INSERT,
-				"Fail to format result because of wrong alter type");
+		/*
+		 * checkState(record.getAlterType() == Record.INSERT,
+		 * "Fail to format result because of wrong alter type. Record : " +
+		 * JSONObject.toJSONString(record));
+		 */
+		if (record.getAlterType() != Record.INSERT) {
+			logger.info("Ignore this record because alter type is not insert");
+			return;
+		}
 		sb.setLength(0);
 		sb.append(record.getPrimaryColumn().getValue());
 		for (Column c : record.getColumns().values()) {
 			sb.append(FIELD_SEPERATOR);
 			sb.append(c.getValue());
 		}
+		sb.append("\n");
 		buffer.clear();
 		CoderResult cr = encoder.encode(CharBuffer.wrap(sb), buffer, true);
 		if (cr.isError()) {

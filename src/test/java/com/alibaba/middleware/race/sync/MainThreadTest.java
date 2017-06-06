@@ -1,20 +1,16 @@
 package com.alibaba.middleware.race.sync;
 
+import java.io.File;
+
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.middleware.race.sync.model.Record;
-import com.alibaba.middleware.race.sync.util.RecordUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.common.FileUtil;
-
-import util.MockDataUtil;
-
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 /**
  * Created by xiefan on 6/4/17.
@@ -34,41 +30,42 @@ public class MainThreadTest {
 		cleanUpAll();
 	}
 
-	//	@Ignore
-	@Test
-	public void createTestData() throws Exception {
-		cleanDir(dataDir);
-		for (int i = 0; i < fileNum; i++) {
-			BufferedOutputStream bos = null;
-			try {
-				bos = new BufferedOutputStream(
-						new FileOutputStream(Constants.DATA_HOME + "/" + i + ".txt"));
-				for (int j = 0; j < 10; j++) { //每个文件生成10条insert语句
-					String mockInsert = MockDataUtil.mockInsertLog();
-					mockInsert += '\n';
-					bos.write(mockInsert.getBytes());
-				}
-				bos.flush();
-			} finally {
-				if (bos != null)
-					bos.close();
-			}
-		}
-	}
+	/*
+	 * @Ignore
+	 * 
+	 * @Test public void createTestData() throws Exception { cleanDir(dataDir);
+	 * for (int i = 0; i < fileNum; i++) { BufferedOutputStream bos = null; try
+	 * { bos = new BufferedOutputStream( new
+	 * FileOutputStream(Constants.DATA_HOME + "/" + i + ".txt")); for (int j =
+	 * 0; j < 10; j++) { //每个文件生成10条insert语句 String mockInsert =
+	 * MockDataUtil.mockInsertLog(); mockInsert += '\n';
+	 * bos.write(mockInsert.getBytes()); } bos.flush(); } finally { if (bos !=
+	 * null) bos.close(); } } }
+	 */
 
+	@Ignore
 	@Test
 	public void testBasic() throws Exception {
 		RecordLogReceiver recordLogReceiver = new RecordLogReceiverImpl();
-		String schema = MockDataUtil.UserRecord.SCHEMA;
-		String table = MockDataUtil.UserRecord.TABLE;
+		String schema = "middleware3";
+		String table = "student";
 		long startId = 0;
 		long endId = Long.MAX_VALUE;
 		MainThread mainThread = new MainThread(recordLogReceiver, schema, table, startId, endId);
 		Thread t = new Thread(mainThread);
 		t.start();
 		t.join();
+
 		RecordUtil.writeResultToLocalFile(mainThread.getFinalContext(),
 				Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME);
+
+		/*
+		 * Context finalContext = mainThread.getFinalContext(); for (Record r
+		 * : finalContext.getRecords().values()) {
+		 * System.out.println(JSONObject.toJSONString(r)); if
+		 * (r.getAlterType() == Record.INSERT) {
+		 * System.out.println(RecordUtil.formatResultString(r)); } }
+		 */
 	}
 
 	@After
