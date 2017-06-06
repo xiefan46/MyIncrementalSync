@@ -53,16 +53,14 @@ public class Client {
 	@SuppressWarnings("resource")
 	public void connect(String host, int port) throws Exception {
 
-		logger.info("Welcome");
+		logger.info("Welcome,{}",System.currentTimeMillis());
 
 		IoEventHandleAdaptor eventHandleAdaptor = new IoEventHandleAdaptor() {
 			@Override
 			public void accept(SocketSession session, ReadFuture future) throws Exception {
-				long startTime = System.currentTimeMillis();
 				FixedLengthReadFuture f = (FixedLengthReadFuture) future;
 				ByteBuf buf = f.getBuf();
-				logger.info("客户端收到文件。文件传输所用时间：{}. ", System.currentTimeMillis() - startTime,
-						buf.limit());
+				logger.info("客户端收到文件。当前时间：{}. ", System.currentTimeMillis());
 				writeToFile(buf);
 				CloseUtil.close(session);
 			}
@@ -88,11 +86,12 @@ public class Client {
 	private void writeToFile(ByteBuf buf) {
 		OutputStream outputStream = null;
 		try {
+			long startTime = System.currentTimeMillis();
 			String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
-			RandomAccessFile raf;
-			raf = new RandomAccessFile(new File(fileName), "rw");
+			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
 			outputStream = new RAFOutputStream(raf);
-			outputStream.write(buf.array(), 4, buf.limit());
+			outputStream.write(buf.array(), 4, buf.limit() - 4);
+			logger.info("写结果文件到本地文件系统耗时 : {}", System.currentTimeMillis() - startTime);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		} finally {

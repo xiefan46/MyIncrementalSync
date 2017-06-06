@@ -23,6 +23,8 @@ public class ChannelReader {
 	public static ChannelReader get() {
 		return channelReader;
 	}
+	
+	private ChannelReader(){}
 
 	private RecordLogCodec codec = RecordLogCodec.get();
 

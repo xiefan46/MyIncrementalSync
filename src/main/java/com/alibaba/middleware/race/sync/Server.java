@@ -1,25 +1,16 @@
 package com.alibaba.middleware.race.sync;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.TreeMap;
 
-import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
-import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
-import com.alibaba.middleware.race.sync.model.Record;
-import com.alibaba.middleware.race.sync.util.RecordUtil;
-import com.generallycloud.baseio.common.CloseUtil;
-import com.generallycloud.baseio.component.ByteArrayBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
+import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
+import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
+import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.acceptor.SocketChannelAcceptor;
+import com.generallycloud.baseio.component.ByteArrayBuffer;
 import com.generallycloud.baseio.component.IoEventHandleAdaptor;
 import com.generallycloud.baseio.component.LoggerSocketSEListener;
 import com.generallycloud.baseio.component.NioSocketChannelContext;
@@ -47,12 +38,13 @@ public class Server {
 
 	public static void main(String[] args) throws Exception {
 		initProperties();
-
 		Server server = get();
-
-		server.startServer1(args, 5527);
-
-		logger.info("com.alibaba.middleware.race.sync.Server is running....");
+		try {
+			server.startServer1(args, 5527);
+			logger.info("com.alibaba.middleware.race.sync.Server is running....");
+		} catch (Throwable e) {
+			logger.error(e.getMessage(),e);
+		}
 	}
 
 	/**
@@ -130,15 +122,12 @@ public class Server {
 	}
 
 	private void sendResultToClient(Context finalContext) throws Exception {
-		long startTime = System.currentTimeMillis();
 
 		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 128);
 
 		RecordUtil.writeToByteArrayBuffer(finalContext, byteArrayBuffer);
 
 		writeToClient(byteArrayBuffer);
-
-		logger.info("传输结果文件到客户端耗时 : {}", System.currentTimeMillis() - startTime);
 	}
 
 	private void writeToClient(ByteArrayBuffer buffer) {
@@ -156,8 +145,12 @@ public class Server {
 
 		FixedLengthReadFuture future = new FixedLengthReadFutureImpl(channelContext);
 
+		//FIXME 如果文件比较大，直接发送该buf
+		
 		future.write(buffer.array(), 0, buffer.size());
 
+		logger.info("开始向客户端传送文件，当前时间：{}",System.currentTimeMillis());
+		
 		session.flush(future);
 	}
 

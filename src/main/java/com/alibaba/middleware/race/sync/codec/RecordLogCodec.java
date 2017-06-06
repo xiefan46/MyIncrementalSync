@@ -3,8 +3,6 @@ package com.alibaba.middleware.race.sync.codec;
 import com.alibaba.middleware.race.sync.model.Column;
 import com.alibaba.middleware.race.sync.model.PrimaryColumn;
 import com.alibaba.middleware.race.sync.model.Record;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author wangkai
@@ -12,14 +10,16 @@ import org.slf4j.LoggerFactory;
 public class RecordLogCodec {
 
 	private static RecordLogCodec	recordLogCodec	= new RecordLogCodec();
-
-	private final int			I_SKIP		= 6 + "NULL".length();
+	
+	private final int			U_D_SKIP		= "1:1|X".length();
+	
+	private final int			I_SKIP		= "1:1|NULL|X".length();
 
 	public static RecordLogCodec get() {
 		return recordLogCodec;
 	}
-
-	private static final Logger logger = LoggerFactory.getLogger(RecordLogCodec.class);
+	
+	private RecordLogCodec(){}
 
 	public Record decode(byte[] data, int offset, int last, long startId, long endId) {
 		Record r = new Record();
@@ -45,7 +45,7 @@ public class RecordLogCodec {
 					c.setPrimary(true);
 					c.setName(new String(data, off, end - off));
 					boolean isNumber = data[end + 1] == '1';
-					off = end + 5;
+					off = end + U_D_SKIP;
 					end = findNextChar(data, off, '|');
 					if (isNumber) {
 						c.setNumber(true);
@@ -73,7 +73,7 @@ public class RecordLogCodec {
 				c.setName(new String(data, off, end - off));
 				r.addColumn(c);
 				boolean isNumber = data[end + 1] == '1';
-				off = end + 5;
+				off = end + U_D_SKIP;
 				end = findNextChar(data, off, '|');
 				off = end + 1;
 				end = findNextChar(data, off, '|');
@@ -104,7 +104,7 @@ public class RecordLogCodec {
 			//				r.addColumn(c);
 			//			}
 			boolean isNumber = data[end + 1] == '1';
-			off = end + 5;
+			off = end + U_D_SKIP;
 			end = findNextChar(data, off, '|');
 			if (isNumber) {
 				c.setNumber(true);
