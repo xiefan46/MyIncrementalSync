@@ -26,7 +26,7 @@ public class MainThread implements Runnable {
 	private String				table;
 	private long				startId;
 	private long				endId;
-
+	private boolean			executeByCoreProcesses;
 	private Context			finalContext;
 
 	public MainThread(RecordLogReceiver receiver, String schema, String table, long startId,
@@ -57,9 +57,19 @@ public class MainThread implements Runnable {
 		if (!root.exists()) {
 			throw new FileNotFoundException(root.getAbsolutePath());
 		}
-		Context[] contexts = new Context[files.length];
-		Thread[] ts = new Thread[files.length];
-		ReadChannel[] channels = initChannels(root);
+		ReadChannel[] channels;
+		Thread[] ts;
+		Context[] contexts;
+		if (executeByCoreProcesses) {
+			int coreProcesses = Runtime.getRuntime().availableProcessors();
+			contexts = new Context[coreProcesses];
+			ts = new Thread[coreProcesses];
+			channels = initChannelsByCoreProcesses(root,coreProcesses);
+		}else{
+			contexts = new Context[files.length];
+			ts = new Thread[files.length];
+			channels = initChannelsByFiles(root,files.length);
+		}
 		logger.info("Thread num : {}", ts.length);
 		for (int i = 0; i < ts.length; i++) {
 			contexts[i] = new Context(channels[i], endId, receiver, startId, tableSchema);
@@ -98,24 +108,27 @@ public class MainThread implements Runnable {
 				finalContext.getRecords().size());
 
 	}
-
+	
 	public Context getFinalContext() {
 		checkNotNull(finalContext, "最终结果未计算完成");
 		return finalContext;
 	}
 
-	private ReadChannel[] initChannels(File root) throws IOException {
+	private ReadChannel[] initChannelsByFiles(File root,int size) throws IOException {
 		File[] files = root.listFiles();
 		ReadChannel[] rcs = new ReadChannel[files.length];
 		Arrays.sort(files);
 		for (int i = 0; i < files.length; i++) {
 			File f = files[i];
-			rcs[i] = new ReadChannel(f.getName(),
-					new BufferedInputStream(new FileInputStream(f)), 128 * 1024);
+			rcs[i] = new SimpleReadChannel(new BufferedInputStream(new FileInputStream(f)), 128 * 1024);
 			logger.info("File channel ok. File name : {}. File size : {} B", f.getName(),
 					f.length());
 		}
 		return rcs;
+	}
+	
+	private ReadChannel[] initChannelsByCoreProcesses(File root,int size) throws IOException {
+		return CompoundReadChannelSplitor.split(root, size);
 	}
 
 }

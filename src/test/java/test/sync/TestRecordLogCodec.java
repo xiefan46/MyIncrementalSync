@@ -7,8 +7,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.middleware.race.sync.ChannelReader;
 import com.alibaba.middleware.race.sync.RAFInputStream;
 import com.alibaba.middleware.race.sync.ReadChannel;
+import com.alibaba.middleware.race.sync.SimpleReadChannel;
 import com.alibaba.middleware.race.sync.model.Record;
-import org.junit.Test;
 
 /**
  * @author wangkai
@@ -22,7 +22,7 @@ public class TestRecordLogCodec {
 
 		RAFInputStream inputStream = new RAFInputStream(file);
 
-		ReadChannel channel = new ReadChannel("test", inputStream, 128);
+		ReadChannel channel = new SimpleReadChannel(inputStream, 128);
 
 		ChannelReader reader = ChannelReader.get();
 
