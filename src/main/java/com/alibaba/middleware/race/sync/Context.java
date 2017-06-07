@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.model.Statistics;
 
 /**
  * @author wangkai
@@ -16,6 +17,7 @@ public class Context {
 	private Map<Long, Record>	records	= new HashMap<>();
 	private long				startId;
 	private String				tableSchema;
+	private Statistics			stat;
 
 	public Context(ReadChannel channel, long endId, RecordLogReceiver receiver, long startId,
 			String tableSchema) {
@@ -24,6 +26,7 @@ public class Context {
 		this.receiver = receiver;
 		this.startId = startId;
 		this.tableSchema = tableSchema;
+		this.stat = new Statistics(startId, endId);
 	}
 
 	public ReadChannel getChannel() {
@@ -76,5 +79,9 @@ public class Context {
 
 	public void setStartId(long startId) {
 		this.startId = startId;
+	}
+
+	public Statistics getStat() {
+		return stat;
 	}
 }

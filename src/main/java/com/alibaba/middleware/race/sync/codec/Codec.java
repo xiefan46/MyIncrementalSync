@@ -27,7 +27,7 @@ public class Codec {
 		throw new UnsupportedOperationException();
 	}
 
-	public int encode(Record record) {
+	/*public int encode(Record record) {
 		byte[] array = this.array;
 		StringCache cache = StringCache.get();
 		byte[] cs = cache.getCache(record.getTableSchema());
@@ -42,7 +42,7 @@ public class Codec {
 			off = encode(c, array, off);
 		}
 		return off;
-	}
+	}*/
 
 	private int encode(Column c,byte [] array,int off) {
 		StringCache cache = StringCache.get();

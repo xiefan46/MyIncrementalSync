@@ -10,16 +10,17 @@ import com.alibaba.middleware.race.sync.model.Record;
 public class RecordLogCodec {
 
 	private static RecordLogCodec	recordLogCodec	= new RecordLogCodec();
-	
+
 	private final int			U_D_SKIP		= "1:1|X".length();
-	
+
 	private final int			I_SKIP		= "1:1|NULL|X".length();
 
 	public static RecordLogCodec get() {
 		return recordLogCodec;
 	}
-	
-	private RecordLogCodec(){}
+
+	private RecordLogCodec() {
+	}
 
 	public Record decode(byte[] data, int offset, int last) {
 		Record r = new Record();
@@ -38,11 +39,13 @@ public class RecordLogCodec {
 					c.setName(data, off, end - off);
 					off = end + U_D_SKIP;
 					end = findNextChar(data, off, '|');
+
 					c.setNumber(true);
 					c.setBeforeValue(parseLong(data, off, end));
 					off = end + 1;
 					end = findNextChar(data, off, '|');
-					c.setValue(data,off,end-off,parseLong(data, off, end));
+					c.setValue(data, off, end - off, parseLong(data, off, end));
+
 					off = end + 1;
 					if (off >= last) {
 						return r;
@@ -59,7 +62,7 @@ public class RecordLogCodec {
 				end = findNextChar(data, off, '|');
 				if (isNumber) {
 					c.setNumber(true);
-					c.setValue(data,off,end-off,parseLong(data, off, end));
+					c.setValue(data, off, end - off, parseLong(data, off, end));
 				} else {
 					c.setValue(data, off, end - off);
 				}
@@ -79,7 +82,8 @@ public class RecordLogCodec {
 			off = end + U_D_SKIP;
 			end = findNextChar(data, off, '|');
 			c.setNumber(true);
-			c.setValue(data,off,end-off,parseLong(data, off, end));
+			c.setValue(data, off, end - off, parseLong(data, off, end));
+
 			return r;
 		}
 
@@ -95,7 +99,8 @@ public class RecordLogCodec {
 					off = end + I_SKIP;
 					end = findNextChar(data, off, '|');
 					c.setNumber(true);
-					c.setValue(data,off,end-off,parseLong(data, off, end));
+					c.setValue(data, off, end - off, parseLong(data, off, end));
+
 					off = end + 1;
 					if (off >= last) {
 						return r;
@@ -110,7 +115,7 @@ public class RecordLogCodec {
 				end = findNextChar(data, off, '|');
 				if (isNumber) {
 					c.setNumber(true);
-					c.setValue(data,off,end-off,parseLong(data, off, end));
+					c.setValue(data, off, end - off, parseLong(data, off, end));
 				} else {
 					c.setValue(data, off, end - off);
 				}
