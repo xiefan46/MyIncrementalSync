@@ -96,13 +96,15 @@ public class MainThread implements Runnable {
 
 		// 正序
 		startTime = System.currentTimeMillis();
-		finalContext = contexts[0];
+		this.finalContext = contexts[0];
+		Context _finalContext = finalContext;
 		for (int i = 1; i < channels.length; i++) {
 			Context c = contexts[i];
 			for (Record r : c.getRecords().values()) {
-				receiver.receivedFinal(finalContext, r);
+				receiver.receivedFinal(_finalContext, r,startId,endId);
 			}
 		}
+		
 		logger.info("合并各个线程结果耗时 : {}. 记录总数 : {}", System.currentTimeMillis() - startTime,
 				finalContext.getRecords().size());
 
@@ -120,7 +122,7 @@ public class MainThread implements Runnable {
 		for (int i = 0; i < files.length; i++) {
 			File f = files[i];
 			RandomAccessFile raf = new RandomAccessFile(f, "r");
-			rcs[i] = new SimpleReadChannel(new RAFInputStream(raf), 128 * 1024);
+			rcs[i] = new SimpleReadChannel(new RAFInputStream(raf), 256 * 1024);
 			logger.info("File channel ok. File name : {}. File size : {} B", f.getName(),f.length());
 		}
 		return rcs;

@@ -21,7 +21,7 @@ public class RecordLogCodec {
 	
 	private RecordLogCodec(){}
 
-	public Record decode(byte[] data, int offset, int last, long startId, long endId) {
+	public Record decode(byte[] data, int offset, int last) {
 		Record r = new Record();
 		int off = offset;
 		int end;
@@ -43,10 +43,6 @@ public class RecordLogCodec {
 					off = end + 1;
 					end = findNextChar(data, off, '|');
 					c.setValue(data,off,end-off,parseLong(data, off, end));
-					if (!selected((long) c.getBeforeValue(), startId, endId)
-							|| !selected((long) c.getValue(), startId, endId)) {
-						return null;
-					}
 					off = end + 1;
 					if (off >= last) {
 						return r;
@@ -84,9 +80,6 @@ public class RecordLogCodec {
 			end = findNextChar(data, off, '|');
 			c.setNumber(true);
 			c.setValue(data,off,end-off,parseLong(data, off, end));
-			if (!selected((long) c.getValue(), startId, endId)) {
-				return null;
-			}
 			return r;
 		}
 
@@ -103,10 +96,6 @@ public class RecordLogCodec {
 					end = findNextChar(data, off, '|');
 					c.setNumber(true);
 					c.setValue(data,off,end-off,parseLong(data, off, end));
-					//logger.debug("c value : " + c.getValue().toString());
-					if (!selected((long) c.getValue(), startId, endId)) {
-						return null;
-					}
 					off = end + 1;
 					if (off >= last) {
 						return r;
@@ -149,10 +138,6 @@ public class RecordLogCodec {
 			all = all * 10 + (data[i] - 48);
 		}
 		return all;
-	}
-
-	private boolean selected(long id, long startId, long endId) {
-		return id > startId && id < endId;
 	}
 
 	public void initialize() {

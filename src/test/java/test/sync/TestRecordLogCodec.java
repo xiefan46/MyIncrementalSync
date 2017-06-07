@@ -3,7 +3,6 @@ package test.sync;
 import java.io.File;
 import java.io.RandomAccessFile;
 
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.middleware.race.sync.ChannelReader;
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.RAFInputStream;
@@ -37,7 +36,7 @@ public class TestRecordLogCodec {
 		
 		for (; channel.hasRemaining();) {
 			
-			Record r = reader.read(channel, cs, -1, Long.MAX_VALUE);
+			Record r = reader.read(channel, cs);
 			if (r == null) {
 				System.out.println("------------------");
 				continue;

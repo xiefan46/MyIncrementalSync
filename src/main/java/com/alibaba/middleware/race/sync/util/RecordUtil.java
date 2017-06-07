@@ -28,8 +28,10 @@ import com.generallycloud.baseio.component.ByteArrayBuffer;
  */
 public class RecordUtil {
 
-	private static final String	FIELD_SEPERATOR	= "\t";
-
+	private static final char	FIELD_SEPERATOR	= '\t';
+	
+	private static final byte FIELD_SEPERATOR_BYTE = '\t';
+	
 	private static CharsetEncoder	encoder			= Charset.defaultCharset().newEncoder();
 
 	private static final Logger	logger			= LoggerFactory.getLogger(RecordUtil.class);
@@ -46,13 +48,6 @@ public class RecordUtil {
 		return sb.toString();
 	}
 
-	/**
-	 * 
-	 * @param record
-	 * @param array
-	 * @param offset
-	 * @return new offset
-	 */
 	public static void formatResultString(Record record, StringBuilder sb, ByteBuffer buffer) {
 		checkState(record.getAlterType() == Record.INSERT,
 				"Fail to format result because of wrong alter type");
@@ -72,6 +67,17 @@ public class RecordUtil {
 			}
 		}
 		encoder.reset();
+	}
+	
+	public static void formatResultString(Record record, ByteBuffer buffer) {
+		checkState(record.getAlterType() == Record.INSERT,
+				"Fail to format result because of wrong alter type");
+		buffer.clear();
+		buffer.put(record.getPrimaryColumn().getValueBytes());
+		for (Column c : record.getColumns().values()) {
+			buffer.put(FIELD_SEPERATOR_BYTE);
+			buffer.put(c.getValueBytes());
+		}
 	}
 
 	public static void writeResultToLocalFile(Context finalContext, String fileName)
@@ -93,10 +99,9 @@ public class RecordUtil {
 		for (Map.Entry<Long, Record> entry : context.getRecords().entrySet()) {
 			finalResult.put(entry.getKey(), entry.getValue());
 		}
-		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 4);
-		StringBuilder sb = new StringBuilder(1024 * 1024);
+		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
 		for (Record r : finalResult.values()) {
-			RecordUtil.formatResultString(r, sb, array);
+			RecordUtil.formatResultString(r, array);
 			buffer.write(array.array(), 0, array.position());
 		}
 	}

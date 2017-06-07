@@ -13,22 +13,19 @@ public class ChannelReader {
 
 	private static ChannelReader	channelReader	= new ChannelReader();
 
-//	private final int			HEAD_SKIP		= "000001:106|1489133349000|".length();
-
-	private final int			HEAD_SKIP		= "|mysql-bin.00001717148759|1496736165000".length();
-
-//	private final int			SCHEMA_SKIP	= HEAD_SKIP + 1;
+	private final int			HEAD_SKIP		= "|mysql-bin.00001717148759|1496736165000"
+			.length();
 
 	public static ChannelReader get() {
 		return channelReader;
 	}
-	
-	private ChannelReader(){}
+
+	private ChannelReader() {
+	}
 
 	private RecordLogCodec codec = RecordLogCodec.get();
 
-	public Record read(ReadChannel channel, byte[] tableSchema, long startId, long endId)
-			throws IOException {
+	public Record read(ReadChannel channel, byte[] tableSchema) throws IOException {
 		ByteBuf buf = channel.getByteBuf();
 		byte[] readBuffer = buf.array();
 		int limit = buf.limit();
@@ -38,14 +35,14 @@ public class ChannelReader {
 				return null;
 			}
 			channel.read(buf);
-			return read(channel, tableSchema, startId, endId);
+			return read(channel, tableSchema);
 		}
 		if (limit - offset < HEAD_SKIP) {
 			if (!channel.hasRemaining()) {
 				return null;
 			}
 			channel.read(buf);
-			return read(channel, tableSchema, startId, endId);
+			return read(channel, tableSchema);
 		}
 		int skip = offset + HEAD_SKIP;
 		int end = findNextChar(readBuffer, skip, limit, '\n');
@@ -54,15 +51,14 @@ public class ChannelReader {
 				return null;
 			}
 			channel.read(buf);
-			return read(channel, tableSchema, startId, endId);
+			return read(channel, tableSchema);
 		}
 		buf.position(end + 1);
-		offset = findNextChar(readBuffer,skip, end, '|'); 
+		offset = findNextChar(readBuffer, skip, end, '|');
 		if (!compare(readBuffer, ++offset, tableSchema)) {
 			return null;
 		}
-		return codec.decode(readBuffer, offset + 1 + tableSchema.length, end - 1,
-				startId, endId);
+		return codec.decode(readBuffer, offset + 1 + tableSchema.length, end - 1);
 	}
 
 	private boolean compare(byte[] data, int offset, byte[] tableSchema) {

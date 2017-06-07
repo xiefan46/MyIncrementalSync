@@ -123,7 +123,7 @@ public class Server {
 
 	private void sendResultToClient(Context finalContext) throws Exception {
 
-		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 128);
+		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 1024);
 
 		RecordUtil.writeToByteArrayBuffer(finalContext, byteArrayBuffer);
 
