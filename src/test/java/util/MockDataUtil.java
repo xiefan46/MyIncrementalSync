@@ -152,9 +152,9 @@ public class MockDataUtil {
 
 		public static final String	SCORE	= "score";
 
-		public static final String	SCHEMA	= "middleware";
+		public static final String	SCHEMA	= "middleware3";
 
-		public static final String	TABLE	= "user";
+		public static final String	TABLE	= "student";
 
 		int						id;
 

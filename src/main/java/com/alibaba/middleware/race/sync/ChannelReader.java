@@ -13,12 +13,11 @@ public class ChannelReader {
 
 	private static ChannelReader	channelReader	= new ChannelReader();
 
-	//	private final int			HEAD_SKIP		= "000001:106|1489133349000|".length();
+//	private final int			HEAD_SKIP		= "000001:106|1489133349000|".length();
 
-	private final int			HEAD_SKIP		= "|4e3660bf-06f5-4dd7-bebf-a17131997d0e|1422652823552|"
-			.length();
+	private final int			HEAD_SKIP		= "|mysql-bin.00001717148759|1496736165000".length();
 
-	private final int			SCHEMA_SKIP	= HEAD_SKIP + 1;
+//	private final int			SCHEMA_SKIP	= HEAD_SKIP + 1;
 
 	public static ChannelReader get() {
 		return channelReader;
@@ -41,7 +40,15 @@ public class ChannelReader {
 			channel.read(buf);
 			return read(channel, tableSchema, startId, endId);
 		}
-		int end = findNextChar(readBuffer, offset, limit, '\n');
+		if (limit - offset < HEAD_SKIP) {
+			if (!channel.hasRemaining()) {
+				return null;
+			}
+			channel.read(buf);
+			return read(channel, tableSchema, startId, endId);
+		}
+		int skip = offset + HEAD_SKIP;
+		int end = findNextChar(readBuffer, skip, limit, '\n');
 		if (end == -1) {
 			if (!channel.hasRemaining()) {
 				return null;
@@ -50,10 +57,11 @@ public class ChannelReader {
 			return read(channel, tableSchema, startId, endId);
 		}
 		buf.position(end + 1);
-		if (!compare(readBuffer, offset + HEAD_SKIP, tableSchema)) {
+		offset = findNextChar(readBuffer,skip, end, '|'); 
+		if (!compare(readBuffer, ++offset, tableSchema)) {
 			return null;
 		}
-		return codec.decode(readBuffer, offset + SCHEMA_SKIP + tableSchema.length, end - 1,
+		return codec.decode(readBuffer, offset + 1 + tableSchema.length, end - 1,
 				startId, endId);
 	}
 
@@ -67,6 +75,9 @@ public class ChannelReader {
 	}
 
 	private int findNextChar(byte[] data, int offset, int end, char c) {
+		if (offset >= end) {
+			return -1;
+		}
 		for (;;) {
 			if (data[offset] == c) {
 				return offset;

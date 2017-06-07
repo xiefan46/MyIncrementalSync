@@ -2,11 +2,10 @@ package com.alibaba.middleware.race.sync;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -96,16 +95,16 @@ public class MainThread implements Runnable {
 		//		}
 
 		// 正序
-		startTime = System.currentTimeMillis();
-		finalContext = contexts[0];
-		for (int i = 1; i < channels.length; i++) {
-			Context c = contexts[i];
-			for (Record r : c.getRecords().values()) {
-				receiver.receivedFinal(finalContext, r);
-			}
-		}
-		logger.info("合并各个线程结果耗时 : {}. 记录总数 : {}", System.currentTimeMillis() - startTime,
-				finalContext.getRecords().size());
+//		startTime = System.currentTimeMillis();
+//		finalContext = contexts[0];
+//		for (int i = 1; i < channels.length; i++) {
+//			Context c = contexts[i];
+//			for (Record r : c.getRecords().values()) {
+//				receiver.receivedFinal(finalContext, r);
+//			}
+//		}
+//		logger.info("合并各个线程结果耗时 : {}. 记录总数 : {}", System.currentTimeMillis() - startTime,
+//				finalContext.getRecords().size());
 
 	}
 	
@@ -120,9 +119,9 @@ public class MainThread implements Runnable {
 		Arrays.sort(files);
 		for (int i = 0; i < files.length; i++) {
 			File f = files[i];
-			rcs[i] = new SimpleReadChannel(new BufferedInputStream(new FileInputStream(f)), 128 * 1024);
-			logger.info("File channel ok. File name : {}. File size : {} B", f.getName(),
-					f.length());
+			RandomAccessFile raf = new RandomAccessFile(f, "r");
+			rcs[i] = new SimpleReadChannel(new RAFInputStream(raf), 128 * 1024);
+			logger.info("File channel ok. File name : {}. File size : {} B", f.getName(),f.length());
 		}
 		return rcs;
 	}

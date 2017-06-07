@@ -43,7 +43,7 @@ public class RecordLogCodec {
 					PrimaryColumn c = new PrimaryColumn();
 					r.setPrimaryColumn(c);
 					c.setPrimary(true);
-					c.setName(new String(data, off, end - off));
+					c.setName(data, off, end - off);
 					boolean isNumber = data[end + 1] == '1';
 					off = end + U_D_SKIP;
 					end = findNextChar(data, off, '|');
@@ -64,13 +64,13 @@ public class RecordLogCodec {
 						return null;
 					}
 					off = end + 1;
-					if (off == last) {
+					if (off >= last) {
 						return r;
 					}
 					continue;
 				}
 				Column c = new Column();
-				c.setName(new String(data, off, end - off));
+				c.setName(data, off, end - off);
 				r.addColumn(c);
 				boolean isNumber = data[end + 1] == '1';
 				off = end + U_D_SKIP;
@@ -81,10 +81,10 @@ public class RecordLogCodec {
 					c.setNumber(true);
 					c.setValue(parseLong(data, off, end));
 				} else {
-					c.setValue(new String(data, off, end - off));
+					c.setValue(data, off, end - off);
 				}
 				off = end + 1;
-				if (off == last) {
+				if (off >= last) {
 					return r;
 				}
 			}
@@ -93,7 +93,7 @@ public class RecordLogCodec {
 		if (Record.DELETE == r.getAlterType()) {
 			end = findNextChar(data, off, ':');
 			PrimaryColumn c = new PrimaryColumn();
-			c.setName(new String(data, off, end - off));
+			c.setName(data, off, end - off);
 			r.setPrimaryColumn(c);
 			c.setPrimary(true);
 
@@ -110,7 +110,7 @@ public class RecordLogCodec {
 				c.setNumber(true);
 				c.setValue(parseLong(data, off, end));
 			} else {
-				c.setValue(new String(data, off, end - off));
+				c.setValue(data, off, end - off);
 			}
 			if (!selected((long) c.getValue(), startId, endId)) {
 				return null;
@@ -125,7 +125,7 @@ public class RecordLogCodec {
 				if (data[end + 3] == '1') {
 					PrimaryColumn c = new PrimaryColumn();
 					r.setPrimaryColumn(c);
-					c.setName(new String(data, off, end - off));
+					c.setName(data, off, end - off);
 					c.setPrimary(true);
 					boolean isNumber = data[end + 1] == '1';
 					off = end + I_SKIP;
@@ -134,20 +134,20 @@ public class RecordLogCodec {
 						c.setNumber(true);
 						c.setValue(parseLong(data, off, end));
 					} else {
-						c.setValue(new String(data, off, end - off));
+						c.setValue(data, off, end - off);
 					}
 					//logger.debug("c value : " + c.getValue().toString());
 					if (!selected((long) c.getValue(), startId, endId)) {
 						return null;
 					}
 					off = end + 1;
-					if (off == last) {
+					if (off >= last) {
 						return r;
 					}
 					continue;
 				}
 				Column c = new Column();
-				c.setName(new String(data, off, end - off));
+				c.setName(data, off, end - off);
 				r.addColumn(c);
 				boolean isNumber = data[end + 1] == '1';
 				off = end + I_SKIP;
@@ -156,7 +156,7 @@ public class RecordLogCodec {
 					c.setNumber(true);
 					c.setValue(parseLong(data, off, end));
 				} else {
-					c.setValue(new String(data, off, end - off));
+					c.setValue(data, off, end - off);
 				}
 				off = end + 1;
 				if (off >= last) {
