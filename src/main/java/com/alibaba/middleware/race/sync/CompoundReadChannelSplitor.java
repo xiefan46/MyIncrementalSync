@@ -15,16 +15,24 @@ import com.generallycloud.baseio.buffer.ByteBuf;
  */
 public class CompoundReadChannelSplitor {
 
+	private static long filesLength(File [] fs){
+		long all = 0;
+		for(File f : fs){
+			all += f.length();
+		}
+		return all;
+	}
+	
 	public static CompoundReadChannel [] split(File root,int size) throws IOException{
 		File[] fs = root.listFiles();
 		FilesManager manager = createFilesManager(fs);
-		long all = root.length();
+		long all = filesLength(fs);
 		long unit = all / size;
 		long remainder = all % size;
 		CompoundReadChannel [] cs = new CompoundReadChannel[size];
 		for (int i = 0,csAll = cs.length -1; i < csAll; i++) {
 			List<InputStream> inputStreams = selectInputStreams(manager, unit);
-			cs[i] = new CompoundReadChannel(inputStreams, 1024 * 128 , unit); 
+			cs[i] = new CompoundReadChannel(inputStreams, 1024 * 1024 * 1 , unit); 
 			if (i == 0) {
 				continue;
 			}
@@ -46,8 +54,8 @@ public class CompoundReadChannelSplitor {
 				throw new IOException("too big nnnnnn...");
 			}
 			buf.position(off+1);
-			byte [] tail = new byte[off];
-			System.arraycopy(buf.array(), 0, tail, 0, off);
+			byte [] tail = new byte[buf.position()];
+			System.arraycopy(buf.array(), 0, tail, 0, buf.position());
 			cs[i-1].setTail(tail);
 		}
 	}

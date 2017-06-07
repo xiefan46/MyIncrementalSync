@@ -15,10 +15,11 @@ public class ByteBufUtil {
 		return read(buf, inputStream, buf.capacity());
 	}
 
-	public static int read(ByteBuf buf,InputStream inputStream,int limit) throws IOException{
+	public static int read(ByteBuf buf,InputStream inputStream,long limit) throws IOException{
 		byte [] array = buf.array();
 		if (!buf.hasRemaining()) {
-			int len = inputStream.read(array,0,limit);
+			int read = (int)Math.min(limit, buf.capacity());
+			int len = inputStream.read(array,0,read);
 			if (len > 0) {
 				buf.position(0);
 				buf.limit(len);
@@ -29,7 +30,8 @@ public class ByteBufUtil {
 		System.arraycopy(array, buf.position(), array, 0, remaining);
 		buf.position(0);
 		buf.limit(remaining);
-		int len = inputStream.read(array,remaining,limit - remaining);
+		int read = (int)Math.min(limit, buf.capacity() - remaining);
+		int len = inputStream.read(array,remaining,read);
 		if (len > 0) {
 			buf.limit(remaining + len);
 		}

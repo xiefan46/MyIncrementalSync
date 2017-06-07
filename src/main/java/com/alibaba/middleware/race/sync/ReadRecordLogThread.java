@@ -41,6 +41,8 @@ public class ReadRecordLogThread implements Runnable {
 		ReadChannel channel = context.getChannel();
 
 		RecordLogReceiver recordLogReceiver = context.getReceiver();
+		
+		int all = 0;
 
 		for (; channel.hasRemaining();) {
 
@@ -50,6 +52,8 @@ public class ReadRecordLogThread implements Runnable {
 				continue;
 			}
 
+			all ++;
+			
 			/*
 			 * logger.debug("Alter type : " + r.getAlterType());
 			 * 
@@ -62,6 +66,8 @@ public class ReadRecordLogThread implements Runnable {
 
 			recordLogReceiver.received(context, r);
 		}
+		
+		logger.info("lines:{}",all);
 	}
 
 }

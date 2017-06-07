@@ -18,13 +18,14 @@ public class TestRecordLogCodec {
 
 	public static void main(String[] args) throws Exception {
 
-		File file = new File(Constants.DATA_HOME+"/canal.txt");
+//		File file = new File(Constants.DATA_HOME+"/9.txt");
+		File file = new File(Constants.TESTER_HOME+"/canal.txt");
 		
 		RandomAccessFile raf = new RandomAccessFile(file,"r");
 
 		RAFInputStream inputStream = new RAFInputStream(raf);
 
-		ReadChannel channel = new SimpleReadChannel(inputStream, 1024 * 128);
+		ReadChannel channel = new SimpleReadChannel(inputStream, 1024 * 1024 * 1);
 
 		ChannelReader reader = ChannelReader.get();
 
@@ -35,9 +36,10 @@ public class TestRecordLogCodec {
 		long old = System.currentTimeMillis();
 		
 		for (; channel.hasRemaining();) {
-
-			Record r = reader.read(channel, cs, 0, Long.MAX_VALUE);
+			
+			Record r = reader.read(channel, cs, -1, Long.MAX_VALUE);
 			if (r == null) {
+				System.out.println("------------------");
 				continue;
 			}
 			all++;
