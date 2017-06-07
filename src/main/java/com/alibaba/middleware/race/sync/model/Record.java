@@ -25,7 +25,7 @@ public class Record {
 	//	private String			table;
 
 	// 数据变更对应的库名-表名
-	private String				tableSchema;
+	//private String				tableSchema;
 	//  I(1)代表insert, U(2)代表update, D(0)代表delete
 	private byte				alterType;
 	// 该记录的列信息
@@ -71,14 +71,6 @@ public class Record {
 
 	public void setPrimaryColumn(PrimaryColumn primaryColumn) {
 		this.primaryColumn = primaryColumn;
-	}
-
-	public String getTableSchema() {
-		return tableSchema;
-	}
-
-	public void setTableSchema(String tableSchema) {
-		this.tableSchema = tableSchema;
 	}
 
 	public boolean isPKUpdate() {

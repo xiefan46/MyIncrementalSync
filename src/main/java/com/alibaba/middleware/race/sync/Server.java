@@ -3,11 +3,11 @@ package com.alibaba.middleware.race.sync;
 import java.util.Map;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
+import com.alibaba.middleware.race.sync.util.LoggerUtil;
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.acceptor.SocketChannelAcceptor;
 import com.generallycloud.baseio.component.ByteArrayBuffer;
@@ -32,7 +32,7 @@ public class Server {
 
 	private SocketChannelContext	socketChannelContext;
 
-	private static Logger		logger	= LoggerFactory.getLogger(Server.class);
+	private static Logger		logger	= LoggerUtil.getServerLogger();
 
 	private MainThread			mainThread;
 
@@ -40,10 +40,13 @@ public class Server {
 		initProperties();
 		Server server = get();
 		try {
+			logger.info("---------------start server----------------");
+			logger.info("---------------start server----------------");
+			logger.info("---------------start server----------------");
 			server.startServer1(args, 5527);
 			logger.info("com.alibaba.middleware.race.sync.Server is running....");
 		} catch (Throwable e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 		}
 	}
 
@@ -63,6 +66,7 @@ public class Server {
 	 * 对应DB的SQL为： select * from middleware.student where id>100 and id<200
 	 */
 	private void startServer1(String[] args, int port) throws Exception {
+		System.out.println("My server start.");
 		// 第一个参数是Schema Name
 		logger.info("tableSchema:" + args[0]);
 		// 第二个参数是Schema Name
@@ -110,7 +114,7 @@ public class Server {
 
 		t.join();
 
-		sendResultToClient(mainThread.getFinalContext());
+		//sendResultToClient(mainThread.getFinalContext());
 	}
 
 	public MainThread getMainThread() {
@@ -146,11 +150,11 @@ public class Server {
 		FixedLengthReadFuture future = new FixedLengthReadFutureImpl(channelContext);
 
 		//FIXME 如果文件比较大，直接发送该buf
-		
+
 		future.write(buffer.array(), 0, buffer.size());
 
-		logger.info("开始向客户端传送文件，当前时间：{}",System.currentTimeMillis());
-		
+		logger.info("开始向客户端传送文件，当前时间：{}", System.currentTimeMillis());
+
 		session.flush(future);
 	}
 

@@ -25,8 +25,6 @@ import com.generallycloud.baseio.component.ByteArrayBuffer;
  */
 public class RecordUtil {
 
-	private static final char	FIELD_SEPERATOR		= '\t';
-
 	private static final byte	FIELD_SEPERATOR_BYTE	= '\t';
 
 	private static final byte	RECORD_SEPERATOR_BYTE	= '\n';
@@ -35,8 +33,6 @@ public class RecordUtil {
 
 	private static final Logger	logger				= LoggerFactory
 			.getLogger(RecordUtil.class);
-
-
 
 	public static void formatResultString(Record record, ByteBuffer buffer) {
 		checkState(record.getAlterType() == Record.INSERT,
@@ -85,37 +81,24 @@ public class RecordUtil {
 		CloseUtil.close(outputStream);
 	}
 
-	/*public static String formatResultString(Record record) {
-		checkState(record.getAlterType() == Record.INSERT,
-				"Fail to format result because of wrong alter type");
-		StringBuilder sb = new StringBuilder();
-		sb.append(record.getPrimaryColumn().getValue());
-		for (Column c : record.getColumns().values()) {
-			sb.append(FIELD_SEPERATOR);
-			sb.append(c.getValue());
-		}
-		return sb.toString();
-	}
-
-	public static void formatResultString(Record record, StringBuilder sb, ByteBuffer buffer) {
-		checkState(record.getAlterType() == Record.INSERT,
-				"Fail to format result because of wrong alter type");
-		sb.setLength(0);
-		sb.append(record.getPrimaryColumn().getValue());
-		for (Column c : record.getColumns().values()) {
-			sb.append(FIELD_SEPERATOR);
-			sb.append(c.getValue());
-		}
-		buffer.clear();
-		CoderResult cr = encoder.encode(CharBuffer.wrap(sb), buffer, true);
-		if (cr.isError()) {
-			try {
-				cr.throwException();
-			} catch (CharacterCodingException ex) {
-				throw new RuntimeException(ex);
-			}
-		}
-		encoder.reset();
-	}*/
+	/*
+	 * public static String formatResultString(Record record) {
+	 * checkState(record.getAlterType() == Record.INSERT,
+	 * "Fail to format result because of wrong alter type"); StringBuilder sb =
+	 * new StringBuilder(); sb.append(record.getPrimaryColumn().getValue());
+	 * for (Column c : record.getColumns().values()) {
+	 * sb.append(FIELD_SEPERATOR); sb.append(c.getValue()); } return
+	 * sb.toString(); }
+	 * 
+	 * public static void formatResultString(Record record, StringBuilder sb,
+	 * ByteBuffer buffer) { checkState(record.getAlterType() == Record.INSERT,
+	 * "Fail to format result because of wrong alter type"); sb.setLength(0);
+	 * sb.append(record.getPrimaryColumn().getValue()); for (Column c :
+	 * record.getColumns().values()) { sb.append(FIELD_SEPERATOR);
+	 * sb.append(c.getValue()); } buffer.clear(); CoderResult cr =
+	 * encoder.encode(CharBuffer.wrap(sb), buffer, true); if (cr.isError()) {
+	 * try { cr.throwException(); } catch (CharacterCodingException ex) { throw
+	 * new RuntimeException(ex); } } encoder.reset(); }
+	 */
 
 }

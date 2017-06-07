@@ -26,7 +26,7 @@ import com.generallycloud.baseio.protocol.ReadFuture;
  */
 public class Client {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private static final Logger logger = LoggerFactory.getLogger(Client.class);
 
 	public static void main(String[] args) throws Exception {
 		initProperties();
@@ -54,7 +54,7 @@ public class Client {
 	@SuppressWarnings("resource")
 	public void connect(String host, int port) throws Exception {
 
-		logger.info("Welcome,{}",System.currentTimeMillis());
+		logger.info("Welcome,{}", System.currentTimeMillis());
 
 		IoEventHandleAdaptor eventHandleAdaptor = new IoEventHandleAdaptor() {
 			@Override
