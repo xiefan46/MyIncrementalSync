@@ -25,7 +25,7 @@ public class MainThread implements Runnable {
 	private String				table;
 	private long				startId;
 	private long				endId;
-	private boolean			executeByCoreProcesses;
+	private boolean			executeByCoreProcesses = false;
 	private Context			finalContext;
 
 	public MainThread(RecordLogReceiver receiver, String schema, String table, long startId,
@@ -95,16 +95,18 @@ public class MainThread implements Runnable {
 		//		}
 
 		// 正序
-//		startTime = System.currentTimeMillis();
-//		finalContext = contexts[0];
-//		for (int i = 1; i < channels.length; i++) {
-//			Context c = contexts[i];
-//			for (Record r : c.getRecords().values()) {
-//				receiver.receivedFinal(finalContext, r);
-//			}
-//		}
-//		logger.info("合并各个线程结果耗时 : {}. 记录总数 : {}", System.currentTimeMillis() - startTime,
-//				finalContext.getRecords().size());
+		startTime = System.currentTimeMillis();
+		this.finalContext = contexts[0];
+		Context _finalContext = finalContext;
+		for (int i = 1; i < channels.length; i++) {
+			Context c = contexts[i];
+			for (Record r : c.getRecords().values()) {
+				receiver.receivedFinal(_finalContext, r,startId,endId);
+			}
+		}
+		
+		logger.info("合并各个线程结果耗时 : {}. 记录总数 : {}", System.currentTimeMillis() - startTime,
+				finalContext.getRecords().size());
 
 	}
 	
@@ -120,7 +122,7 @@ public class MainThread implements Runnable {
 		for (int i = 0; i < files.length; i++) {
 			File f = files[i];
 			RandomAccessFile raf = new RandomAccessFile(f, "r");
-			rcs[i] = new SimpleReadChannel(new RAFInputStream(raf), 128 * 1024);
+			rcs[i] = new SimpleReadChannel(new RAFInputStream(raf), 256 * 1024);
 			logger.info("File channel ok. File name : {}. File size : {} B", f.getName(),f.length());
 		}
 		return rcs;

@@ -1,6 +1,5 @@
 package com.alibaba.middleware.race.sync.model;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 

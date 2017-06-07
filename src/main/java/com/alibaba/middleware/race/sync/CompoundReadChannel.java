@@ -22,9 +22,7 @@ public class CompoundReadChannel extends ReadChannel {
 
 	private boolean			hasRemaining		= true;
 
-	private boolean			hasTailRemaining	= true;
-
-	private CompoundReadChannel	lastChannel;
+	private boolean			hasTailRemaining;
 
 	private ByteArrayInputStream	tail;
 
@@ -42,16 +40,15 @@ public class CompoundReadChannel extends ReadChannel {
 			if (!hasTailRemaining) {
 				return -1;
 			}
-			int len = ByteBufUtil.read(buf, tail);
-			if (len == -1) {
+			int len = ByteBufUtil.read(buf, tail,tail.available());
+			if (len < 1) {
 				hasTailRemaining = false;
 				return -1;
 			}
 			return len;
 		}
-		int read = (int) Math.min(remaining, buf.capacity());
-		int len = ByteBufUtil.read(buf, current, read);
-		if (len == -1) {
+		int len = ByteBufUtil.read(buf, current, remaining);
+		if (len < 1) {
 			if (currentIndex == inputStreams.size()) {
 				hasRemaining = false;
 				return read(buf);
@@ -71,7 +68,7 @@ public class CompoundReadChannel extends ReadChannel {
 	}
 
 	public boolean hasRemaining() {
-		return hasRemaining;
+		return hasRemaining || hasTailRemaining;
 	}
 
 	@Override
@@ -81,14 +78,7 @@ public class CompoundReadChannel extends ReadChannel {
 
 	public void setTail(byte[] tail) {
 		this.tail = new ByteArrayInputStream(tail);
-	}
-
-	public CompoundReadChannel getLastChannel() {
-		return lastChannel;
-	}
-
-	public void setLastChannel(CompoundReadChannel lastChannel) {
-		this.lastChannel = lastChannel;
+		this.hasTailRemaining = true;
 	}
 
 }

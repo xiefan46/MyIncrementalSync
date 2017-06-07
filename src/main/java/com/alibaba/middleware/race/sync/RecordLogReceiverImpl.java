@@ -14,7 +14,7 @@ import static com.google.common.base.Preconditions.checkState;
 public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	@Override
-	public void received(Context context, Record record) throws Exception {
+	public void received(Context context, Record record,long startId,long endId) throws Exception {
 		checkNotNull(record);
 		Map<Long, Record> records = context.getRecords();
 		checkNotNull(record.getPrimaryColumn(), "Primary column can not be null");
@@ -44,8 +44,8 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 	}
 
 	@Override
-	public void receivedFinal(Context context, Record record) throws Exception {
-		received(context, record);
+	public void receivedFinal(Context context, Record record,long startId,long endId) throws Exception {
+		received(context, record,startId,endId);
 	}
 
 	private void updatePKIfNeeded(Map<Long, Record> records, Record record) {

@@ -70,7 +70,8 @@ public class Column {
 		this.valueBytes = array;
 	}
 
-	public void setValue(Object value) {
+	public void setValue(byte [] bytes,int off,int len,long value) {
+		this.setValue(bytes, off, len);
 		this.value = value;
 	}
 
