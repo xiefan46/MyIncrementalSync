@@ -34,7 +34,7 @@ public class MainThreadTest {
 		cleanUpAll();
 	}
 
-	//	@Ignore
+	@Ignore
 	@Test
 	public void createTestData() throws Exception {
 		cleanDir(dataDir);
@@ -59,8 +59,8 @@ public class MainThreadTest {
 	@Test
 	public void testBasic() throws Exception {
 		RecordLogReceiver recordLogReceiver = new RecordLogReceiverImpl();
-		String schema = MockDataUtil.UserRecord.SCHEMA;
-		String table = MockDataUtil.UserRecord.TABLE;
+		String schema = "middleware3";
+		String table = "student";
 		long startId = 0;
 		long endId = Long.MAX_VALUE;
 		MainThread mainThread = new MainThread(recordLogReceiver, schema, table, startId, endId);

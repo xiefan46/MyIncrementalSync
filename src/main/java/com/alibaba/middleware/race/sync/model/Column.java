@@ -17,13 +17,22 @@ public class Column {
 	private byte				flag;
 	// 列值
 	private Object				value;
+	
+	private byte []			nameBytes;
+	
+	private byte []			valueBytes;
 
 	public String getName() {
+		if (name == null) {
+			name = new String(nameBytes);
+		}
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setName(byte [] bytes,int off,int len) {
+		byte [] array = new byte[len];
+		System.arraycopy(bytes, off, array, 0, len);
+		this.nameBytes = array;
 	}
 
 	public boolean isNumber() {
@@ -47,7 +56,18 @@ public class Column {
 	}
 
 	public Object getValue() {
+		if (!isNumber()) {
+			if (value == null) {
+				value = new String(valueBytes);
+			}
+		}
 		return value;
+	}
+	
+	public void setValue(byte [] bytes,int off,int len) {
+		byte [] array = new byte[len];
+		System.arraycopy(bytes, off, array, 0, len);
+		this.valueBytes = array;
 	}
 
 	public void setValue(Object value) {
@@ -58,4 +78,12 @@ public class Column {
 		return flag;
 	}
 
+	public byte[] getNameBytes() {
+		return nameBytes;
+	}
+
+	public byte[] getValueBytes() {
+		return valueBytes;
+	}
+	
 }

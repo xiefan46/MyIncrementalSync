@@ -5,6 +5,7 @@ import java.io.RandomAccessFile;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.middleware.race.sync.ChannelReader;
+import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.RAFInputStream;
 import com.alibaba.middleware.race.sync.ReadChannel;
 import com.alibaba.middleware.race.sync.SimpleReadChannel;
@@ -17,25 +18,34 @@ public class TestRecordLogCodec {
 
 	public static void main(String[] args) throws Exception {
 
-		RandomAccessFile file = new RandomAccessFile(new File("D:/GIT/MyIncrementalSync/01.txt"),
-				"r");
+		File file = new File(Constants.DATA_HOME+"/canal.txt");
+		
+		RandomAccessFile raf = new RandomAccessFile(file,"r");
 
-		RAFInputStream inputStream = new RAFInputStream(file);
+		RAFInputStream inputStream = new RAFInputStream(raf);
 
-		ReadChannel channel = new SimpleReadChannel(inputStream, 128);
+		ReadChannel channel = new SimpleReadChannel(inputStream, 1024 * 128);
 
 		ChannelReader reader = ChannelReader.get();
 
-		byte[] cs = "test|user".getBytes();
+		byte[] cs = "middleware3|student".getBytes();
 
+		int all = 0;
+		
+		long old = System.currentTimeMillis();
+		
 		for (; channel.hasRemaining();) {
 
-			Record r = reader.read(channel, cs, 0, 9999);
+			Record r = reader.read(channel, cs, 0, Long.MAX_VALUE);
 			if (r == null) {
 				continue;
 			}
-			System.out.println(JSONObject.toJSONString(r));
+			all++;
+//			System.out.println(JSONObject.toJSONString(r));
 		}
-
+		
+		System.out.println("time:"+(System.currentTimeMillis() - old));
+		
+		System.out.println(all);
 	}
 }
