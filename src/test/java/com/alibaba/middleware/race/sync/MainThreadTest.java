@@ -40,7 +40,7 @@ public class MainThreadTest {
 			try {
 				bos = new BufferedOutputStream(
 						new FileOutputStream(Constants.DATA_HOME + "/" + i + ".txt"));
-				for (int j = 0; j < 10; j++) { //姣忎釜鏂囦欢鐢熸垚10鏉nsert璇彞
+				for (int j = 0; j < 10; j++) { //每个文件生成10条insert语句
 					String mockInsert = MockDataUtil.mockInsertLog();
 					mockInsert += '\n';
 					bos.write(mockInsert.getBytes());

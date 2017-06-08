@@ -7,6 +7,7 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.middleware.race.sync.stream.RAFInputStream;
 import com.generallycloud.baseio.buffer.ByteBuf;
 
 /**

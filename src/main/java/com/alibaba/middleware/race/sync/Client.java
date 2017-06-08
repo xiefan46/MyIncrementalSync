@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
+import com.alibaba.middleware.race.sync.stream.RAFOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
