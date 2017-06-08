@@ -97,23 +97,22 @@ public class MainThread {
 		for (int i = 0; i < ts.length; i++) {
 			ts[i].join();
 		}
+		
+		context.stopRecalculateThreads();
+		
 		logger.info("解析记录耗时 : {}", System.currentTimeMillis() - startTime);
 
 	}
 	
 	private void initRecalculateThread(Context context) throws InterruptedException{
 		int coreProcesses = context.getAvailableProcessors();
-		RecalculateContext [] contexts = context.getRecalculateContexts();
+		RecalculateThread [] threads = context.getRecalculateThreads();
 		Thread[] ts = new Thread[coreProcesses];
 		for (int i = 0; i < ts.length; i++) {
-			ts[i] = new Thread(new RecalculateThread(contexts[i]));
+			ts[i] = new Thread(threads[i]);
 		}
-		
 		for (int i = 0; i < ts.length; i++) {
 			ts[i].start();
-		}
-		for (int i = 0; i < ts.length; i++) {
-			ts[i].join();
 		}
 	}
 

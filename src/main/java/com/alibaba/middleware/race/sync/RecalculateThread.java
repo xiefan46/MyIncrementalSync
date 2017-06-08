@@ -16,6 +16,8 @@ public class RecalculateThread implements Runnable {
 
 	private RecalculateContext	context;
 
+	private volatile boolean		running = true;
+
 	private static Logger		logger	= LoggerFactory.getLogger(RecalculateThread.class);
 
 	public RecalculateThread(RecalculateContext context) {
@@ -30,14 +32,21 @@ public class RecalculateThread implements Runnable {
 	private void execute(RecalculateContext context) {
 		RecordLogReceiver receiver = context.getRecordLogReceiver();
 		BlockingQueue<RecordLog> queue = context.getRecordLogs();
-		for (;;) {
+		int all = 0;
+		for (; running;) {
 			try {
-				RecordLog r = queue.poll(16, TimeUnit.MICROSECONDS);
+				RecordLog r = queue.poll(8, TimeUnit.MICROSECONDS);
+				all++;
 				receiver.received(context, r);
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 			}
 		}
+		logger.info("all record:{}",all);
+	}
+
+	public void stop() {
+		running = false;
 	}
 
 }

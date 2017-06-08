@@ -18,6 +18,7 @@ public class Context {
 	private boolean						executeByCoreProcesses	= false;
 	private BlockingQueue<RecordLog>[]	recordLogQueues;
 	private RecalculateContext[]				recalculateContexts;
+	private RecalculateThread []				recalculateThreads;
 	private int							availableProcessors		= Runtime.getRuntime()
 			.availableProcessors() - 2;
 
@@ -37,11 +38,14 @@ public class Context {
 	}
 
 	public void initialize() {
+		int availableProcessors = getAvailableProcessors();
 		recordLogQueues = new BlockingQueue[availableProcessors];
 		recalculateContexts = new RecalculateContext[availableProcessors];
+		recalculateThreads = new RecalculateThread[availableProcessors];
 		for (int i = 0; i < availableProcessors; i++) {
 			recordLogQueues[i] = new ArrayBlockingQueue<>(1024 * 8);
 			recalculateContexts[i] = new RecalculateContext(getReceiver(), recordLogQueues[i]);
+			recalculateThreads[i] = new RecalculateThread(recalculateContexts[i]);
 		}
 	}
 
@@ -71,6 +75,16 @@ public class Context {
 	
 	public RecalculateContext[] getRecalculateContexts() {
 		return recalculateContexts;
+	}
+	
+	public void stopRecalculateThreads(){
+		for(RecalculateThread t : recalculateThreads){
+			t.stop();
+		}
+	}
+	
+	public RecalculateThread[] getRecalculateThreads() {
+		return recalculateThreads;
 	}
 
 	public void dispatch(RecordLog recordLog) {

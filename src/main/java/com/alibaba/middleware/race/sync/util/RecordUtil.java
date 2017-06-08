@@ -1,21 +1,14 @@
 package com.alibaba.middleware.race.sync.util;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CoderResult;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.ReadRecordLogContext;
+import com.alibaba.middleware.race.sync.RecalculateContext;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
 import com.alibaba.middleware.race.sync.model.Column;
 import com.alibaba.middleware.race.sync.model.Record;
@@ -29,22 +22,16 @@ import com.generallycloud.baseio.component.ByteArrayBuffer;
  */
 public class RecordUtil {
 
-	private static final char	FIELD_SEPERATOR	= '\t';
-	
 	private static final byte FIELD_SEPERATOR_BYTE = '\t';
 	
-	private static CharsetEncoder	encoder			= Charset.defaultCharset().newEncoder();
-
 	private static final Logger	logger			= LoggerFactory.getLogger(RecordUtil.class);
 
 	public static void formatResultString(Record record, ByteBuffer buffer) {
-		checkState(record.getAlterType() == Record.INSERT,
-				"Fail to format result because of wrong alter type");
 		buffer.clear();
-		buffer.put(record.getPrimaryColumn().getValueBytes());
+		buffer.put(record.getPrimaryColumn().getValue());
 		for (Column c : record.getColumns().values()) {
 			buffer.put(FIELD_SEPERATOR_BYTE);
-			buffer.put(c.getValueBytes());
+			buffer.put(c.getValue());
 		}
 	}
 
@@ -62,16 +49,29 @@ public class RecordUtil {
 	}
 
 	public static void writeToByteArrayBuffer(Context context, ByteArrayBuffer buffer) {
-		//sort
-		TreeMap<Long, Record> finalResult = new TreeMap<>();
-		for (Map.Entry<Long, Record> entry : context.getRecords().entrySet()) {
-			finalResult.put(entry.getKey(), entry.getValue());
-		}
+		List<Record> result = getResult(context);
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
-		for (Record r : finalResult.values()) {
+		for (Record r : result) {
 			RecordUtil.formatResultString(r, array);
 			buffer.write(array.array(), 0, array.position());
 		}
+	}
+	
+	private static List<Record> getResult(Context context){
+		long startId = context.getStartId();
+		long endId = context.getEndId();
+		int c = context.getAvailableProcessors();
+		List<Record> records = new ArrayList<>();
+		RecalculateContext [] contexts = context.getRecalculateContexts();
+		for (long i = startId+1; i < endId; i++) {
+			RecalculateContext rContext = contexts[(int) (i % c)];
+			Record r = rContext.getRecords().get(i);
+			if (r == null) {
+				continue;
+			}
+			records.add(r);
+		}
+		return records;
 	}
 
 	public static void writeToFile(ByteArrayBuffer buffer, String fileName) throws IOException {

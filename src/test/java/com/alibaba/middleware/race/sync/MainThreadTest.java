@@ -61,6 +61,7 @@ public class MainThreadTest {
 		long startId = 0;
 		long endId = Long.MAX_VALUE;
 		Context context = new Context(endId, recordLogReceiver , startId, (schema + "|" + table));
+		context.initialize();
 		MainThread mainThread = new MainThread();
 		mainThread.execute(context);
 	}

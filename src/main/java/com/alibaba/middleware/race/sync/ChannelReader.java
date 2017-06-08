@@ -45,8 +45,7 @@ public class ChannelReader {
 			channel.read(buf);
 			return read(channel, tableSchema);
 		}
-		int skip = offset + HEAD_SKIP;
-		int end = findNextChar(readBuffer, skip, limit, '\n');
+		int end = findNextChar(readBuffer, offset + HEAD_SKIP, limit, '\n');
 		if (end == -1) {
 			if (!channel.hasRemaining()) {
 				return null;
@@ -55,20 +54,7 @@ public class ChannelReader {
 			return read(channel, tableSchema);
 		}
 		buf.position(end + 1);
-		offset = findNextChar(readBuffer, skip, end, '|');
-		if (!compare(readBuffer, ++offset, tableSchema)) {
-			return null;
-		}
-		return codec.decode(readBuffer, offset + 1 + tableSchema.length, end - 1);
-	}
-
-	private boolean compare(byte[] data, int offset, byte[] tableSchema) {
-		for (int i = 0; i < tableSchema.length; i++) {
-			if (tableSchema[i] != data[offset + i]) {
-				return false;
-			}
-		}
-		return true;
+		return codec.decode(readBuffer, tableSchema, offset, end - 1);
 	}
 
 	private int findNextChar(byte[] data, int offset, int end, char c) {

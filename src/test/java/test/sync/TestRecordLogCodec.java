@@ -17,7 +17,7 @@ public class TestRecordLogCodec {
 
 	public static void main(String[] args) throws Exception {
 
-//		File file = new File(Constants.DATA_HOME+"/9.txt");
+//		File file = new File(Constants.DATA_HOME+"/0.txt");
 		File file = new File(Constants.TESTER_HOME+"/canal.txt");
 		
 		RandomAccessFile raf = new RandomAccessFile(file,"r");
@@ -38,7 +38,7 @@ public class TestRecordLogCodec {
 			
 			RecordLog r = reader.read(channel, cs);
 			if (r == null) {
-				System.out.println("------------------");
+//				System.out.println("------------------");
 				continue;
 			}
 			all++;

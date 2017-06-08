@@ -110,6 +110,8 @@ public class Server {
 			throws Exception {
 
 		Context context = new Context(endId, receiver, startId, tableSchema);
+		
+		context.initialize();
 
 		mainThread.execute(context);
 

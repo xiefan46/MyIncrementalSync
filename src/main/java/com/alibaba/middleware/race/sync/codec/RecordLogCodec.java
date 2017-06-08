@@ -15,17 +15,38 @@ public class RecordLogCodec {
 	private final int			U_D_SKIP		= "1:1|X".length();
 	
 	private final int			I_SKIP		= "1:1|NULL|X".length();
-
+	
+	private final int			HEAD_LEN		= "|mysql-bin.00001717148759|1496736165000"
+			.length();
+	
+	private final int			HEAD_SKIP		= HEAD_LEN - 1;
+	
+	private final int			TIMESTAMP_LEN = "1496736165000".length();
+	
 	public static RecordLogCodec get() {
 		return recordLogCodec;
 	}
 	
 	private RecordLogCodec(){}
+	
+	private boolean compare(byte[] data, int offset, byte[] tableSchema) {
+		for (int i = 0; i < tableSchema.length; i++) {
+			if (tableSchema[i] != data[offset + i]) {
+				return false;
+			}
+		}
+		return true;
+	}
 
-	public RecordLog decode(byte[] data, int offset, int last) {
+	public RecordLog decode(byte[] data,byte [] tableSchema, int offset, int last) {
+		int off = findNextChar(data, offset + HEAD_SKIP, '|');
+		if (!compare(data, off + 1, tableSchema)) {
+			return null;
+		}
 		RecordLog r = new RecordLog();
-		int off = offset;
+		r.setTimestamp(parseLong(data, off - TIMESTAMP_LEN, off));
 		int end;
+		off = off + tableSchema.length + 2;
 		byte alterType = data[off];
 		off += 2;
 		if (Constants.UPDATE == alterType) {
