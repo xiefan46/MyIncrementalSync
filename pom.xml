@@ -51,13 +51,11 @@
             <version>4.12</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.generallycloud</groupId>
-            <artifactId>baseio-all</artifactId>
-            <version>3.1.9-RELEASE</version>
-        </dependency>
-
-
+		<dependency>
+			<groupId>org.mortbay.jetty.alpn</groupId>
+			<artifactId>alpn-boot</artifactId>
+			<version>8.1.10.v20161026</version>
+		</dependency>
     </dependencies>
 
     <build>

@@ -18,7 +18,6 @@ package com.alibaba.middleware.race.sync.io;
 import java.io.IOException;
 
 import com.generallycloud.baseio.buffer.ByteBuf;
-import com.generallycloud.baseio.codec.fixedlength.FixedLengthProtocolDecoder;
 import com.generallycloud.baseio.common.ReleaseUtil;
 import com.generallycloud.baseio.component.Session;
 import com.generallycloud.baseio.component.SocketChannelContext;
