@@ -36,6 +36,9 @@ public class RecalculateThread implements Runnable {
 		for (; running;) {
 			try {
 				RecordLog r = queue.poll(8, TimeUnit.MICROSECONDS);
+				if (r == null) {
+					continue;
+				}
 				all++;
 				receiver.received(context, r);
 			} catch (Exception e) {

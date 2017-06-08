@@ -24,8 +24,7 @@ public class ReadRecordLogThread implements Runnable {
 		try {
 			long startTime = System.currentTimeMillis();
 			execute(context, context.getContext());
-			logger.info("线程 {} 解析数据完成，用时 : {}. Context中Record数目 : {}",
-					Thread.currentThread().getId(), System.currentTimeMillis() - startTime);
+			logger.info("线程 {} 解析数据完成，用时 : {}.",Thread.currentThread().getId(), System.currentTimeMillis() - startTime);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
