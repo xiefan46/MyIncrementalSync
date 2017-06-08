@@ -4,9 +4,9 @@ import java.io.IOException;
 
 import com.alibaba.middleware.race.sync.codec.RecordLogCodec;
 import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.util.LoggerUtil;
 import com.generallycloud.baseio.buffer.ByteBuf;
-import com.generallycloud.baseio.common.Logger;
-import com.generallycloud.baseio.common.LoggerFactory;
+import org.slf4j.Logger;
 
 /**
  * @author wangkai
@@ -18,7 +18,7 @@ public class ChannelReader {
 	private final int			HEAD_SKIP		= "|mysql-bin.00001717148759|1496736165000"
 			.length();
 
-	private static final Logger	logger		= LoggerFactory.getLogger(Server.class);
+	private static final Logger	logger		= LoggerUtil.getServerLogger();
 
 	public static ChannelReader get() {
 		return channelReader;
@@ -27,7 +27,9 @@ public class ChannelReader {
 	private ChannelReader() {
 	}
 
-	private RecordLogCodec codec = RecordLogCodec.get();
+	private RecordLogCodec	codec	= RecordLogCodec.get();
+
+	private int			count	= 0;
 
 	public Record read(ReadChannel channel, byte[] tableSchema) throws IOException {
 
@@ -52,6 +54,14 @@ public class ChannelReader {
 				channel.read(buf);
 				return read(channel, tableSchema);
 			}
+			//log some record
+			count++;
+			if (Constants.COLLECT_STAT && count % 300000 == 0) {
+				logger.info("record sample. ThreadId : {} , record :  {}",
+						Thread.currentThread().getId(),
+						new String(readBuffer, offset, end - offset + 1));
+				count++;
+			}
 			buf.position(end + 1);
 			offset = findNextChar(readBuffer, skip, end, '|');
 			if (!compare(readBuffer, ++offset, tableSchema)) {
@@ -60,7 +70,7 @@ public class ChannelReader {
 			return codec.decode(readBuffer, offset + 1 + tableSchema.length, end - 1);
 		} catch (Exception e) {
 			if (Constants.COLLECT_STAT) {
-				logger.error(e.getMessage());
+				logger.info("error ! {}", e.getMessage());
 				return null;
 			} else {
 				throw e;
