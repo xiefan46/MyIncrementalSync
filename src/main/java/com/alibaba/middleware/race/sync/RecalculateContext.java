@@ -17,7 +17,9 @@ public class RecalculateContext {
 
 	private BlockingQueue<RecordLog>	recordLogs;
 
-	public RecalculateContext(RecordLogReceiver recordLogReceiver,
+	private Context				context;
+
+	public RecalculateContext(Context context, RecordLogReceiver recordLogReceiver,
 			BlockingQueue<RecordLog> recordLogs) {
 		this.recordLogReceiver = recordLogReceiver;
 		this.recordLogs = recordLogs;
@@ -35,6 +37,10 @@ public class RecalculateContext {
 
 	public BlockingQueue<RecordLog> getRecordLogs() {
 		return recordLogs;
+	}
+
+	public Context getContext() {
+		return context;
 	}
 
 }

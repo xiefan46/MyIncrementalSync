@@ -44,7 +44,7 @@ public class Context {
 		recalculateThreads = new RecalculateThread[availableProcessors];
 		for (int i = 0; i < availableProcessors; i++) {
 			recordLogQueues[i] = new ArrayBlockingQueue<>(1024 * 8);
-			recalculateContexts[i] = new RecalculateContext(getReceiver(), recordLogQueues[i]);
+			recalculateContexts[i] = new RecalculateContext(this,getReceiver(), recordLogQueues[i]);
 			recalculateThreads[i] = new RecalculateThread(recalculateContexts[i]);
 		}
 	}
