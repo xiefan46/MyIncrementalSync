@@ -1,8 +1,9 @@
 package com.alibaba.middleware.race.sync.codec;
 
-import com.alibaba.middleware.race.sync.model.Column;
-import com.alibaba.middleware.race.sync.model.PrimaryColumn;
-import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.model.ColumnLog;
+import com.alibaba.middleware.race.sync.model.Constants;
+import com.alibaba.middleware.race.sync.model.PrimaryColumnLog;
+import com.alibaba.middleware.race.sync.model.RecordLog;
 
 /**
  * @author wangkai
@@ -21,48 +22,41 @@ public class RecordLogCodec {
 	
 	private RecordLogCodec(){}
 
-	public Record decode(byte[] data, int offset, int last) {
-		Record r = new Record();
+	public RecordLog decode(byte[] data, int offset, int last) {
+		RecordLog r = new RecordLog();
 		int off = offset;
 		int end;
-		r.setAlterType(data[off]);
+		byte alterType = data[off];
 		off += 2;
-		if (Record.UPDATE == r.getAlterType()) {
+		if (Constants.UPDATE == alterType) {
 			r.newColumns();
 			for (;;) {
 				end = findNextChar(data, off, ':');
 				if (data[end + 3] == '1') {
-					PrimaryColumn c = new PrimaryColumn();
+					PrimaryColumnLog c = new PrimaryColumnLog();
 					r.setPrimaryColumn(c);
-					c.setPrimary(true);
 					c.setName(data, off, end - off);
 					off = end + U_D_SKIP;
 					end = findNextChar(data, off, '|');
-					c.setNumber(true);
 					c.setBeforeValue(parseLong(data, off, end));
 					off = end + 1;
 					end = findNextChar(data, off, '|');
-					c.setValue(data,off,end-off,parseLong(data, off, end));
+					c.setLongValue(parseLong(data, off, end));
+					c.setValue(data,off,end-off);
 					off = end + 1;
 					if (off >= last) {
 						return r;
 					}
 					continue;
 				}
-				Column c = new Column();
+				ColumnLog c = new ColumnLog();
 				c.setName(data, off, end - off);
 				r.addColumn(c);
-				boolean isNumber = data[end + 1] == '1';
 				off = end + U_D_SKIP;
 				end = findNextChar(data, off, '|');
 				off = end + 1;
 				end = findNextChar(data, off, '|');
-				if (isNumber) {
-					c.setNumber(true);
-					c.setValue(data,off,end-off,parseLong(data, off, end));
-				} else {
-					c.setValue(data, off, end - off);
-				}
+				c.setValue(data, off, end - off);
 				off = end + 1;
 				if (off >= last) {
 					return r;
@@ -70,50 +64,42 @@ public class RecordLogCodec {
 			}
 		}
 
-		if (Record.DELETE == r.getAlterType()) {
+		if (Constants.DELETE == alterType) {
 			end = findNextChar(data, off, ':');
-			PrimaryColumn c = new PrimaryColumn();
+			PrimaryColumnLog c = new PrimaryColumnLog();
 			c.setName(data, off, end - off);
 			r.setPrimaryColumn(c);
-			c.setPrimary(true);
 			off = end + U_D_SKIP;
 			end = findNextChar(data, off, '|');
-			c.setNumber(true);
-			c.setValue(data,off,end-off,parseLong(data, off, end));
+			c.setLongValue(parseLong(data, off, end));
+			c.setValue(data,off,end-off);
 			return r;
 		}
 
-		if (Record.INSERT == r.getAlterType()) {
+		if (Constants.INSERT == alterType) {
 			r.newColumns();
 			for (;;) {
 				end = findNextChar(data, off, ':');
 				if (data[end + 3] == '1') {
-					PrimaryColumn c = new PrimaryColumn();
+					PrimaryColumnLog c = new PrimaryColumnLog();
 					r.setPrimaryColumn(c);
 					c.setName(data, off, end - off);
-					c.setPrimary(true);
 					off = end + I_SKIP;
 					end = findNextChar(data, off, '|');
-					c.setNumber(true);
-					c.setValue(data,off,end-off,parseLong(data, off, end));
+					c.setLongValue(parseLong(data, off, end));
+					c.setValue(data,off,end-off);
 					off = end + 1;
 					if (off >= last) {
 						return r;
 					}
 					continue;
 				}
-				Column c = new Column();
+				ColumnLog c = new ColumnLog();
 				c.setName(data, off, end - off);
 				r.addColumn(c);
-				boolean isNumber = data[end + 1] == '1';
 				off = end + I_SKIP;
 				end = findNextChar(data, off, '|');
-				if (isNumber) {
-					c.setNumber(true);
-					c.setValue(data,off,end-off,parseLong(data, off, end));
-				} else {
-					c.setValue(data, off, end - off);
-				}
+				c.setValue(data, off, end - off);
 				off = end + 1;
 				if (off >= last) {
 					return r;

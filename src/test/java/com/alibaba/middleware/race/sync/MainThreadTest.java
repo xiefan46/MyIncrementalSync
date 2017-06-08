@@ -1,7 +1,9 @@
 package com.alibaba.middleware.race.sync;
 
-import com.alibaba.middleware.race.sync.model.Record;
-import com.alibaba.middleware.race.sync.util.RecordUtil;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -10,11 +12,6 @@ import org.junit.Test;
 import com.generallycloud.baseio.common.FileUtil;
 
 import util.MockDataUtil;
-
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 /**
  * Created by xiefan on 6/4/17.
@@ -63,12 +60,9 @@ public class MainThreadTest {
 		String table = "student";
 		long startId = 0;
 		long endId = Long.MAX_VALUE;
-		MainThread mainThread = new MainThread(recordLogReceiver, schema, table, startId, endId);
-		Thread t = new Thread(mainThread);
-		t.start();
-		t.join();
-		RecordUtil.writeResultToLocalFile(mainThread.getFinalContext(),
-				Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME);
+		Context context = new Context(endId, recordLogReceiver , startId, (schema + "|" + table));
+		MainThread mainThread = new MainThread();
+		mainThread.execute(context);
 	}
 
 	@After

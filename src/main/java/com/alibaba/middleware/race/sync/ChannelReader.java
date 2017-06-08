@@ -2,8 +2,9 @@ package com.alibaba.middleware.race.sync;
 
 import java.io.IOException;
 
+import com.alibaba.middleware.race.sync.channel.ReadChannel;
 import com.alibaba.middleware.race.sync.codec.RecordLogCodec;
-import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.generallycloud.baseio.buffer.ByteBuf;
 
 /**
@@ -25,7 +26,7 @@ public class ChannelReader {
 
 	private RecordLogCodec codec = RecordLogCodec.get();
 
-	public Record read(ReadChannel channel, byte[] tableSchema) throws IOException {
+	public RecordLog read(ReadChannel channel, byte[] tableSchema) throws IOException {
 		ByteBuf buf = channel.getByteBuf();
 		byte[] readBuffer = buf.array();
 		int limit = buf.limit();

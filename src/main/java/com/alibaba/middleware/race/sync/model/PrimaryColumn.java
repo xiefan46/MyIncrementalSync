@@ -5,18 +5,14 @@ package com.alibaba.middleware.race.sync.model;
  */
 public class PrimaryColumn extends Column {
 
-	private Object beforeValue;
+	private long value;
 
-	public Object getBeforeValue() {
-		return beforeValue;
+	public long getLongValue() {
+		return value;
 	}
 
-	public void setBeforeValue(Object beforeValue) {
-		this.beforeValue = beforeValue;
-	}
-
-	public boolean IsPkChange() {
-		return !getValue().equals(beforeValue);
+	public void setLongValue(long value) {
+		this.value = value;
 	}
 
 }

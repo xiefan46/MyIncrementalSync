@@ -32,9 +32,9 @@ public class Server {
 
 	private SocketChannelContext	socketChannelContext;
 
-	private static Logger		logger	= LoggerFactory.getLogger(Server.class);
+	private static Logger		logger		= LoggerFactory.getLogger(Server.class);
 
-	private MainThread			mainThread;
+	private MainThread			mainThread	= new MainThread();
 
 	public static void main(String[] args) throws Exception {
 		initProperties();
@@ -43,7 +43,7 @@ public class Server {
 			server.startServer1(args, 5527);
 			logger.info("com.alibaba.middleware.race.sync.Server is running....");
 		} catch (Throwable e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 		}
 	}
 
@@ -102,15 +102,18 @@ public class Server {
 
 		acceptor.bind();
 
-		mainThread = new MainThread(new RecordLogReceiverImpl(), schema, table, startId, endId);
+		execute(endId, new RecordLogReceiverImpl(), startId, (schema + "|" + table));
 
-		Thread t = new Thread(mainThread);
+	}
 
-		t.start();
+	private void execute(long endId, RecordLogReceiver receiver, long startId, String tableSchema)
+			throws Exception {
 
-		t.join();
+		Context context = new Context(endId, receiver, startId, tableSchema);
 
-		sendResultToClient(mainThread.getFinalContext());
+		mainThread.execute(context);
+
+		sendResultToClient(context);
 	}
 
 	public MainThread getMainThread() {
@@ -121,11 +124,11 @@ public class Server {
 		return socketChannelContext;
 	}
 
-	private void sendResultToClient(Context finalContext) throws Exception {
+	private void sendResultToClient(Context context) throws Exception {
 
 		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 1024);
 
-		RecordUtil.writeToByteArrayBuffer(finalContext, byteArrayBuffer);
+		RecordUtil.writeToByteArrayBuffer(context, byteArrayBuffer);
 
 		writeToClient(byteArrayBuffer);
 	}
@@ -146,11 +149,11 @@ public class Server {
 		FixedLengthReadFuture future = new FixedLengthReadFutureImpl(channelContext);
 
 		//FIXME 如果文件比较大，直接发送该buf
-		
+
 		future.write(buffer.array(), 0, buffer.size());
 
-		logger.info("开始向客户端传送文件，当前时间：{}",System.currentTimeMillis());
-		
+		logger.info("开始向客户端传送文件，当前时间：{}", System.currentTimeMillis());
+
 		session.flush(future);
 	}
 

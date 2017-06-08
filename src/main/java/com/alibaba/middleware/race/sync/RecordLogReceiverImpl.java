@@ -1,12 +1,16 @@
 package com.alibaba.middleware.race.sync;
 
-import com.alibaba.middleware.race.sync.model.Column;
-import com.alibaba.middleware.race.sync.model.Record;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
+import com.alibaba.middleware.race.sync.model.Column;
+import com.alibaba.middleware.race.sync.model.ColumnLog;
+import com.alibaba.middleware.race.sync.model.Constants;
+import com.alibaba.middleware.race.sync.model.PrimaryColumn;
+import com.alibaba.middleware.race.sync.model.PrimaryColumnLog;
+import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.model.RecordLog;
 
 /**
  * Created by xiefan on 6/4/17.
@@ -14,47 +18,47 @@ import static com.google.common.base.Preconditions.checkState;
 public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	@Override
-	public void received(Context context, Record record,long startId,long endId) throws Exception {
-		checkNotNull(record);
+	public void received(RecalculateContext context, RecordLog record) throws Exception {
 		Map<Long, Record> records = context.getRecords();
 		checkNotNull(record.getPrimaryColumn(), "Primary column can not be null");
-		checkState(record.getPrimaryColumn().isNumber(),
-				"Primary key is not number type, please check");
 		updatePKIfNeeded(records, record);
-		long pk = (long) (record.getPrimaryColumn().getValue());
+		long pk = (long) (record.getPrimaryColumn().getLongValue());
 		Record oldRecord = records.get(pk);
 
 		if (oldRecord == null) {
-			records.put(pk, record);
+			Record r = new Record();
+			//FIXME fill r
+			records.put(pk, r);
 		} else {
 			switch (record.getAlterType()) {
-			case Record.UPDATE:
-				for (Column c : record.getColumns().values()) {
-					oldRecord.addColumn(c);
+			case Constants.UPDATE:
+				Map<byte[], Column> cols = oldRecord.getColumns();
+				for (ColumnLog c : record.getColumns()) {
+					cols.get(c.getName());
+					//FIXME compare timestamp
 				}
 				break;
-			case Record.DELETE:
+			case Constants.DELETE:
 				records.remove(pk);
 				break;
-			case Record.INSERT:
+			case Constants.INSERT:
 				throw new RuntimeException("Insert records with same primary key. PK : " + pk);
 			}
 		}
 
 	}
 
-	@Override
-	public void receivedFinal(Context context, Record record,long startId,long endId) throws Exception {
-		received(context, record,startId,endId);
-	}
-
-	private void updatePKIfNeeded(Map<Long, Record> records, Record record) {
+	private void updatePKIfNeeded(Map<Long, Record> records, RecordLog record) {
 		if (record.isPKUpdate()) { //主键变更的特殊情况
-			long pk = (long) (record.getPrimaryColumn().getBeforeValue());
+			PrimaryColumnLog newPc = record.getPrimaryColumn();
+			long pk = (long) (newPc.getBeforeValue());
+			long newPk = (long)(newPc.getLongValue());
 			Record oldRecord = records.get(pk);
-			oldRecord.setPrimaryColumn(record.getPrimaryColumn());
+			PrimaryColumn pc = oldRecord.getPrimaryColumn();
+			pc.setLastUpdate(record.getTimestamp());
+			pc.setLongValue(newPk);
+			pc.setValue(newPc.getValue());
 			records.remove(pk);
-			long newPk = (long) (record.getPrimaryColumn().getValue());
 			records.put(newPk, oldRecord);
 		}
 	}
