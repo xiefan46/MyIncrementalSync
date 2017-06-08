@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.stream.RAFInputStream;
 
 /**
  * @author wangkai
