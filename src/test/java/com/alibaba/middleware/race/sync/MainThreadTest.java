@@ -34,35 +34,13 @@ public class MainThreadTest {
 		cleanUpAll();
 	}
 
-	@Ignore
-	@Test
-	public void createTestData() throws Exception {
-		cleanDir(dataDir);
-		for (int i = 0; i < fileNum; i++) {
-			BufferedOutputStream bos = null;
-			try {
-				bos = new BufferedOutputStream(
-						new FileOutputStream(Constants.DATA_HOME + "/" + i + ".txt"));
-				for (int j = 0; j < 10; j++) { //每个文件生成10条insert语句
-					String mockInsert = MockDataUtil.mockInsertLog();
-					mockInsert += '\n';
-					bos.write(mockInsert.getBytes());
-				}
-				bos.flush();
-			} finally {
-				if (bos != null)
-					bos.close();
-			}
-		}
-	}
-
 	@Test
 	public void testBasic() throws Exception {
 		RecordLogReceiver recordLogReceiver = new RecordLogReceiverImpl();
 		String schema = "middleware3";
 		String table = "student";
-		long startId = 0;
-		long endId = Long.MAX_VALUE;
+		long startId = 600;
+		long endId = 700;
 		MainThread mainThread = new MainThread(recordLogReceiver, schema, table, startId, endId);
 		Thread t = new Thread(mainThread);
 		t.start();
