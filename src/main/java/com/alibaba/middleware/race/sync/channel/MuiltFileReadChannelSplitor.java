@@ -19,7 +19,7 @@ public class MuiltFileReadChannelSplitor {
 		return cs;
 	}
 
-	private static MuiltFileReadChannel newChannel(String path, int begin, int len, int bufferLen)
+	public static MuiltFileReadChannel newChannel(String path, int begin, int len, int bufferLen)
 			throws FileNotFoundException {
 		InputStream[] streams = new InputStream[len];
 		for (int i = 0; i < len; i++) {

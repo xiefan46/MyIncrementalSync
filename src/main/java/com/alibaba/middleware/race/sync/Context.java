@@ -38,6 +38,7 @@ public class Context {
 	}
 
 	public void initialize() {
+		this.availableProcessors = 1;
 		int availableProcessors = getAvailableProcessors();
 		recordLogQueues = new BlockingQueue[availableProcessors];
 		recalculateContexts = new RecalculateContext[availableProcessors];

@@ -62,6 +62,13 @@
 			<artifactId>alpn-boot</artifactId>
 			<version>8.1.10.v20161026</version>
 		</dependency>
+		
+		<dependency>
+		    <groupId>com.lmax</groupId>
+		    <artifactId>disruptor</artifactId>
+		    <version>3.3.6</version>
+		</dependency>
+		
     </dependencies>
 
     <build>
