@@ -42,8 +42,9 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>21.0</version>
+            <version>18.0</version>
         </dependency>
+
 
         <dependency>
             <groupId>junit</groupId>
@@ -51,13 +52,11 @@
             <version>4.12</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.generallycloud</groupId>
-            <artifactId>baseio-core</artifactId>
-            <version>3.1.9-RELEASE</version>
-        </dependency>
-
-
+		<dependency>
+			<groupId>org.mortbay.jetty.alpn</groupId>
+			<artifactId>alpn-boot</artifactId>
+			<version>8.1.10.v20161026</version>
+		</dependency>
     </dependencies>
 
     <build>

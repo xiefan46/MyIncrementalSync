@@ -35,4 +35,6 @@ public interface Constants {
 	// 结果文件的命名
 	String	RESULT_FILE_NAME	= "Result.rs";
 
+	boolean	COLLECT_STAT		= true;
+
 }
