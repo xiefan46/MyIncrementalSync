@@ -83,7 +83,7 @@ public class Context {
 	}
 
 	public void dispatch(RecordLog recordLog) throws InterruptedException {
-		for(;!recordLogQueue.offer(recordLog,16,TimeUnit.MICROSECONDS);){
+		for(;!recordLogQueue.offer(recordLog,8,TimeUnit.MICROSECONDS);){
 		}
 	}
 

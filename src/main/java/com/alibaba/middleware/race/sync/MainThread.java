@@ -1,7 +1,6 @@
 package com.alibaba.middleware.race.sync;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -19,7 +18,7 @@ import com.alibaba.middleware.race.sync.util.LoggerUtil;
 public class MainThread {
 
 	private Logger logger = LoggerUtil.SERVER_LOGGER;
-
+	
 	public void execute(Context context) {
 		try {
 			execute1(context);
@@ -30,13 +29,8 @@ public class MainThread {
 
 	private void execute1(Context context) throws Exception {
 		long startTime = System.currentTimeMillis();
-//		File root = new File(Constants.DATA_HOME);
-		File root = new File(Constants.TESTER_HOME+"/canal.txt");
-		if (!root.exists()) {
-			throw new FileNotFoundException(root.getAbsolutePath());
-		}
 		
-		ReadChannel channels = initChannels3(root);
+		ReadChannel channels = initChannels2();
 		
 		ReadRecordLogContext readRecordLogContext = new ReadRecordLogContext(channels, context);
 
@@ -58,12 +52,14 @@ public class MainThread {
 
 	}
 
-	private ReadChannel initChannels2(File root) throws IOException {
+	private ReadChannel initChannels2() throws IOException {
+		File root = new File(Constants.DATA_HOME);
 		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 10,
 				1024 * 128);
 	}
 	
-	private ReadChannel initChannels3(File root) throws IOException {
+	private ReadChannel initChannels3() throws IOException {
+		File root = new File(Constants.TESTER_HOME+"/canal.txt");
 		RandomAccessFile raf = new RandomAccessFile(root, "r");
 		RAFInputStream inputStream = new RAFInputStream(raf);
 		return new SimpleReadChannel(inputStream, 1024 * 128);

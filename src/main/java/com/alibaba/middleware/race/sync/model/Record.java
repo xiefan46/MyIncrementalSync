@@ -8,7 +8,7 @@ public class Record {
 	private byte[][] columns;
 
 	public Record(int cols) {
-		this.columns = new byte[5][];
+		this.columns = new byte[cols][];
 	}
 
 	public void setColum(int index, byte[] data) {

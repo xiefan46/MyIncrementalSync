@@ -90,9 +90,7 @@ public class Client {
 
 	private void writeToFile(ByteBuf buf) {
 		OutputStream outputStream = null;
-
 		try {
-			printResult(buf);
 			long startTime = System.currentTimeMillis();
 			String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
 			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
@@ -104,12 +102,6 @@ public class Client {
 		} finally {
 			CloseUtil.close(outputStream);
 		}
-	}
-
-	private void printResult(ByteBuf buf) {
-		byte[] bytes = buf.array();
-		logger.info("打印客户端收到的结果:");
-		logger.info(new String(bytes, 0, bytes.length));
 	}
 
 }

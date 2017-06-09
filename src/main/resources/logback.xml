@@ -64,20 +64,10 @@
         </encoder>
     </appender>
 
-
-    <logger name="com.alibaba.middleware.race.sync.Server" additivity="false">
-        <level value="INFO"/>
-        <appender-ref ref="FILE_SERVER"/>
-    </logger>
-
-    <logger name="com.alibaba.middleware.race.sync.Client" additivity="false">
-        <level value="INFO"/>
-        <appender-ref ref="FILE_CLIENT"/>
-    </logger>
-
-
     <root>
-        <level value="${app.logging.level}"/>
+        <level value="INFO"/>
         <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE_SERVER"/>
+        <appender-ref ref="FILE_CLIENT"/>
     </root>
 </configuration>

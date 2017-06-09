@@ -13,7 +13,7 @@ import com.alibaba.middleware.race.sync.model.Table;
  * Created by xiefan on 6/4/17.
  */
 public class RecordLogReceiverImpl implements RecordLogReceiver {
-
+	
 	@Override
 	public void received(RecalculateContext context, RecordLog recordLog) throws Exception {
 		Map<Long, Record> records = context.getRecords();

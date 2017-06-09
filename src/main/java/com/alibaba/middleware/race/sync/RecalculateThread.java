@@ -19,7 +19,7 @@ public class RecalculateThread implements Runnable {
 
 	private volatile boolean		running		= true;
 
-	private static Logger		logger		= LoggerUtil.SERVER_LOGGER;
+	private Logger		logger		= LoggerUtil.SERVER_LOGGER;
 	
 	private CountDownLatch		countDownLatch = new CountDownLatch(1);
 
@@ -38,7 +38,7 @@ public class RecalculateThread implements Runnable {
 		int all = 0;
 		for (;;) {
 			try {
-				RecordLog r = queue.poll(8, TimeUnit.MICROSECONDS);
+				RecordLog r = queue.poll(16, TimeUnit.MICROSECONDS);
 				if (r == null) {
 					if (!running) {
 						break;

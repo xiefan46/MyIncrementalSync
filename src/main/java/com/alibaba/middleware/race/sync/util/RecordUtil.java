@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.generallycloud.baseio.buffer.ByteBuf;
 import org.slf4j.Logger;
 
 import com.alibaba.middleware.race.sync.Context;
@@ -61,7 +60,7 @@ public class RecordUtil {
 			buffer.write(array.array(), 0, array.position());
 		}
 		byte[] bytes = buffer.array();
-		String str = new String(bytes, 0, bytes.length);
+		String str = new String(bytes, 0, buffer.size());
 		logger.info("打印结果文件: ");
 		logger.info(str);
 	}
