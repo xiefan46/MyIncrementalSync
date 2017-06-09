@@ -59,12 +59,7 @@ public class RecordUtil {
 			RecordUtil.formatResultString(r, array);
 			buffer.write(array.array(), 0, array.position());
 		}
-		byte[] bytes = buffer.array();
-		String str = new String(bytes, 0, buffer.size());
-		logger.info("打印结果文件: ");
-		logger.info(str);
 	}
-
 
 	private static List<Record> getResult(Context context) {
 		long startId = context.getStartId();
