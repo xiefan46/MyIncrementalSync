@@ -30,7 +30,11 @@ public class Client {
 
 	public static void main(String[] args) throws Exception {
 		initProperties();
-
+		
+		if (args == null || args.length == 0) {
+			args = new String[]{"127.0.0.1"};
+		}
+		
 		Client client = new Client();
 		client.connect(args[0], Constants.SERVER_PORT);
 	}
@@ -91,7 +95,7 @@ public class Client {
 			String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
 			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
 			outputStream = new RAFOutputStream(raf);
-			outputStream.write(buf.array(), 4, buf.limit() - 4);
+			outputStream.write(buf.array(), 0, buf.limit());
 			logger.info("写结果文件到本地文件系统耗时 : {}", System.currentTimeMillis() - startTime);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

@@ -18,7 +18,6 @@ package com.alibaba.middleware.race.sync.io;
 import java.io.IOException;
 
 import com.generallycloud.baseio.buffer.ByteBuf;
-import com.generallycloud.baseio.common.ReleaseUtil;
 import com.generallycloud.baseio.component.Session;
 import com.generallycloud.baseio.component.SocketChannelContext;
 import com.generallycloud.baseio.component.SocketSession;
@@ -100,7 +99,7 @@ public class FixedLengthReadFutureImpl extends AbstractChannelReadFuture impleme
 
 	@Override
 	public void release() {
-		ReleaseUtil.release(buf);
+		//ReleaseUtil.release(buf);
 	}
 	
 	@Override

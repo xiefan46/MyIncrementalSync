@@ -37,6 +37,10 @@ public class Server {
 	private MainThread			mainThread	= new MainThread();
 
 	public static void main(String[] args) throws Exception {
+		if (args == null || args.length == 0) {
+			args = new String[]{"middleware3","student","600","700"};
+		}
+		
 		initProperties();
 		Server server = get();
 		try {
