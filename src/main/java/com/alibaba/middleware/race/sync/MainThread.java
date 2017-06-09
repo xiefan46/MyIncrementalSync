@@ -42,22 +42,20 @@ public class MainThread {
 
 		ReadRecordLogThread readRecordLogThread = new ReadRecordLogThread(readRecordLogContext);
 
-		initRecalculateThread(context);
+		new Thread(context.getRecalculateThread()).start();
 		
 		readRecordLogThread.run();
 		
 		logger.info("MainThread 初始化耗时 : {}", System.currentTimeMillis() - startTime);
 
 		startTime = System.currentTimeMillis();
-
+		
 		context.stopRecalculateThreads();
+
+		context.getRecalculateThread().getCountDownLatch().await();
 
 		logger.info("解析记录耗时 : {}", System.currentTimeMillis() - startTime);
 
-	}
-
-	private void initRecalculateThread(Context context) throws InterruptedException {
-		new Thread(context.getRecalculateThread()).start();
 	}
 
 	private ReadChannel initChannels2(File root) throws IOException {

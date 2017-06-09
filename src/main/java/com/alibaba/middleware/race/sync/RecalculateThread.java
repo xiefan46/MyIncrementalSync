@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race.sync;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -19,6 +20,8 @@ public class RecalculateThread implements Runnable {
 	private volatile boolean		running		= true;
 
 	private static Logger		logger		= LoggerUtil.SERVER_LOGGER;
+	
+	private CountDownLatch		countDownLatch = new CountDownLatch(1);
 
 	public RecalculateThread(RecalculateContext context) {
 		this.context = context;
@@ -48,6 +51,7 @@ public class RecalculateThread implements Runnable {
 				logger.error(e.getMessage(), e);
 			}
 		}
+		countDownLatch.countDown();
 		logger.info("all record:{}", all);
 	}
 
@@ -55,4 +59,7 @@ public class RecalculateThread implements Runnable {
 		running = false;
 	}
 
+	public CountDownLatch getCountDownLatch() {
+		return countDownLatch;
+	}
 }
