@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.generallycloud.baseio.buffer.ByteBuf;
 import org.slf4j.Logger;
 
 import com.alibaba.middleware.race.sync.Context;
@@ -21,11 +22,11 @@ import com.generallycloud.baseio.component.ByteArrayBuffer;
  */
 public class RecordUtil {
 
-	private static final byte FIELD_SEPERATOR_BYTE = '\t';
-	
-	private static final byte FIELD_N_BYTE = '\n';
-	
-	private static final Logger	logger			= LoggerUtil.SERVER_LOGGER;
+	private static final byte	FIELD_SEPERATOR_BYTE	= '\t';
+
+	private static final byte	FIELD_N_BYTE			= '\n';
+
+	private static final Logger	logger				= LoggerUtil.SERVER_LOGGER;
 
 	public static void formatResultString(Record record, ByteBuffer buffer) {
 		buffer.clear();
@@ -39,8 +40,7 @@ public class RecordUtil {
 		buffer.put(FIELD_N_BYTE);
 	}
 
-	public static void writeResultToLocalFile(Context context, String fileName)
-			throws Exception {
+	public static void writeResultToLocalFile(Context context, String fileName) throws Exception {
 		long startTime = System.currentTimeMillis();
 
 		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 128);
@@ -54,19 +54,25 @@ public class RecordUtil {
 
 	public static void writeToByteArrayBuffer(Context context, ByteArrayBuffer buffer) {
 		List<Record> result = getResult(context);
+		logger.info("结果文件条目数 : " + result.size());
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
 		for (Record r : result) {
 			RecordUtil.formatResultString(r, array);
 			buffer.write(array.array(), 0, array.position());
 		}
+		byte[] bytes = buffer.array();
+		String str = new String(bytes, 0, bytes.length);
+		logger.info("打印结果文件: ");
+		logger.info(str);
 	}
-	
-	private static List<Record> getResult(Context context){
+
+
+	private static List<Record> getResult(Context context) {
 		long startId = context.getStartId();
 		long endId = context.getEndId();
 		List<Record> records = new ArrayList<>();
 		RecalculateContext rContext = context.getRecalculateContext();
-		for (long i = startId+1; i < endId; i++) {
+		for (long i = startId + 1; i < endId; i++) {
 			Record r = rContext.getRecords().get(i);
 			if (r == null) {
 				continue;

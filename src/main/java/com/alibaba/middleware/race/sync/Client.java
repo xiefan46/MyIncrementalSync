@@ -30,11 +30,11 @@ public class Client {
 
 	public static void main(String[] args) throws Exception {
 		initProperties();
-		
+
 		if (args == null || args.length == 0) {
-			args = new String[]{"127.0.0.1"};
+			args = new String[] { "127.0.0.1" };
 		}
-		
+
 		Client client = new Client();
 		client.connect(args[0], Constants.SERVER_PORT);
 	}
@@ -58,7 +58,7 @@ public class Client {
 	@SuppressWarnings("resource")
 	public void connect(String host, int port) throws Exception {
 
-		logger.info("Welcome,{}",System.currentTimeMillis());
+		logger.info("Welcome,{}", System.currentTimeMillis());
 
 		IoEventHandleAdaptor eventHandleAdaptor = new IoEventHandleAdaptor() {
 			@Override
@@ -90,7 +90,9 @@ public class Client {
 
 	private void writeToFile(ByteBuf buf) {
 		OutputStream outputStream = null;
+
 		try {
+			printResult(buf);
 			long startTime = System.currentTimeMillis();
 			String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
 			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
@@ -102,6 +104,12 @@ public class Client {
 		} finally {
 			CloseUtil.close(outputStream);
 		}
+	}
+
+	private void printResult(ByteBuf buf) {
+		byte[] bytes = buf.array();
+		logger.info("打印客户端收到的结果:");
+		logger.info(new String(bytes, 0, bytes.length));
 	}
 
 }
