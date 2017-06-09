@@ -30,13 +30,13 @@ public class MainThread {
 
 	private void execute1(Context context) throws Exception {
 		long startTime = System.currentTimeMillis();
-		File root = new File(Constants.DATA_HOME);
-//		File root = new File(Constants.TESTER_HOME+"/canal.txt");
+//		File root = new File(Constants.DATA_HOME);
+		File root = new File(Constants.TESTER_HOME+"/canal.txt");
 		if (!root.exists()) {
 			throw new FileNotFoundException(root.getAbsolutePath());
 		}
 		
-		ReadChannel channels = initChannels2(root);
+		ReadChannel channels = initChannels3(root);
 		
 		ReadRecordLogContext readRecordLogContext = new ReadRecordLogContext(channels, context);
 

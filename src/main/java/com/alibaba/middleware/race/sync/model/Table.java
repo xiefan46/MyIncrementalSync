@@ -24,10 +24,8 @@ public class Table {
 	}
 	
 	public static Table newTable(RecordLog recordLog){
-		int index = 0;
+		int index = 1;
 		Table t = new Table();
-		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
-		t.columnIndexs.put(new ByteArray(pcl.getName()), index++);
 		for(ColumnLog c : recordLog.getColumns()){
 			t.columnIndexs.put(new ByteArray(c.getName()), index++);
 		}

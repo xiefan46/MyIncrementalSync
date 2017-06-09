@@ -56,7 +56,7 @@ public class RecordLogCodec {
 				if (data[end + 3] == '1') {
 					PrimaryColumnLog c = new PrimaryColumnLog();
 					r.setPrimaryColumn(c);
-					c.setName(data, off, end - off);
+//					c.setName(data, off, end - off);
 					off = end + U_D_SKIP;
 					end = findNextChar(data, off, '|');
 					c.setBeforeValue(parseLong(data, off, end));
@@ -88,7 +88,7 @@ public class RecordLogCodec {
 		if (Constants.DELETE == alterType) {
 			end = findNextChar(data, off, ':');
 			PrimaryColumnLog c = new PrimaryColumnLog();
-			c.setName(data, off, end - off);
+//			c.setName(data, off, end - off);
 			r.setPrimaryColumn(c);
 			off = end + U_D_SKIP;
 			end = findNextChar(data, off, '|');
@@ -104,7 +104,7 @@ public class RecordLogCodec {
 				if (data[end + 3] == '1') {
 					PrimaryColumnLog c = new PrimaryColumnLog();
 					r.setPrimaryColumn(c);
-					c.setName(data, off, end - off);
+//					c.setName(data, off, end - off);
 					off = end + I_SKIP;
 					end = findNextChar(data, off, '|');
 					c.setLongValue(parseLong(data, off, end));
