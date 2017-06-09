@@ -1,17 +1,18 @@
 package com.alibaba.middleware.race.sync;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
 import com.alibaba.middleware.race.sync.model.RecordLog;
+import com.alibaba.middleware.race.sync.model.Table;
+import com.alibaba.middleware.race.sync.util.LoggerUtil;
 
 /**
  * @author wangkai
  */
 public class ReadRecordLogThread implements Runnable {
 
-	private Logger				logger	= LoggerFactory.getLogger(getClass());
+	private Logger				logger	= LoggerUtil.SERVER_LOGGER;
 
 	private ReadRecordLogContext	context;
 
@@ -42,6 +43,23 @@ public class ReadRecordLogThread implements Runnable {
 		ReadChannel channel = readRecordLogContext.getChannel();
 
 		int all = 0;
+		
+		for (; channel.hasRemaining();) {
+
+			RecordLog r = channelReader.read(channel, tableSchemaBytes);
+
+			if (r == null) {
+				continue;
+			}
+
+			all++;
+
+			context.setTable(Table.newTable(r));
+
+			context.dispatch(r);
+			
+			break;
+		}
 
 		for (; channel.hasRemaining();) {
 

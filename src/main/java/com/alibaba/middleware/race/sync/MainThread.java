@@ -6,19 +6,19 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
 import com.alibaba.middleware.race.sync.channel.RAFInputStream;
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
 import com.alibaba.middleware.race.sync.channel.SimpleReadChannel;
+import com.alibaba.middleware.race.sync.util.LoggerUtil;
 
 /**
  * @author wangkai
  */
 public class MainThread {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private Logger logger = LoggerUtil.SERVER_LOGGER;
 
 	public void execute(Context context) {
 		try {
@@ -30,13 +30,13 @@ public class MainThread {
 
 	private void execute1(Context context) throws Exception {
 		long startTime = System.currentTimeMillis();
-//		File root = new File(Constants.DATA_HOME);
-		File root = new File(Constants.TESTER_HOME+"/canal.txt");
+		File root = new File(Constants.DATA_HOME);
+//		File root = new File(Constants.TESTER_HOME+"/canal.txt");
 		if (!root.exists()) {
 			throw new FileNotFoundException(root.getAbsolutePath());
 		}
 		
-		ReadChannel channels = initChannels3(root);
+		ReadChannel channels = initChannels2(root);
 		
 		ReadRecordLogContext readRecordLogContext = new ReadRecordLogContext(channels, context);
 
@@ -61,7 +61,7 @@ public class MainThread {
 	}
 
 	private ReadChannel initChannels2(File root) throws IOException {
-		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 0, 10,
+		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 10,
 				1024 * 128);
 	}
 	

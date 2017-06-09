@@ -7,14 +7,13 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.RecalculateContext;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
-import com.alibaba.middleware.race.sync.model.Column;
 import com.alibaba.middleware.race.sync.model.Record;
 import com.generallycloud.baseio.common.CloseUtil;
-import com.generallycloud.baseio.common.Logger;
-import com.generallycloud.baseio.common.LoggerFactory;
 import com.generallycloud.baseio.component.ByteArrayBuffer;
 
 /**
@@ -26,15 +25,17 @@ public class RecordUtil {
 	
 	private static final byte FIELD_N_BYTE = '\n';
 	
-	private static final Logger	logger			= LoggerFactory.getLogger(RecordUtil.class);
+	private static final Logger	logger			= LoggerUtil.SERVER_LOGGER;
 
 	public static void formatResultString(Record record, ByteBuffer buffer) {
 		buffer.clear();
-		buffer.put(record.getPrimaryColumn().getValue());
-		for (Column c : record.getColumns().values()) {
+		byte[][] array = record.getColumns();
+		byte len = (byte) (array.length - 1);
+		for (byte i = 0; i < len; i++) {
+			buffer.put(array[i]);
 			buffer.put(FIELD_SEPERATOR_BYTE);
-			buffer.put(c.getValue());
 		}
+		buffer.put(array[len]);
 		buffer.put(FIELD_N_BYTE);
 	}
 

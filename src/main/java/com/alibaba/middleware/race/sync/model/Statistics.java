@@ -45,22 +45,22 @@ public class Statistics {
 		this.endId = endId;
 	}
 
-	public void dealRecord(Record record) {
+	public void dealRecord(RecordLog record) {
 		count++;
 		switch (record.getAlterType()) {
-		case Record.INSERT:
+		case Constants.INSERT:
 			iCount++;
-			if (in((long) record.getPrimaryColumn().getValue()))
+			if (in((long) record.getPrimaryColumn().getLongValue()))
 				iCount1Filter++;
 			break;
-		case Record.UPDATE:
+		case Constants.UPDATE:
 			uCount++;
-			if (in((long) record.getPrimaryColumn().getValue()))
+			if (in((long) record.getPrimaryColumn().getLongValue()))
 				uCount1Filter++;
 			if (record.isPKUpdate()) {
 				pkUpdateCount++;
 				long oldPk = (long) record.getPrimaryColumn().getBeforeValue();
-				long newPk = (long) record.getPrimaryColumn().getValue();
+				long newPk = (long) record.getPrimaryColumn().getLongValue();
 				pkUpdateSet.add(oldPk);
 				pkUpdateSet.add(newPk);
 				if (in(newPk))
@@ -70,9 +70,9 @@ public class Statistics {
 			}
 			break;
 
-		case Record.DELETE:
+		case Constants.DELETE:
 			dCount++;
-			if (in((long) record.getPrimaryColumn().getValue()))
+			if (in((long) record.getPrimaryColumn().getLongValue()))
 				dCount1Filter++;
 			break;
 		}

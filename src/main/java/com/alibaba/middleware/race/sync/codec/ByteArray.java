@@ -17,6 +17,12 @@ public class ByteArray {
 	public byte[] getArray() {
 		return array;
 	}
+	
+	public ByteArray reset(byte [] array){
+		this.array = array;
+		this.hash = 0;
+		return this;
+	}
 
 	@Override
 	public boolean equals(Object obj) {

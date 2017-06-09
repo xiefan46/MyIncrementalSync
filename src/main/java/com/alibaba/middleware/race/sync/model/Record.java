@@ -1,37 +1,22 @@
 package com.alibaba.middleware.race.sync.model;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import com.alibaba.middleware.race.sync.codec.ByteArray;
-
 /**
  * @author wangkai
  */
 public class Record {
 
-	private Map<ByteArray, Column>	columns;
+	private byte[][] columns;
 
-	private PrimaryColumn		primaryColumn;
-	
-	public void newColumns() {
-		this.columns = new LinkedHashMap<>();
+	public Record(int cols) {
+		this.columns = new byte[5][];
 	}
 
-	public Map<ByteArray, Column> getColumns() {
+	public void setColum(int index, byte[] data) {
+		columns[index] = data;
+	}
+
+	public byte[][] getColumns() {
 		return columns;
-	}
-
-	public PrimaryColumn getPrimaryColumn() {
-		return primaryColumn;
-	}
-
-	public void setPrimaryColumn(PrimaryColumn primaryColumn) {
-		this.primaryColumn = primaryColumn;
-	}
-
-	public void putColumn(ByteArray key,Column column){
-		columns.put(key, column);
 	}
 
 }

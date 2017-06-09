@@ -5,6 +5,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import com.alibaba.middleware.race.sync.model.RecordLog;
+import com.alibaba.middleware.race.sync.model.Table;
 
 /**
  * @author wangkai
@@ -20,6 +21,7 @@ public class Context {
 	private BlockingQueue<RecordLog>	recordLogQueue;
 	private RecalculateContext		recalculateContext;
 	private RecalculateThread		recalculateThread;
+	private Table					table;
 	private int					availableProcessors		= Runtime.getRuntime()
 			.availableProcessors() - 2;
 
@@ -93,4 +95,13 @@ public class Context {
 		return availableProcessors;
 	}
 
+	public Table getTable() {
+		return table;
+	}
+
+	public void setTable(Table table) {
+		this.table = table;
+		this.recalculateContext.setTable(table);
+	}
+	
 }
