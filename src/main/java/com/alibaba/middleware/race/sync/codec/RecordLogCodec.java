@@ -16,10 +16,9 @@ public class RecordLogCodec {
 	
 	private final int			I_SKIP		= "1:1|NULL|X".length();
 	
-	private final int			HEAD_LEN		= "|mysql-bin.1717148759|1496736165000"
-			.length();
+	private final int			HEAD_SKIP		= "|mysql-bin.".length();
 	
-	private final int			HEAD_SKIP		= HEAD_LEN - 1;
+	private final int			TIME_SKIP		= "1496720884000".length() + 1;
 	
 	public static RecordLogCodec get() {
 		return recordLogCodec;
@@ -38,6 +37,7 @@ public class RecordLogCodec {
 
 	public RecordLog decode(byte[] data,byte [] tableSchema, int offset, int last,int cols) {
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
+		off += TIME_SKIP;
 		if (!compare(data, off + 1, tableSchema)) {
 			return null;
 		}
