@@ -17,7 +17,7 @@ public class PrimaryColumnLog extends ColumnLog {
 		this.beforeValue = beforeValue;
 	}
 
-	public boolean IsPkChange() {
+	public boolean isPkChange() {
 		return getLongValue() != getBeforeValue();
 	}
 

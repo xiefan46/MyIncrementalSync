@@ -12,7 +12,7 @@ public class RecordLog {
 	// 一个唯一的字符串编号,例子:000001:106
 	//	private String			binaryId;
 	// 数据变更发生的时间戳,毫秒精度
-//	private long			timestamp;
+	//	private long			timestamp;
 	//	// 数据变更对应的库名	
 	//	private String			schema;
 	//	// 数据变更对应的表名
@@ -25,13 +25,13 @@ public class RecordLog {
 	// 该记录的主键
 	private PrimaryColumnLog	primaryColumn;
 
-//	public long getTimestamp() {
-//		return timestamp;
-//	}
-//
-//	public void setTimestamp(long timestamp) {
-//		this.timestamp = timestamp;
-//	}
+	//	public long getTimestamp() {
+	//		return timestamp;
+	//	}
+	//
+	//	public void setTimestamp(long timestamp) {
+	//		this.timestamp = timestamp;
+	//	}
 
 	public byte getAlterType() {
 		return alterType;
@@ -52,7 +52,7 @@ public class RecordLog {
 	public List<ColumnLog> getColumns() {
 		return columns;
 	}
-	
+
 	public PrimaryColumnLog getPrimaryColumn() {
 		return primaryColumn;
 	}
@@ -63,7 +63,7 @@ public class RecordLog {
 
 	public boolean isPKUpdate() {
 		if (this.alterType == Constants.UPDATE) {
-			return primaryColumn.IsPkChange();
+			return primaryColumn.isPkChange();
 		}
 		return false;
 	}

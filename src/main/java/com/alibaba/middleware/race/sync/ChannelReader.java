@@ -1,11 +1,15 @@
 package com.alibaba.middleware.race.sync;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
 import com.alibaba.middleware.race.sync.codec.RecordLogCodec;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.generallycloud.baseio.buffer.ByteBuf;
+import com.generallycloud.baseio.common.Logger;
+import com.generallycloud.baseio.common.LoggerFactory;
 
 /**
  * @author wangkai
@@ -16,6 +20,8 @@ public class ChannelReader {
 
 	private final int			HEAD_SKIP		= "|mysql-bin.00001717148759|1496736165000".length();
 
+	private static final Logger	logger		= LoggerFactory.getLogger(ChannelReader.class);
+
 	public static ChannelReader get() {
 		return channelReader;
 	}
@@ -25,7 +31,19 @@ public class ChannelReader {
 
 	private RecordLogCodec codec = RecordLogCodec.get();
 
+	int					count2	= 0;
+
+	private List<Long>		logIdList	= null;
+
 	public RecordLog read(ReadChannel channel, byte[] tableSchema, int cols) throws IOException {
+		if (logIdList == null) {
+			String str = new String(tableSchema, 0, tableSchema.length);
+			if (str.endsWith("student")) {
+				logIdList = Arrays.asList(170001L);
+			} else {
+				logIdList = Arrays.asList(1089L);
+			}
+		}
 		ByteBuf buf = channel.getByteBuf();
 		byte[] readBuffer = buf.array();
 		int limit = buf.limit();
@@ -53,7 +71,16 @@ public class ChannelReader {
 			return read(channel, tableSchema, cols);
 		}
 		buf.position(end + 1);
-		return codec.decode(readBuffer, tableSchema, offset, end - 1, cols);
+		RecordLog r = codec.decode(readBuffer, tableSchema, offset, end - 1,cols);
+		if (r != null) {
+			if (count2 < 50 && (logIdList.contains(r.getPrimaryColumn().getLongValue())
+					|| logIdList.contains(r.getPrimaryColumn().getBeforeValue()))) {
+				String str = new String(readBuffer, offset, end - offset);
+				logger.info("Record log : " + str);
+				count2++;
+			}
+		}
+		return r;
 	}
 
 	private int findNextChar(byte[] data, int offset, int end, char c) {

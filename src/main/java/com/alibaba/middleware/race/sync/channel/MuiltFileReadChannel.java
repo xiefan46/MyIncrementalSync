@@ -5,6 +5,8 @@ import java.io.InputStream;
 
 import com.alibaba.middleware.race.sync.other.bytes.ByteBufUtil;
 import com.generallycloud.baseio.buffer.ByteBuf;
+import com.generallycloud.baseio.common.Logger;
+import com.generallycloud.baseio.common.LoggerFactory;
 
 /**
  * @author wangkai
@@ -12,13 +14,16 @@ import com.generallycloud.baseio.buffer.ByteBuf;
  */
 public class MuiltFileReadChannel extends ReadChannel {
 
-	private InputStream[]	inputStreams;
+	private InputStream[]		inputStreams;
 
-	private InputStream		current;
+	private InputStream			current;
 
-	private int			currentIndex;
+	private int				currentIndex;
 
-	private boolean		hasRemaining	= true;
+	private boolean			hasRemaining	= true;
+
+	private static final Logger	logger		= LoggerFactory
+			.getLogger(MuiltFileReadChannel.class);
 
 	public MuiltFileReadChannel(InputStream[] inputStreams, int maxBufferLen) {
 		super(maxBufferLen);
@@ -33,9 +38,11 @@ public class MuiltFileReadChannel extends ReadChannel {
 		int len = ByteBufUtil.read(buf, current, buf.capacity());
 		if (len == -1) {
 			if (currentIndex == inputStreams.length) {
+				logger.info("Read end. CurrentIndex : {}", currentIndex - 1);
 				hasRemaining = false;
 				return -1;
 			}
+			logger.info("Swich to next stream. Old stream index : {}", currentIndex - 1);
 			this.current = inputStreams[currentIndex++];
 			return read(buf);
 		}
@@ -46,6 +53,7 @@ public class MuiltFileReadChannel extends ReadChannel {
 		return current;
 	}
 
+	@Override
 	public boolean hasRemaining() {
 		return hasRemaining;
 	}
