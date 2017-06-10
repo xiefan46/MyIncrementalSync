@@ -38,9 +38,10 @@ public class Server {
 
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
-			args = new String[]{"middleware3","student","600","700"};
+			args = new String[] { "middleware3", "student", "600", "700" };
 		}
-		
+		logger.info("----------------server start-----------------");
+		logger.info("----------------server start-----------------");
 		initProperties();
 		Server server = get();
 		try {
@@ -50,8 +51,8 @@ public class Server {
 			logger.error(e.getMessage(), e);
 		}
 	}
-	
-	private void initPageCache(){
+
+	private void initPageCache() {
 		new Thread(new PageCacheHelper()).start();
 	}
 
@@ -72,7 +73,7 @@ public class Server {
 	 */
 	private void startServer1(String[] args, int port) throws Exception {
 		initPageCache();
-		
+
 		// 第一个参数是Schema Name
 		logger.info("tableSchema:" + args[0]);
 		// 第二个参数是Schema Name
@@ -111,7 +112,7 @@ public class Server {
 		context.setProtocolFactory(new FixedLengthProtocolFactory());
 
 		acceptor.bind();
-		
+
 		this.socketChannelContext = context;
 
 		execute(endId, new RecordLogReceiverImpl(), startId, (schema + "|" + table));
@@ -122,7 +123,7 @@ public class Server {
 			throws Exception {
 
 		Context context = new Context(endId, receiver, startId, tableSchema);
-		
+
 		context.initialize();
 
 		mainThread.execute(context);
