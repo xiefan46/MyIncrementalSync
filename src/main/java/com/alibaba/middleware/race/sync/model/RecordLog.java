@@ -45,8 +45,8 @@ public class RecordLog {
 		columns.add(column);
 	}
 
-	public void newColumns() {
-		this.columns = new ArrayList<>();
+	public void newColumns(int cols) {
+		this.columns = new ArrayList<>(cols);
 	}
 
 	public List<ColumnLog> getColumns() {

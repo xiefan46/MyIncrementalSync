@@ -40,4 +40,8 @@ public class Table {
 		return t;
 	}
 	
+	public int getColumnSize() {
+		return columnSize;
+	}
+	
 }

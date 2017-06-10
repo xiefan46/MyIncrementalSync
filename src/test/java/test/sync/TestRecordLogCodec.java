@@ -37,7 +37,7 @@ public class TestRecordLogCodec {
 		
 		for (; channel.hasRemaining();) {
 			
-			RecordLog r = reader.read(channel, cs);
+			RecordLog r = reader.read(channel, cs,10);
 			if (r == null) {
 //				System.out.println("------------------");
 				continue;

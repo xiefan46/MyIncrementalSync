@@ -18,7 +18,7 @@ public class PrimaryColumnLog extends ColumnLog {
 	}
 
 	public boolean IsPkChange() {
-		return !getValue().equals(beforeValue);
+		return getLongValue() != getBeforeValue();
 	}
 
 	public long getLongValue() {

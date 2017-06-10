@@ -16,12 +16,10 @@ public class RecordLogCodec {
 	
 	private final int			I_SKIP		= "1:1|NULL|X".length();
 	
-	private final int			HEAD_LEN		= "|mysql-bin.00001717148759|1496736165000"
+	private final int			HEAD_LEN		= "|mysql-bin.1717148759|1496736165000"
 			.length();
 	
 	private final int			HEAD_SKIP		= HEAD_LEN - 1;
-	
-	private final int			TIMESTAMP_LEN = "1496736165000".length();
 	
 	public static RecordLogCodec get() {
 		return recordLogCodec;
@@ -38,7 +36,7 @@ public class RecordLogCodec {
 		return true;
 	}
 
-	public RecordLog decode(byte[] data,byte [] tableSchema, int offset, int last) {
+	public RecordLog decode(byte[] data,byte [] tableSchema, int offset, int last,int cols) {
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
 		if (!compare(data, off + 1, tableSchema)) {
 			return null;
@@ -50,7 +48,7 @@ public class RecordLogCodec {
 		r.setAlterType(alterType);
 		off += 2;
 		if (Constants.UPDATE == alterType) {
-			r.newColumns();
+			r.newColumns(cols);
 			for (;;) {
 				end = findNextChar(data, off, ':');
 				if (data[end + 3] == '1') {
@@ -93,12 +91,12 @@ public class RecordLogCodec {
 			off = end + U_D_SKIP;
 			end = findNextChar(data, off, '|');
 			c.setLongValue(parseLong(data, off, end));
-			c.setValue(data,off,end-off);
+//			c.setValue(data,off,end-off);
 			return r;
 		}
 
 		if (Constants.INSERT == alterType) {
-			r.newColumns();
+			r.newColumns(cols);
 			for (;;) {
 				end = findNextChar(data, off, ':');
 				if (data[end + 3] == '1') {
@@ -128,7 +126,7 @@ public class RecordLogCodec {
 			}
 
 		}
-		return r;
+		throw new RuntimeException(String.valueOf(alterType));
 	}
 
 	private int findNextChar(byte[] data, int offset, char c) {

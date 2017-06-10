@@ -43,12 +43,12 @@ public class ReadRecordLogThread implements Runnable {
 		ChannelReader channelReader = ChannelReader.get();
 
 		ReadChannel channel = readRecordLogContext.getChannel();
-
+		
 		int all = 0;
 		
 		for (; channel.hasRemaining();) {
 
-			RecordLog r = channelReader.read(channel, tableSchemaBytes);
+			RecordLog r = channelReader.read(channel, tableSchemaBytes,8);
 
 			if (r == null) {
 				continue;
@@ -63,10 +63,12 @@ public class ReadRecordLogThread implements Runnable {
 			
 			break;
 		}
+		
+		int cols = context.getTable().getColumnSize();
 
 		for (; channel.hasRemaining();) {
 
-			RecordLog r = channelReader.read(channel, tableSchemaBytes);
+			RecordLog r = channelReader.read(channel, tableSchemaBytes,cols);
 
 			if (r == null) {
 				continue;

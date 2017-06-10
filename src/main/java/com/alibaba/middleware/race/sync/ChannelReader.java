@@ -14,8 +14,7 @@ public class ChannelReader {
 
 	private static ChannelReader	channelReader	= new ChannelReader();
 
-	private final int			HEAD_SKIP		= "|mysql-bin.00001717148759|1496736165000"
-			.length();
+	private final int			HEAD_SKIP		= "|mysql-bin.00001717148759|1496736165000".length();
 
 	public static ChannelReader get() {
 		return channelReader;
@@ -26,7 +25,7 @@ public class ChannelReader {
 
 	private RecordLogCodec codec = RecordLogCodec.get();
 
-	public RecordLog read(ReadChannel channel, byte[] tableSchema) throws IOException {
+	public RecordLog read(ReadChannel channel, byte[] tableSchema, int cols) throws IOException {
 		ByteBuf buf = channel.getByteBuf();
 		byte[] readBuffer = buf.array();
 		int limit = buf.limit();
@@ -36,14 +35,14 @@ public class ChannelReader {
 				return null;
 			}
 			channel.read(buf);
-			return read(channel, tableSchema);
+			return read(channel, tableSchema, cols);
 		}
 		if (limit - offset < HEAD_SKIP) {
 			if (!channel.hasRemaining()) {
 				return null;
 			}
 			channel.read(buf);
-			return read(channel, tableSchema);
+			return read(channel, tableSchema, cols);
 		}
 		int end = findNextChar(readBuffer, offset + HEAD_SKIP, limit, '\n');
 		if (end == -1) {
@@ -51,10 +50,10 @@ public class ChannelReader {
 				return null;
 			}
 			channel.read(buf);
-			return read(channel, tableSchema);
+			return read(channel, tableSchema, cols);
 		}
 		buf.position(end + 1);
-		return codec.decode(readBuffer, tableSchema, offset, end - 1);
+		return codec.decode(readBuffer, tableSchema, offset, end - 1, cols);
 	}
 
 	private int findNextChar(byte[] data, int offset, int end, char c) {
