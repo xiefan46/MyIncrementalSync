@@ -34,9 +34,17 @@ public class ChannelReader {
 
 	int					count2	= 0;
 
-	private List<Long>		logIdList	= Arrays.asList(621L, 170001L, 1089L);
+	private List<Long>		logIdList	= null;
 
 	public RecordLog read(ReadChannel channel, byte[] tableSchema) throws IOException {
+		if (logIdList == null) {
+			String str = new String(tableSchema, 0, tableSchema.length);
+			if (str.endsWith("student")) {
+				logIdList = Arrays.asList(170001L);
+			} else {
+				logIdList = Arrays.asList(1089L);
+			}
+		}
 		ByteBuf buf = channel.getByteBuf();
 		byte[] readBuffer = buf.array();
 		int limit = buf.limit();
