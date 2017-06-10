@@ -164,7 +164,7 @@ public class Server {
 
 		//FIXME 如果文件比较大，直接发送该buf
 
-		future.write(buffer.array(), 0, buffer.size());
+		future.write(buffer.array(), 0, buffer.size() - 1);
 
 		logger.info("开始向客户端传送文件，当前时间：{}", System.currentTimeMillis());
 

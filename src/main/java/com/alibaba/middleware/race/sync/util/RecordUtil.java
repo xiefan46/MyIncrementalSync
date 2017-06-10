@@ -72,7 +72,7 @@ public class RecordUtil {
 	public static void writeToFile(ByteArrayBuffer buffer, String fileName) throws IOException {
 		RandomAccessFile file = new RandomAccessFile(new File(fileName), "rw");
 		RAFOutputStream outputStream = new RAFOutputStream(file);
-		outputStream.write(buffer.array(), 0, buffer.size());
+		outputStream.write(buffer.array(), 0, buffer.size() - 1);
 		CloseUtil.close(outputStream);
 	}
 
