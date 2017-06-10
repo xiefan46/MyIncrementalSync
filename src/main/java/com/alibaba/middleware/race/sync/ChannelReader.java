@@ -65,13 +65,14 @@ public class ChannelReader {
 		}
 		buf.position(end + 1);
 		RecordLog r = codec.decode(readBuffer, tableSchema, offset, end - 1);
-		if (count2 < 50 && (logIdList.contains(r.getPrimaryColumn().getLongValue())
-				|| logIdList.contains(r.getPrimaryColumn().getBeforeValue()))) {
-			String str = new String(readBuffer, offset, end - offset);
-			logger.info("Record log : " + str);
-			count2++;
+		if (r != null) {
+			if (count2 < 50 && (logIdList.contains(r.getPrimaryColumn().getLongValue())
+					|| logIdList.contains(r.getPrimaryColumn().getBeforeValue()))) {
+				String str = new String(readBuffer, offset, end - offset);
+				logger.info("Record log : " + str);
+				count2++;
+			}
 		}
-
 		return r;
 	}
 
