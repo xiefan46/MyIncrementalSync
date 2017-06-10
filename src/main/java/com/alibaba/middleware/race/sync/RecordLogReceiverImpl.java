@@ -23,9 +23,7 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	int						count	= 0;
 
-	int						count2	= 0;
 
-	private List<Long>			logIdList	= Arrays.asList(621L, 170001L);
 
 	@Override
 	public void received(RecalculateContext context, RecordLog recordLog) throws Exception {
@@ -65,25 +63,39 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 	}
 
 	private Record update(Table table, Record oldRecord, RecordLog recordLog) {
-		if (count2 < 10 && (logIdList.contains(recordLog.getPrimaryColumn().getLongValue())
+		/*if (count2 < 10 && (logIdList.contains(recordLog.getPrimaryColumn().getLongValue())
 				|| logIdList.contains(recordLog.getPrimaryColumn().getBeforeValue()))) {
 			StringBuilder sb = new StringBuilder();
-			sb.append("col update.");
+			sb.append("Record log type : " + );
 			sb.append(" old pk : " + recordLog.getPrimaryColumn().getBeforeValue());
 			sb.append(" new pk: " + recordLog.getPrimaryColumn().getLongValue());
-			for (ColumnLog c : recordLog.getColumns()) {
-				byte[] name = c.getName();
-				byte[] value = c.getValue();
-				sb.append(" col name : " + new String(name, 0, name.length) + "  new value : "
-						+ new String(value, 0, value.length));
+			if (recordLog.getColumns() != null) {
+				for (ColumnLog c : recordLog.getColumns()) {
+					byte[] name = c.getName();
+					byte[] value = c.getValue();
+					sb.append(" col name : " + new String(name, 0, name.length)
+							+ "  new value : " + new String(value, 0, value.length));
+				}
 			}
-			logger.info("record log: " + sb.toString());
+			logger.info("record log. log type :  " + recordLog.getAlterType() + "content : "
+					+ sb.toString());
 			count2++;
-		}
+		}*/
 		for (ColumnLog c : recordLog.getColumns()) {
 			oldRecord.setColum(table.getIndex(c.getName()), c.getValue());
 		}
 		return oldRecord;
 	}
 
+	private String getAlterStr(RecordLog recordLog) {
+		switch (recordLog.getAlterType()) {
+		case Constants.UPDATE:
+			return "UPDATE";
+		case Constants.DELETE:
+			return "DELETE";
+		case Constants.INSERT:
+			return "INSERT";
+		}
+		return null;
+	}
 }
