@@ -91,6 +91,7 @@ public class Client {
 	private void writeToFile(ByteBuf buf) {
 		OutputStream outputStream = null;
 		try {
+			printResult(buf);
 			long startTime = System.currentTimeMillis();
 			String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
 			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
@@ -102,6 +103,12 @@ public class Client {
 		} finally {
 			CloseUtil.close(outputStream);
 		}
+	}
+	
+	private void printResult(ByteBuf buf){
+		String str = new String(buf.array(),0,buf.limit());
+		logger.info("r:");
+		logger.info(str);
 	}
 
 }

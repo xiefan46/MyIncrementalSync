@@ -5,9 +5,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.model.RecordLog;
-import com.alibaba.middleware.race.sync.util.LoggerUtil;
 
 /**
  * @author wangkai
@@ -19,7 +19,7 @@ public class RecalculateThread implements Runnable {
 
 	private volatile boolean		running		= true;
 
-	private Logger		logger		= LoggerUtil.SERVER_LOGGER;
+	private Logger		logger		= LoggerFactory.getLogger(getClass());
 	
 	private CountDownLatch		countDownLatch = new CountDownLatch(1);
 

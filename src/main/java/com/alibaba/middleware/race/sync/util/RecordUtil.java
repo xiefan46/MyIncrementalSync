@@ -7,8 +7,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.RecalculateContext;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
@@ -25,8 +23,6 @@ public class RecordUtil {
 
 	private static final byte	FIELD_N_BYTE			= '\n';
 
-	private static final Logger	logger				= LoggerUtil.SERVER_LOGGER;
-
 	public static void formatResultString(Record record, ByteBuffer buffer) {
 		buffer.clear();
 		byte[][] array = record.getColumns();
@@ -40,7 +36,6 @@ public class RecordUtil {
 	}
 
 	public static void writeResultToLocalFile(Context context, String fileName) throws Exception {
-		long startTime = System.currentTimeMillis();
 
 		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 128);
 
@@ -48,23 +43,16 @@ public class RecordUtil {
 
 		writeToFile(byteArrayBuffer, fileName);
 
-		logger.info("写结果文件到本地文件系统耗时 : {}", System.currentTimeMillis() - startTime);
 	}
 
 	public static void writeToByteArrayBuffer(Context context, ByteArrayBuffer buffer) {
 		List<Record> result = getResult(context);
-		logger.info("结果文件条目数 : " + result.size());
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
 		for (Record r : result) {
 			RecordUtil.formatResultString(r, array);
 			buffer.write(array.array(), 0, array.position());
 		}
-		byte[] bytes = buffer.array();
-		String str = new String(bytes, 0, buffer.size());
-		logger.info("打印结果文件: ");
-		logger.info(str);
 	}
-
 
 	private static List<Record> getResult(Context context) {
 		long startId = context.getStartId();
