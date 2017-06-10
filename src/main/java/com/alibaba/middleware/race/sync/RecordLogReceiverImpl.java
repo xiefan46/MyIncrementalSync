@@ -1,5 +1,8 @@
 package com.alibaba.middleware.race.sync;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import com.alibaba.middleware.race.sync.model.ColumnLog;
@@ -20,6 +23,10 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	int						count	= 0;
 
+	int						count2	= 0;
+
+	private List<Long>			logIdList	= Arrays.asList(621L, 170001L);
+
 	@Override
 	public void received(RecalculateContext context, RecordLog recordLog) throws Exception {
 		Map<Long, Record> records = context.getRecords();
@@ -34,7 +41,7 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 				update(table, oldRecord, recordLog);
 				oldRecord.setColum(0, pcl.getValue());
 				records.put(pk, oldRecord);
-			}else{
+			} else {
 				Record oldRecord = records.get(pk);
 				update(table, oldRecord, recordLog);
 			}
@@ -50,6 +57,7 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 		default:
 			if (count < 5) {
 				logger.info("错误的指令类型");
+				count++;
 			}
 			break;
 		}
@@ -57,6 +65,21 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 	}
 
 	private Record update(Table table, Record oldRecord, RecordLog recordLog) {
+		if (count2 < 10 && (logIdList.contains(recordLog.getPrimaryColumn().getLongValue())
+				|| logIdList.contains(recordLog.getPrimaryColumn().getBeforeValue()))) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("col update.");
+			sb.append(" old pk : " + recordLog.getPrimaryColumn().getBeforeValue());
+			sb.append(" new pk: " + recordLog.getPrimaryColumn().getLongValue());
+			for (ColumnLog c : recordLog.getColumns()) {
+				byte[] name = c.getName();
+				byte[] value = c.getValue();
+				sb.append(" col name : " + new String(name, 0, name.length) + "  new value : "
+						+ new String(value, 0, value.length));
+			}
+			logger.info("record log: " + sb.toString());
+			count2++;
+		}
 		for (ColumnLog c : recordLog.getColumns()) {
 			oldRecord.setColum(table.getIndex(c.getName()), c.getValue());
 		}

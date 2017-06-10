@@ -32,27 +32,6 @@ public class MainThreadTest {
 		cleanUpAll();
 	}
 
-	@Ignore
-	@Test
-	public void createTestData() throws Exception {
-		cleanDir(dataDir);
-		for (int i = 0; i < fileNum; i++) {
-			BufferedOutputStream bos = null;
-			try {
-				bos = new BufferedOutputStream(
-						new FileOutputStream(Constants.DATA_HOME + "/" + i + ".txt"));
-				for (int j = 0; j < 10; j++) { //ÿ���ļ�����10��insert���
-					String mockInsert = MockDataUtil.mockInsertLog();
-					mockInsert += '\n';
-					bos.write(mockInsert.getBytes());
-				}
-				bos.flush();
-			} finally {
-				if (bos != null)
-					bos.close();
-			}
-		}
-	}
 
 	@Test
 	public void testBasic() throws Exception {
