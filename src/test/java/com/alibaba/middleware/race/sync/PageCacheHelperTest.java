@@ -34,14 +34,18 @@ public class PageCacheHelperTest {
 			System.out.println("file name : " + f.getName());
 			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
 			int size = bis.read(bytes);
-			while (size > 0) {
+			while (size != -1) {
 				size = bis.read(bytes);
 				flag |= size;
+				if (size <= 0) {
+					System.out.println("size : " + size);
+				}
 			}
 			count++;
 			System.out.println(count);
 			bis.close();
 		}
 		System.out.println("time : " + (System.currentTimeMillis() - start));
+		System.out.println(flag);
 	}
 }

@@ -37,6 +37,7 @@ public class MuiltFileReadChannel extends ReadChannel {
 		}
 		int len = ByteBufUtil.read(buf, current, buf.capacity());
 		if (len <= 0) {
+			System.out.println("len : " + len);
 			if (currentIndex == inputStreams.length) {
 				logger.info("Read end. CurrentIndex : {}", currentIndex - 1);
 				hasRemaining = false;
