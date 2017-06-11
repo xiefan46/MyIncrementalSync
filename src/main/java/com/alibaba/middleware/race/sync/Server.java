@@ -38,9 +38,9 @@ public class Server {
 
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
-			args = new String[]{"middleware3","student","600","700"};
+			args = new String[] { "middleware3", "student", "600", "700" };
 		}
-		
+
 		logger.info("----------------server start-----------------");
 		initProperties();
 		Server server = get();
@@ -50,9 +50,12 @@ public class Server {
 			logger.error(e.getMessage(), e);
 		}
 	}
-	
-	private void initPageCache(){
-		new Thread(new PageCacheHelper()).start();
+
+	private void initPageCache() {
+		//new Thread(new PageCacheHelper()).start();
+		long startTime = System.currentTimeMillis();
+		new PageCacheHelper().readSingleThread();
+		logger.info("读一遍所有文件耗时 : {}", System.currentTimeMillis() - startTime);
 	}
 
 	/**
@@ -71,8 +74,7 @@ public class Server {
 	 * 对应DB的SQL为： select * from middleware.student where id>100 and id<200
 	 */
 	private void startServer1(String[] args, int port) throws Exception {
-		initPageCache();
-		
+
 		// 第一个参数是Schema Name
 		logger.info("tableSchema:" + args[0]);
 		// 第二个参数是Schema Name
@@ -111,10 +113,12 @@ public class Server {
 		context.setProtocolFactory(new FixedLengthProtocolFactory());
 
 		acceptor.bind();
-		
+
 		logger.info("com.alibaba.middleware.race.sync.Server is running....");
-		
+
 		this.socketChannelContext = context;
+
+		initPageCache();
 
 		execute(endId, new RecordLogReceiverImpl(), startId, (schema + "|" + table));
 
@@ -124,7 +128,7 @@ public class Server {
 			throws Exception {
 
 		Context context = new Context(endId, receiver, startId, tableSchema);
-		
+
 		context.initialize();
 
 		mainThread.execute(context);
