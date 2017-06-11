@@ -41,6 +41,7 @@ public class Server {
 			args = new String[]{"middleware3","student","600","700"};
 		}
 		
+		logger.info("----------------server start-----------------");
 		initProperties();
 		Server server = get();
 		try {

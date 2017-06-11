@@ -21,6 +21,7 @@ public class MainThread {
 
 	public void execute(Context context) {
 		try {
+			logger.info("--------------Main thread start-----------");
 			execute1(context);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -39,7 +40,7 @@ public class MainThread {
 
 		readRecordLogThread.run();
 
-		logger.info("解析记录耗时 : {}", System.currentTimeMillis() - startTime);
+		logger.info("等待所有线程完成总耗时 : {}", System.currentTimeMillis() - startTime);
 	}
 
 	private ReadChannel initChannels2() throws IOException {
