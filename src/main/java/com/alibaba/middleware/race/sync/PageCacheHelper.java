@@ -35,7 +35,7 @@ public class PageCacheHelper implements Runnable{
 					break;
 				}
 				channel.read(buf);
-				buf.clear();
+				buf.limit(0);
 			}
 			
 			ReleaseUtil.release(buf);
