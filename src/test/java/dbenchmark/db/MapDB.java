@@ -1,9 +1,10 @@
-package dbenchmark;
+package dbenchmark.db;
 
 import com.alibaba.middleware.race.sync.Constants;
 
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
+import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 
 import java.io.File;
@@ -14,10 +15,10 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class MapDB {
     private static DB db= DBMaker.fileDB(new File(Constants.MAP_DB_FILE))
-                         .asyncWriteEnable()
-                         .asyncWriteFlushDelay(100)
-                         .fileMmapEnable()
-                         .make();
+                          .storeExecutorEnable()
+                          .storeExecutorPeriod(100)
+                          .fileChannelEnable()
+                          .make();
     private MapDB(){
         //TO DO
     }
@@ -32,6 +33,11 @@ public class MapDB {
     }
     public void commit(){
         db.commit();
+    }
+    public static ConcurrentMap<String,String> getMemoryConcurrentMap(String name){
+        DB dbMemory=DBMaker.memoryDB().make();
+        HTreeMap inMemory=dbMemory.hashMap("inMemory");
+        return  inMemory;
     }
 
 }
