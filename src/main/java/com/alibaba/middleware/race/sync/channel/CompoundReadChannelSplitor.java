@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.sync;
+package com.alibaba.middleware.race.sync.channel;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,7 +7,6 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.alibaba.middleware.race.sync.stream.RAFInputStream;
 import com.generallycloud.baseio.buffer.ByteBuf;
 
 /**

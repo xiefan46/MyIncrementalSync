@@ -188,7 +188,7 @@ public class MockDataUtil {
 				new InputStreamReader(new FileInputStream(inputFileName)));
 		if (!outputDir.endsWith("/"))
 			outputDir += "/";
-		int i = 0;
+		int i = 1;
 		long curLength = 0;
 		BufferedOutputStream bos = new BufferedOutputStream(
 				new FileOutputStream(outputDir + i + ".txt"));

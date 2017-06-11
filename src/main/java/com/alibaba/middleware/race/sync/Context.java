@@ -1,44 +1,39 @@
 package com.alibaba.middleware.race.sync;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
-import com.alibaba.middleware.race.sync.model.Record;
-import com.alibaba.middleware.race.sync.model.Statistics;
+import com.alibaba.middleware.race.sync.model.RecordLog;
+import com.alibaba.middleware.race.sync.model.Table;
 
 /**
  * @author wangkai
+ *
  */
 public class Context {
 
-	private ReadChannel			channel;
-	private long				endId;
-	private RecordLogReceiver	receiver;
-	private Map<Long, Record>	records	= new HashMap<>();
-	private long				startId;
-	private String				tableSchema;
-	private Statistics			stat;
+	private long					endId;
+	private RecordLogReceiver		receiver;
+	private long					startId;
+	private String					tableSchema;
+	private boolean				executeByCoreProcesses	= false;
+	private BlockingQueue<RecordLog>	recordLogQueue;
+	private RecalculateContext		recalculateContext;
+	private RecalculateThread		recalculateThread;
+	private Table					table;
+	private int					availableProcessors		= Runtime.getRuntime()
+			.availableProcessors() - 2;
 
-	public Context(ReadChannel channel, long endId, RecordLogReceiver receiver, long startId,
-			String tableSchema) {
-		this.channel = channel;
+	public Context(long endId, RecordLogReceiver receiver, long startId, String tableSchema) {
 		this.endId = endId;
 		this.receiver = receiver;
 		this.startId = startId;
 		this.tableSchema = tableSchema;
-		this.stat = new Statistics(startId, endId);
-	}
-
-	public ReadChannel getChannel() {
-		return channel;
 	}
 
 	public RecordLogReceiver getReceiver() {
 		return receiver;
-	}
-
-	public Map<Long, Record> getRecords() {
-		return records;
 	}
 
 	public String getTableSchema() {
@@ -46,19 +41,13 @@ public class Context {
 	}
 
 	public void initialize() {
-
-	}
-
-	public void setChannel(ReadChannel channel) {
-		this.channel = channel;
+		recordLogQueue = new ArrayBlockingQueue<>(1024 * 8);
+		recalculateContext = new RecalculateContext(this, getReceiver(), recordLogQueue);
+		recalculateThread = new RecalculateThread(recalculateContext);
 	}
 
 	public void setReceiver(RecordLogReceiver receiver) {
 		this.receiver = receiver;
-	}
-
-	public void setRecords(Map<Long, Record> records) {
-		this.records = records;
 	}
 
 	public void setTableSchema(String tableSchema) {
@@ -81,7 +70,38 @@ public class Context {
 		this.startId = startId;
 	}
 
-	public Statistics getStat() {
-		return stat;
+	public RecalculateContext getRecalculateContext() {
+		return recalculateContext;
 	}
+
+	public void stopRecalculateThreads() {
+		recalculateThread.stop();
+	}
+
+	public RecalculateThread getRecalculateThread() {
+		return recalculateThread;
+	}
+
+	public void dispatch(RecordLog recordLog) throws InterruptedException {
+		for(;!recordLogQueue.offer(recordLog,8,TimeUnit.MICROSECONDS);){
+		}
+	}
+
+	public boolean isExecuteByCoreProcesses() {
+		return executeByCoreProcesses;
+	}
+
+	public int getAvailableProcessors() {
+		return availableProcessors;
+	}
+
+	public Table getTable() {
+		return table;
+	}
+
+	public void setTable(Table table) {
+		this.table = table;
+		this.recalculateContext.setTable(table);
+	}
+	
 }

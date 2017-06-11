@@ -1,80 +1,88 @@
 package com.alibaba.middleware.race.sync;
 
-import com.alibaba.middleware.race.sync.util.LoggerUtil;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.channel.ReadChannel;
+import com.alibaba.middleware.race.sync.model.RecordLog;
+import com.alibaba.middleware.race.sync.model.Table;
 
 /**
  * @author wangkai
  */
 public class ReadRecordLogThread implements Runnable {
 
-	private static final Logger	logger	= LoggerUtil.getServerLogger();
+	private Logger				logger	= LoggerFactory.getLogger(getClass());
 
-	private Context			context;
+	private ReadRecordLogContext	context;
 
-	public ReadRecordLogThread(Context context) {
+	public ReadRecordLogThread(ReadRecordLogContext context) {
 		this.context = context;
 	}
 
-	private int count = 0;
+	private int	recordScan	= 0;
+
+	private int	recordDeal	= 0;
 
 	@Override
 	public void run() {
 		try {
 			long startTime = System.currentTimeMillis();
-			execute(context, context.getTableSchema(), context.getStartId(), context.getEndId());
-			logger.info("线程 {} 解析数据完成，用时 : {}. Context中Record数目 : {}. 扫描处理记录条目数:{}",
-					Thread.currentThread().getId(), System.currentTimeMillis() - startTime,
-					context.getRecords().size(), count);
+			execute(context, context.getContext());
+			logger.info("线程 {} 执行耗时: {},总扫描记录数 {},需要重放的记录数 {}", Thread.currentThread().getId(),
+					System.currentTimeMillis() - startTime, recordScan, recordDeal);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
 	}
 
-	public void execute(Context context, String tableSchema, long startId, long endId)
+	public void execute(ReadRecordLogContext readRecordLogContext, Context context)
 			throws Exception {
+
+		RecordLogReceiver receiver = context.getReceiver();
+
+		RecalculateContext recalculateContext = context.getRecalculateContext();
+
+		String tableSchema = context.getTableSchema();
 
 		byte[] tableSchemaBytes = tableSchema.getBytes();
 
 		ChannelReader channelReader = ChannelReader.get();
 
-		ReadChannel channel = context.getChannel();
-
-		RecordLogReceiver recordLogReceiver = context.getReceiver();
-
-		int all = 0;
+		ReadChannel channel = readRecordLogContext.getChannel();
 
 		for (; channel.hasRemaining();) {
 
-			Record r = channelReader.read(channel, tableSchemaBytes);
+			RecordLog r = channelReader.read(channel, tableSchemaBytes, 8);
 
-			count++;
+			recordScan++;
 
 			if (r == null) {
 				continue;
 			}
 
-			all++;
+			recordDeal++;
 
-			/*
-			 * logger.debug("Alter type : " + r.getAlterType());
-			 * 
-			 * if (r.getAlterType() == Record.INSERT) {
-			 * logger.debug("Receive insert record. PK : {}",
-			 * r.getPrimaryColumn().getValue()); }
-			 */
-			if (Constants.COLLECT_STAT) {
-				context.getStat().dealRecord(r);
-			} else {
-				//r.setTableSchema(tableSchema);
-				recordLogReceiver.received(context, r, startId, endId);
-			}
+			context.setTable(Table.newTable(r));
 
+			receiver.received(recalculateContext, r);
+
+			break;
 		}
 
-		logger.info("lines:{}", all);
+		int cols = context.getTable().getColumnSize();
+
+		for (; channel.hasRemaining();) {
+
+			RecordLog r = channelReader.read(channel, tableSchemaBytes, cols);
+			recordScan++;
+			if (r == null) {
+				continue;
+			}
+			recordDeal++;
+			receiver.received(recalculateContext, r);
+		}
+
 	}
 
 }

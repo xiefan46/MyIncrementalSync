@@ -1,13 +1,18 @@
 package com.alibaba.middleware.race.sync;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.common.FileUtil;
+
+import util.MockDataUtil;
 
 /**
  * Created by xiefan on 6/4/17.
@@ -27,6 +32,7 @@ public class MainThreadTest {
 		cleanUpAll();
 	}
 
+
 	@Test
 	public void testBasic() throws Exception {
 		RecordLogReceiver recordLogReceiver = new RecordLogReceiverImpl();
@@ -34,12 +40,12 @@ public class MainThreadTest {
 		String table = "student";
 		long startId = 600;
 		long endId = 700;
-		MainThread mainThread = new MainThread(recordLogReceiver, schema, table, startId, endId);
-		Thread t = new Thread(mainThread);
-		t.start();
-		t.join();
-		RecordUtil.writeResultToLocalFile(mainThread.getFinalContext(),
-				Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME);
+		Context context = new Context(endId, recordLogReceiver , startId, (schema + "|" + table));
+		context.initialize();
+		MainThread mainThread = new MainThread();
+		mainThread.execute(context);
+		
+		RecordUtil.writeResultToLocalFile(context, Constants.RESULT_HOME + "/" +Constants.RESULT_FILE_NAME);
 	}
 
 	@After

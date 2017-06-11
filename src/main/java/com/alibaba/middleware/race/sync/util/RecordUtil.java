@@ -1,23 +1,17 @@
 package com.alibaba.middleware.race.sync.util;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.model.Column;
+import com.alibaba.middleware.race.sync.RecalculateContext;
+import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
 import com.alibaba.middleware.race.sync.model.Record;
-import com.alibaba.middleware.race.sync.stream.RAFOutputStream;
 import com.generallycloud.baseio.common.CloseUtil;
-import com.generallycloud.baseio.common.Logger;
-import com.generallycloud.baseio.common.LoggerFactory;
 import com.generallycloud.baseio.component.ByteArrayBuffer;
 
 /**
@@ -27,51 +21,81 @@ public class RecordUtil {
 
 	private static final byte	FIELD_SEPERATOR_BYTE	= '\t';
 
-	private static final byte	RECORD_SEPERATOR_BYTE	= '\n';
+	private static final byte	FIELD_N_BYTE			= '\n';
+	
+	private static final int	LONG_LEN 			= String.valueOf(Long.MAX_VALUE).length() -1; 
 
-	private static CharsetEncoder	encoder				= Charset.defaultCharset().newEncoder();
+	private static final byte[]	ID_CACHE				= new byte[LONG_LEN + 1];
+	
+	private static final byte[] NUM_MAPPING			= new byte[]{'0','1','2','3','4','5','6','7','8','9'};  
 
-	private static final Logger	logger				= LoggerFactory
-			.getLogger(RecordUtil.class);
-
-	public static void formatResultString(Record record, ByteBuffer buffer) {
-		checkState(record.getAlterType() == Record.INSERT,
-				"Fail to format result because of wrong alter type");
+	public static void formatResultString(long id,Record record, ByteBuffer buffer) {
 		buffer.clear();
-		buffer.put(record.getPrimaryColumn().getValueBytes());
-		for (Column c : record.getColumns().values()) {
+		byte [] idCache = ID_CACHE;
+		int off = valueOfLong(id, idCache);
+		buffer.put(idCache, off+1, LONG_LEN - off);
+		buffer.put(FIELD_SEPERATOR_BYTE);
+		byte[][] array = record.getColumns();
+		byte len = (byte) (array.length - 1);
+		for (byte i = 0; i < len; i++) {
+			buffer.put(array[i]);
 			buffer.put(FIELD_SEPERATOR_BYTE);
-			buffer.put(c.getValueBytes());
 		}
-		buffer.put(RECORD_SEPERATOR_BYTE);
+		buffer.put(array[len]);
+		buffer.put(FIELD_N_BYTE);
+	}
+	
+	private static int valueOfLong(long v,byte [] array){
+		long v1 = v;
+		int off = LONG_LEN;
+		byte[] NUM_MAPPING1 = NUM_MAPPING;
+		for(;;){
+			if (v1 == 0) {
+				return off;
+			}
+			array[off--] = NUM_MAPPING1[(int) (v1 % 10)];
+			v1 /= 10;
+		}
 	}
 
-	public static void writeResultToLocalFile(Context finalContext, String fileName)
-			throws Exception {
-		long startTime = System.currentTimeMillis();
+	public static void writeResultToLocalFile(Context context, String fileName) throws Exception {
 
 		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 128);
 
-		RecordUtil.writeToByteArrayBuffer(finalContext, byteArrayBuffer);
+		RecordUtil.writeToByteArrayBuffer(context, byteArrayBuffer);
 
 		writeToFile(byteArrayBuffer, fileName);
 
-		logger.info("写结果文件到本地文件系统耗时 : {}", System.currentTimeMillis() - startTime);
 	}
 
 	public static void writeToByteArrayBuffer(Context context, ByteArrayBuffer buffer) {
-		//sort
-		TreeMap<Long, Record> finalResult = new TreeMap<>();
-		for (Map.Entry<Long, Record> entry : context.getRecords().entrySet()) {
-			finalResult.put(entry.getKey(), entry.getValue());
-		}
-		Map<Long, Record> filterResult = finalResult.subMap(context.getStartId() + 1,
-				context.getEndId());
+		long startId = context.getStartId();
+		long endId = context.getEndId();
+		RecalculateContext rContext = context.getRecalculateContext();
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
-		for (Record r : filterResult.values()) {
-			RecordUtil.formatResultString(r, array);
+		for (long i = startId + 1; i < endId; i++) {
+			Record r = rContext.getRecords().get(i);
+			if (r == null) {
+				continue;
+			}
+			RecordUtil.formatResultString(i, r, array);
 			buffer.write(array.array(), 0, array.position());
 		}
+	}
+
+	private static List<Record> getResult(Context context) {
+		long startId = context.getStartId();
+		long endId = context.getEndId();
+		List<Record> records = new ArrayList<>();
+		RecalculateContext rContext = context.getRecalculateContext();
+		for (long i = startId + 1; i < endId; i++) {
+			Record r = rContext.getRecords().get(i);
+			if (r == null) {
+				continue;
+			}
+			records.add(r);
+		}
+		return records;
 	}
 
 	public static void writeToFile(ByteArrayBuffer buffer, String fileName) throws IOException {
@@ -80,25 +104,5 @@ public class RecordUtil {
 		outputStream.write(buffer.array(), 0, buffer.size());
 		CloseUtil.close(outputStream);
 	}
-
-	/*
-	 * public static String formatResultString(Record record) {
-	 * checkState(record.getAlterType() == Record.INSERT,
-	 * "Fail to format result because of wrong alter type"); StringBuilder sb =
-	 * new StringBuilder(); sb.append(record.getPrimaryColumn().getValue());
-	 * for (Column c : record.getColumns().values()) {
-	 * sb.append(FIELD_SEPERATOR); sb.append(c.getValue()); } return
-	 * sb.toString(); }
-	 * 
-	 * public static void formatResultString(Record record, StringBuilder sb,
-	 * ByteBuffer buffer) { checkState(record.getAlterType() == Record.INSERT,
-	 * "Fail to format result because of wrong alter type"); sb.setLength(0);
-	 * sb.append(record.getPrimaryColumn().getValue()); for (Column c :
-	 * record.getColumns().values()) { sb.append(FIELD_SEPERATOR);
-	 * sb.append(c.getValue()); } buffer.clear(); CoderResult cr =
-	 * encoder.encode(CharBuffer.wrap(sb), buffer, true); if (cr.isError()) {
-	 * try { cr.throwException(); } catch (CharacterCodingException ex) { throw
-	 * new RuntimeException(ex); } } encoder.reset(); }
-	 */
 
 }

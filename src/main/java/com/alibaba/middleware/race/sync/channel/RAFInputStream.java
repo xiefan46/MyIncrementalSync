@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.sync.stream;
+package com.alibaba.middleware.race.sync.channel;
 
 import java.io.IOException;
 import java.io.InputStream;

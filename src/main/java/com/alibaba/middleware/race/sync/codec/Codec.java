@@ -18,60 +18,60 @@ import com.generallycloud.baseio.common.MathUtil;
  */
 public class Codec {
 
-	private final byte[] array = new byte[1024 * 128];
-	private final ByteBuffer byteBuffer = ByteBuffer.wrap(array);
-	
-	private final static CharsetEncoder ENCODER = Charset.defaultCharset().newEncoder();
-
-	public Record decode(byte[] data, int offset, int len) {
-		throw new UnsupportedOperationException();
-	}
-
-	/*public int encode(Record record) {
-		byte[] array = this.array;
-		StringCache cache = StringCache.get();
-		byte[] cs = cache.getCache(record.getTableSchema());
-		array[4] = cs[0];
-		array[5] = cs[1];
-		int off = encode(record.getPrimaryColumn(),array,6);
-		Map<String, Column> cls = record.getColumns();
-		if (cls == null) {
-			return off;
-		}
-		for(Column c : cls.values()){
-			off = encode(c, array, off);
-		}
-		return off;
-	}*/
-
-	private int encode(Column c,byte [] array,int off) {
-		StringCache cache = StringCache.get();
-		byte[] cs = cache.getCache(c.getName());
-		array[off++] = cs[0];
-		array[off++] = cs[1];
-		array[off++] = c.getFlag();
-		if (c.isNumber()) {
-			MathUtil.unsignedInt2Byte(array, (long)c.getValue(), off);
-			return off + 4;
-		}
-		int flag = off;
-		String v = (String)c.getValue();
-		ByteBuffer temp = this.byteBuffer;
-		CharsetEncoder ENCODER = Codec.ENCODER;
-		temp.clear().position(off+2);
-		CoderResult cr = ENCODER.encode(CharBuffer.wrap(v.toCharArray()), temp, true);
-		if (cr.isError()) {
-			try {
-				cr.throwException();
-			} catch (CharacterCodingException e) {
-				throw new RuntimeException(e);
-			}
-		}
-		ENCODER.reset();
-		int len = temp.position() - flag - 2;
-		MathUtil.unsignedShort2Byte(array, len, off);
-		return temp.position();
-	}
+//	private final byte[] array = new byte[1024 * 128];
+//	private final ByteBuffer byteBuffer = ByteBuffer.wrap(array);
+//	
+//	private final static CharsetEncoder ENCODER = Charset.defaultCharset().newEncoder();
+//
+//	public Record decode(byte[] data, int offset, int len) {
+//		throw new UnsupportedOperationException();
+//	}
+//
+//	public int encode(Record record) {
+//		byte[] array = this.array;
+//		StringCache cache = StringCache.get();
+//		byte[] cs = cache.getCache(record.getTableSchema());
+//		array[4] = cs[0];
+//		array[5] = cs[1];
+//		int off = encode(record.getPrimaryColumn(),array,6);
+//		Map<String, Column> cls = record.getColumns();
+//		if (cls == null) {
+//			return off;
+//		}
+//		for(Column c : cls.values()){
+//			off = encode(c, array, off);
+//		}
+//		return off;
+//	}
+//
+//	private int encode(Column c,byte [] array,int off) {
+//		StringCache cache = StringCache.get();
+//		byte[] cs = cache.getCache(c.getName());
+//		array[off++] = cs[0];
+//		array[off++] = cs[1];
+//		array[off++] = c.getFlag();
+//		if (c.isNumber()) {
+//			MathUtil.unsignedInt2Byte(array, (long)c.getValue(), off);
+//			return off + 4;
+//		}
+//		int flag = off;
+//		String v = (String)c.getValue();
+//		ByteBuffer temp = this.byteBuffer;
+//		CharsetEncoder ENCODER = Codec.ENCODER;
+//		temp.clear().position(off+2);
+//		CoderResult cr = ENCODER.encode(CharBuffer.wrap(v.toCharArray()), temp, true);
+//		if (cr.isError()) {
+//			try {
+//				cr.throwException();
+//			} catch (CharacterCodingException e) {
+//				throw new RuntimeException(e);
+//			}
+//		}
+//		ENCODER.reset();
+//		int len = temp.position() - flag - 2;
+//		MathUtil.unsignedShort2Byte(array, len, off);
+//		return temp.position();
+//	}
 
 	private long byte2ShortLong(byte[] bytes, int offset) {
 		long v0 = bytes[offset + 5] & 0xff;
@@ -92,8 +92,8 @@ public class Codec {
 		bytes[offset + 0] = (byte) (value >> 8 * 5);
 	}
 
-	public byte[] getArray() {
-		return array;
-	}
+//	public byte[] getArray() {
+//		return array;
+//	}
 
 }

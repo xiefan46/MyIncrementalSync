@@ -3,11 +3,11 @@ package com.alibaba.middleware.race.sync;
 import java.util.Map;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
-import com.alibaba.middleware.race.sync.util.LoggerUtil;
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.acceptor.SocketChannelAcceptor;
 import com.generallycloud.baseio.component.ByteArrayBuffer;
@@ -32,22 +32,27 @@ public class Server {
 
 	private SocketChannelContext	socketChannelContext;
 
-	private static Logger		logger	= LoggerUtil.getServerLogger();
+	private static Logger		logger		= LoggerFactory.getLogger(Server.class);
 
-	private MainThread			mainThread;
+	private MainThread			mainThread	= new MainThread();
 
 	public static void main(String[] args) throws Exception {
+		if (args == null || args.length == 0) {
+			args = new String[]{"middleware3","student","600","700"};
+		}
+		
+		logger.info("----------------server start-----------------");
 		initProperties();
 		Server server = get();
 		try {
-			logger.info("---------------start server----------------");
-			logger.info("---------------start server----------------");
-			logger.info("---------------start server----------------");
 			server.startServer1(args, 5527);
-			logger.info("com.alibaba.middleware.race.sync.Server is running....");
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
 		}
+	}
+	
+	private void initPageCache(){
+		new Thread(new PageCacheHelper()).start();
 	}
 
 	/**
@@ -66,7 +71,8 @@ public class Server {
 	 * 对应DB的SQL为： select * from middleware.student where id>100 and id<200
 	 */
 	private void startServer1(String[] args, int port) throws Exception {
-		System.out.println("My server start.");
+		initPageCache();
+		
 		// 第一个参数是Schema Name
 		logger.info("tableSchema:" + args[0]);
 		// 第二个参数是Schema Name
@@ -105,16 +111,25 @@ public class Server {
 		context.setProtocolFactory(new FixedLengthProtocolFactory());
 
 		acceptor.bind();
+		
+		logger.info("com.alibaba.middleware.race.sync.Server is running....");
+		
+		this.socketChannelContext = context;
 
-		mainThread = new MainThread(new RecordLogReceiverImpl(), schema, table, startId, endId);
+		execute(endId, new RecordLogReceiverImpl(), startId, (schema + "|" + table));
 
-		Thread t = new Thread(mainThread);
+	}
 
-		t.start();
+	private void execute(long endId, RecordLogReceiver receiver, long startId, String tableSchema)
+			throws Exception {
 
-		t.join();
+		Context context = new Context(endId, receiver, startId, tableSchema);
+		
+		context.initialize();
 
-		//sendResultToClient(mainThread.getFinalContext());
+		mainThread.execute(context);
+
+		sendResultToClient(context);
 	}
 
 	public MainThread getMainThread() {
@@ -125,11 +140,11 @@ public class Server {
 		return socketChannelContext;
 	}
 
-	private void sendResultToClient(Context finalContext) throws Exception {
+	private void sendResultToClient(Context context) throws Exception {
 
 		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 1024);
 
-		RecordUtil.writeToByteArrayBuffer(finalContext, byteArrayBuffer);
+		RecordUtil.writeToByteArrayBuffer(context, byteArrayBuffer);
 
 		writeToClient(byteArrayBuffer);
 	}
