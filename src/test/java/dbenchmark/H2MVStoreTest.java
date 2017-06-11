@@ -26,7 +26,7 @@ public class H2MVStoreTest {
             map.put(k,v);
             if(i%mod==0){
                 String getV=map.get(k);
-                System.out.println("MVStore k:"+(key+i)+",v:"+v+",get v:"+getV);
+                System.out.println("MVStore k:"+k+",v:"+v+",get v:"+getV);
             }
         }
 
@@ -45,7 +45,7 @@ public class H2MVStoreTest {
         System.out.println(kvNum+" kv,get from MVStore:"+elapse+" ms");
         t1=System.currentTimeMillis();
         //MapDB.getInstance().commit();
-        H2MVStore.close();
+        //H2MVStore.close();
         elapse=System.currentTimeMillis()-t1;
         System.out.println(kvNum+" kv,commit to disk base MVStore:"+elapse+" ms");
     }
@@ -87,8 +87,26 @@ public class H2MVStoreTest {
         long elapse=System.currentTimeMillis()-t1;
         System.out.println(kvNum+" kv,random get from MVStore:"+elapse+" ms");
     }
-
-
-
-
+    @Test
+    public void randomPutTest(){
+        Random random=new Random();
+        Long key=10000000L;
+        int kvNum=5000000;  //1000w
+        long  mod=(long)(kvNum*0.1);
+        MVMap<String,String> map= H2MVStore.getMVMap("m2");
+        //map.put()
+        long i=0;
+        long t1=System.currentTimeMillis();
+        while(i++<=kvNum){
+            String k=Long.toString(key+random.nextInt(kvNum));
+            String v= MockDataUtil.getRamdonString(30);
+            map.put(k,v);
+            if(i%mod==0){
+                String getV=map.get(k);
+                System.out.println("MVStore k:"+(key+i)+",v:"+v+",get v:"+getV);
+            }
+        }
+        long elapse=System.currentTimeMillis()-t1;
+        System.out.println(kvNum+" kv,random put into MVStore :"+elapse+" ms");
+    }
 }
