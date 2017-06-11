@@ -1,13 +1,8 @@
 package com.alibaba.middleware.race.sync;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.math.BigInteger;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.security.MessageDigest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +12,7 @@ import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
 import com.generallycloud.baseio.buffer.ByteBuf;
 import com.generallycloud.baseio.common.CloseUtil;
+import com.generallycloud.baseio.common.MD5Token;
 import com.generallycloud.baseio.component.IoEventHandleAdaptor;
 import com.generallycloud.baseio.component.LoggerSocketSEListener;
 import com.generallycloud.baseio.component.NioSocketChannelContext;
@@ -98,7 +94,7 @@ public class Client {
 		OutputStream outputStream = null;
 		String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
 		try {
-			//printResult(buf);
+			printResult(buf);
 			long startTime = System.currentTimeMillis();
 			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
 			outputStream = new RAFOutputStream(raf);
@@ -110,36 +106,15 @@ public class Client {
 		} finally {
 			CloseUtil.close(outputStream);
 		}
-		//generate md5
-		try {
-			logger.info("Result file md5 : " + generateMD5(fileName));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	private void printResult(ByteBuf buf) {
 		String str = new String(buf.array(), 0, buf.limit());
 		logger.info("r:");
 		logger.info(str);
-	}
-
-	private String generateMD5(String path) throws Exception {
-		long startTime = System.currentTimeMillis();
-		String strMD5 = null;
-		File file = new File(path);
-		FileInputStream in = new FileInputStream(file);
-		MappedByteBuffer buffer = in.getChannel().map(FileChannel.MapMode.READ_ONLY, 0,
-				file.length());
-		MessageDigest digest = MessageDigest.getInstance("md5");
-		digest.update(buffer);
-		in.close();
-
-		byte[] byteArr = digest.digest();
-		BigInteger bigInteger = new BigInteger(1, byteArr);
-		strMD5 = bigInteger.toString(16);
-		logger.info("Generate md5 cost time {}", System.currentTimeMillis() - startTime);
-		return strMD5;
+		//generate md5
+		String md5 = MD5Token.getInstance().getLongToken(buf.array(), 0, buf.limit());
+		logger.info("Result file md5 : " + md5);
 	}
 
 }
