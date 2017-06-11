@@ -7,8 +7,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.RecalculateContext;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
 import com.alibaba.middleware.race.sync.model.Record;
 import com.generallycloud.baseio.common.CloseUtil;
@@ -22,18 +22,20 @@ public class RecordUtil {
 	private static final byte	FIELD_SEPERATOR_BYTE	= '\t';
 
 	private static final byte	FIELD_N_BYTE			= '\n';
-	
-	private static final int	LONG_LEN 			= String.valueOf(Long.MAX_VALUE).length() -1; 
+
+	private static final int		LONG_LEN				= String.valueOf(Long.MAX_VALUE)
+			.length() - 1;
 
 	private static final byte[]	ID_CACHE				= new byte[LONG_LEN + 1];
-	
-	private static final byte[] NUM_MAPPING			= new byte[]{'0','1','2','3','4','5','6','7','8','9'};  
 
-	public static void formatResultString(long id,Record record, ByteBuffer buffer) {
+	private static final byte[]	NUM_MAPPING			= new byte[] { '0', '1', '2', '3', '4',
+			'5', '6', '7', '8', '9' };
+
+	public static void formatResultString(long id, Record record, ByteBuffer buffer) {
 		buffer.clear();
-		byte [] idCache = ID_CACHE;
+		byte[] idCache = ID_CACHE;
 		int off = valueOfLong(id, idCache);
-		buffer.put(idCache, off+1, LONG_LEN - off);
+		buffer.put(idCache, off + 1, LONG_LEN - off);
 		buffer.put(FIELD_SEPERATOR_BYTE);
 		byte[][] array = record.getColumns();
 		byte len = (byte) (array.length - 1);
@@ -44,12 +46,12 @@ public class RecordUtil {
 		buffer.put(array[len]);
 		buffer.put(FIELD_N_BYTE);
 	}
-	
-	private static int valueOfLong(long v,byte [] array){
+
+	private static int valueOfLong(long v, byte[] array) {
 		long v1 = v;
 		int off = LONG_LEN;
 		byte[] NUM_MAPPING1 = NUM_MAPPING;
-		for(;;){
+		for (;;) {
 			if (v1 == 0) {
 				return off;
 			}
@@ -71,12 +73,14 @@ public class RecordUtil {
 	public static void writeToByteArrayBuffer(Context context, ByteArrayBuffer buffer) {
 		long startId = context.getStartId();
 		long endId = context.getEndId();
-		RecalculateContext rContext = context.getRecalculateContext();
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
 		for (long i = startId + 1; i < endId; i++) {
-			Record r = rContext.getRecords().get(i);
-			if (r == null) {
+			Record r = context.getRecords().get(i);
+			if (r == null || r.getAlterType() == Constants.DELETE) {
 				continue;
+			}
+			if (r.getAlterType() == Constants.UPDATE) {
+				throw new RuntimeException("最终结果包含update类型变更");
 			}
 			RecordUtil.formatResultString(i, r, array);
 			buffer.write(array.array(), 0, array.position());
@@ -87,9 +91,8 @@ public class RecordUtil {
 		long startId = context.getStartId();
 		long endId = context.getEndId();
 		List<Record> records = new ArrayList<>();
-		RecalculateContext rContext = context.getRecalculateContext();
 		for (long i = startId + 1; i < endId; i++) {
-			Record r = rContext.getRecords().get(i);
+			Record r = context.getRecords().get(i);
 			if (r == null) {
 				continue;
 			}

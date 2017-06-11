@@ -5,7 +5,13 @@ package com.alibaba.middleware.race.sync.model;
  */
 public class Record {
 
-	private byte[][] columns;
+	private byte		alterType;
+
+	private byte[][]	columns;
+
+	private long		oldPk;
+
+	private boolean	isPkUpdate	= false;
 
 	public Record(int cols) {
 		this.columns = new byte[cols][];
@@ -19,4 +25,27 @@ public class Record {
 		return columns;
 	}
 
+	public byte getAlterType() {
+		return alterType;
+	}
+
+	public void setAlterType(byte alterType) {
+		this.alterType = alterType;
+	}
+
+	public long getOldPk() {
+		return oldPk;
+	}
+
+	public void setOldPk(long oldPk) {
+		this.oldPk = oldPk;
+	}
+
+	public boolean isPkUpdate() {
+		return isPkUpdate;
+	}
+
+	public void setPkUpdate(boolean pkUpdate) {
+		isPkUpdate = pkUpdate;
+	}
 }

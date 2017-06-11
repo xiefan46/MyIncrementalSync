@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race.sync.model;
 
+import com.alibaba.middleware.race.sync.Constants;
+
 import java.util.ArrayList;
 import java.util.List;
 

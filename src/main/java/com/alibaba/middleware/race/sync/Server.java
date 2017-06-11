@@ -32,15 +32,13 @@ public class Server {
 
 	private SocketChannelContext	socketChannelContext;
 
-	private static Logger		logger		= LoggerFactory.getLogger(Server.class);
-
-	private MainThread			mainThread	= new MainThread();
+	private static Logger		logger	= LoggerFactory.getLogger(Server.class);
 
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
-			args = new String[]{"middleware3","student","600","700"};
+			args = new String[] { "middleware3", "student", "600", "700" };
 		}
-		
+
 		logger.info("----------------server start-----------------");
 		initProperties();
 		Server server = get();
@@ -50,8 +48,8 @@ public class Server {
 			logger.error(e.getMessage(), e);
 		}
 	}
-	
-	private void initPageCache(){
+
+	private void initPageCache() {
 		new Thread(new PageCacheHelper()).start();
 	}
 
@@ -72,7 +70,7 @@ public class Server {
 	 */
 	private void startServer1(String[] args, int port) throws Exception {
 		initPageCache();
-		
+
 		// 第一个参数是Schema Name
 		logger.info("tableSchema:" + args[0]);
 		// 第二个参数是Schema Name
@@ -111,9 +109,9 @@ public class Server {
 		context.setProtocolFactory(new FixedLengthProtocolFactory());
 
 		acceptor.bind();
-		
+
 		logger.info("com.alibaba.middleware.race.sync.Server is running....");
-		
+
 		this.socketChannelContext = context;
 
 		execute(endId, new RecordLogReceiverImpl(), startId, (schema + "|" + table));
@@ -123,17 +121,11 @@ public class Server {
 	private void execute(long endId, RecordLogReceiver receiver, long startId, String tableSchema)
 			throws Exception {
 
-		Context context = new Context(endId, receiver, startId, tableSchema);
-		
-		context.initialize();
-
-		mainThread.execute(context);
-
-		sendResultToClient(context);
-	}
-
-	public MainThread getMainThread() {
-		return mainThread;
+		MainThread mainThread = new MainThread(startId, endId, receiver, tableSchema, 2);
+		Thread thread = new Thread(mainThread);
+		thread.start();
+		thread.join();
+		sendResultToClient(mainThread.getFinalContext());
 	}
 
 	public SocketChannelContext getSocketChannelContext() {

@@ -12,11 +12,11 @@ import com.alibaba.middleware.race.sync.model.Table;
  */
 public class ReadRecordLogThread implements Runnable {
 
-	private Logger				logger	= LoggerFactory.getLogger(getClass());
+	private Logger		logger	= LoggerFactory.getLogger(getClass());
 
-	private ReadRecordLogContext	context;
+	private Context	context;
 
-	public ReadRecordLogThread(ReadRecordLogContext context) {
+	public ReadRecordLogThread(Context context) {
 		this.context = context;
 	}
 
@@ -28,7 +28,7 @@ public class ReadRecordLogThread implements Runnable {
 	public void run() {
 		try {
 			long startTime = System.currentTimeMillis();
-			execute(context, context.getContext());
+			execute(context);
 			logger.info("线程 {} 执行耗时: {},总扫描记录数 {},需要重放的记录数 {}", Thread.currentThread().getId(),
 					System.currentTimeMillis() - startTime, recordScan, recordDeal);
 		} catch (Exception e) {
@@ -36,12 +36,9 @@ public class ReadRecordLogThread implements Runnable {
 		}
 	}
 
-	public void execute(ReadRecordLogContext readRecordLogContext, Context context)
-			throws Exception {
+	public void execute(Context context) throws Exception {
 
 		RecordLogReceiver receiver = context.getReceiver();
-
-		RecalculateContext recalculateContext = context.getRecalculateContext();
 
 		String tableSchema = context.getTableSchema();
 
@@ -49,26 +46,7 @@ public class ReadRecordLogThread implements Runnable {
 
 		ChannelReader channelReader = ChannelReader.get();
 
-		ReadChannel channel = readRecordLogContext.getChannel();
-
-		for (; channel.hasRemaining();) {
-
-			RecordLog r = channelReader.read(channel, tableSchemaBytes, 8);
-
-			recordScan++;
-
-			if (r == null) {
-				continue;
-			}
-
-			recordDeal++;
-
-			context.setTable(Table.newTable(r));
-
-			receiver.received(recalculateContext, r);
-
-			break;
-		}
+		ReadChannel channel = context.getChannel();
 
 		int cols = context.getTable().getColumnSize();
 
@@ -80,7 +58,7 @@ public class ReadRecordLogThread implements Runnable {
 				continue;
 			}
 			recordDeal++;
-			receiver.received(recalculateContext, r);
+			receiver.received(context, r);
 		}
 
 	}

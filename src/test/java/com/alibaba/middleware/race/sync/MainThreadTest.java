@@ -32,7 +32,6 @@ public class MainThreadTest {
 		cleanUpAll();
 	}
 
-
 	@Test
 	public void testBasic() throws Exception {
 		RecordLogReceiver recordLogReceiver = new RecordLogReceiverImpl();
@@ -40,12 +39,13 @@ public class MainThreadTest {
 		String table = "student";
 		long startId = 600;
 		long endId = 700;
-		Context context = new Context(endId, recordLogReceiver , startId, (schema + "|" + table));
-		context.initialize();
-		MainThread mainThread = new MainThread();
-		mainThread.execute(context);
-		
-		RecordUtil.writeResultToLocalFile(context, Constants.RESULT_HOME + "/" +Constants.RESULT_FILE_NAME);
+		MainThread mainThread = new MainThread(startId, endId, recordLogReceiver,
+				(schema + "|" + table), 2);
+		Thread thread = new Thread(mainThread);
+		thread.start();
+		thread.join();
+		RecordUtil.writeResultToLocalFile(mainThread.getFinalContext(),
+				Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME);
 	}
 
 	@After
