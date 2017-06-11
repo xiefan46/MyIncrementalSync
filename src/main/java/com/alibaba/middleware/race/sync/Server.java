@@ -2,6 +2,7 @@ package com.alibaba.middleware.race.sync;
 
 import java.util.Map;
 
+import com.alibaba.middleware.race.sync.model.Tester;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +39,9 @@ public class Server {
 
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
-			args = new String[]{"middleware3","student","600","700"};
+			args = new String[] { "middleware3", "student", "600", "700" };
 		}
-		
+
 		logger.info("----------------server start-----------------");
 		initProperties();
 		Server server = get();
@@ -50,8 +51,8 @@ public class Server {
 			logger.error(e.getMessage(), e);
 		}
 	}
-	
-	private void initPageCache(){
+
+	private void initPageCache() {
 		new Thread(new PageCacheHelper()).start();
 	}
 
@@ -71,8 +72,8 @@ public class Server {
 	 * 对应DB的SQL为： select * from middleware.student where id>100 and id<200
 	 */
 	private void startServer1(String[] args, int port) throws Exception {
-		initPageCache();
-		
+		//initPageCache();
+
 		// 第一个参数是Schema Name
 		logger.info("tableSchema:" + args[0]);
 		// 第二个参数是Schema Name
@@ -111,11 +112,14 @@ public class Server {
 		context.setProtocolFactory(new FixedLengthProtocolFactory());
 
 		acceptor.bind();
-		
+
 		logger.info("com.alibaba.middleware.race.sync.Server is running....");
-		
+
 		this.socketChannelContext = context;
 
+		Tester tester = new Tester();
+		tester.testMbb();
+		tester.testHelper();
 		execute(endId, new RecordLogReceiverImpl(), startId, (schema + "|" + table));
 
 	}
@@ -124,7 +128,7 @@ public class Server {
 			throws Exception {
 
 		Context context = new Context(endId, receiver, startId, tableSchema);
-		
+
 		context.initialize();
 
 		mainThread.execute(context);
