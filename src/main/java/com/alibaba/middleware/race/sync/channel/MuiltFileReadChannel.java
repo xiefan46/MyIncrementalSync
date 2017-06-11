@@ -38,11 +38,11 @@ public class MuiltFileReadChannel extends ReadChannel {
 		int len = ByteBufUtil.read(buf, current, buf.capacity());
 		if (len == -1) {
 			if (currentIndex == inputStreams.length) {
-				logger.info("Read end. CurrentIndex : {}", currentIndex - 1);
+				//logger.info("Read end. CurrentIndex : {}", currentIndex - 1);
 				hasRemaining = false;
 				return -1;
 			}
-			logger.info("Swich to next stream. Old stream index : {}", currentIndex - 1);
+			//logger.info("Swich to next stream. Old stream index : {}", currentIndex - 1);
 			this.current = inputStreams[currentIndex++];
 			return read(buf);
 		}

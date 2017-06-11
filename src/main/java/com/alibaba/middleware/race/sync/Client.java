@@ -70,7 +70,8 @@ public class Client {
 			public void accept(SocketSession session, ReadFuture future) throws Exception {
 				FixedLengthReadFuture f = (FixedLengthReadFuture) future;
 				ByteBuf buf = f.getBuf();
-				logger.info("客户端收到文件。当前时间：{}. ", System.currentTimeMillis());
+				logger.info("客户端收到文件。当前时间：{}. 文件大小 : {} B", System.currentTimeMillis(),
+						buf.limit());
 				writeToFile(buf);
 				CloseUtil.close(session);
 			}
@@ -97,7 +98,7 @@ public class Client {
 		OutputStream outputStream = null;
 		String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
 		try {
-			printResult(buf);
+			//printResult(buf);
 			long startTime = System.currentTimeMillis();
 			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
 			outputStream = new RAFOutputStream(raf);
