@@ -61,7 +61,7 @@ public class RecordLogCodec {
 					off = end + 1;
 					end = findNextChar(data, off, '|');
 					c.setLongValue(parseLong(data, off, end));
-					c.setValue(data,off,end-off);
+//					c.setValue(data,off,end-off);
 					off = end + 1;
 					if (off >= last) {
 						return r;
@@ -106,7 +106,7 @@ public class RecordLogCodec {
 					off = end + I_SKIP;
 					end = findNextChar(data, off, '|');
 					c.setLongValue(parseLong(data, off, end));
-					c.setValue(data,off,end-off);
+//					c.setValue(data,off,end-off);
 					off = end + 1;
 					if (off >= last) {
 						return r;

@@ -1,8 +1,5 @@
 package com.alibaba.middleware.race.sync.channel;
 
-import com.generallycloud.baseio.common.Logger;
-import com.generallycloud.baseio.common.LoggerFactory;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -14,9 +11,6 @@ import java.io.RandomAccessFile;
  *
  */
 public class MuiltFileReadChannelSplitor {
-
-	private static final Logger logger = LoggerFactory
-			.getLogger(MuiltFileReadChannelSplitor.class);
 
 	public static MuiltFileReadChannel[] split(File root, int bufferLen) throws IOException {
 		MuiltFileReadChannel[] cs = new MuiltFileReadChannel[2];
@@ -30,8 +24,6 @@ public class MuiltFileReadChannelSplitor {
 		InputStream[] streams = new InputStream[len];
 		for (int i = 0; i < len; i++) {
 			File file = new File(path + (i + begin) + ".txt");
-			logger.info("Put file to multi file channel. File name : {}, File exist ? {}",
-					file.getName(), file.exists());
 			RandomAccessFile raf = new RandomAccessFile(file, "r");
 			streams[i] = new RAFInputStream(raf);
 		}

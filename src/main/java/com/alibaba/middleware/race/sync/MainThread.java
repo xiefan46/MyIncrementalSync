@@ -28,6 +28,7 @@ public class MainThread {
 	}
 
 	private void execute1(Context context) throws Exception {
+		
 		long startTime = System.currentTimeMillis();
 
 		ReadChannel channels = initChannels2();
@@ -36,20 +37,13 @@ public class MainThread {
 
 		ReadRecordLogThread readRecordLogThread = new ReadRecordLogThread(readRecordLogContext);
 
-		//		new Thread(context.getRecalculateThread()).start();
-
 		readRecordLogThread.run();
-
-		//		context.stopRecalculateThreads();
-		//
-		//		context.getRecalculateThread().getCountDownLatch().await();
 
 		logger.info("解析记录耗时 : {}", System.currentTimeMillis() - startTime);
 	}
 
 	private ReadChannel initChannels2() throws IOException {
 		File root = new File(Constants.DATA_HOME);
-		logAllFile(root);
 		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 10,
 				1024 * 128);
 	}
@@ -59,21 +53,6 @@ public class MainThread {
 		RandomAccessFile raf = new RandomAccessFile(root, "r");
 		RAFInputStream inputStream = new RAFInputStream(raf);
 		return new SimpleReadChannel(inputStream, 1024 * 128);
-	}
-
-	private void logAllFile(File root) {
-		try {
-			File[] files = root.listFiles();
-			StringBuilder sb = new StringBuilder();
-			sb.append("[");
-			for (File f : files) {
-				sb.append(f.getPath() + " ");
-			}
-			sb.append("]");
-			logger.info("All files : {} ", sb.toString());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 }

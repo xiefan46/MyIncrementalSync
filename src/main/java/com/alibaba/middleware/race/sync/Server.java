@@ -45,7 +45,6 @@ public class Server {
 		Server server = get();
 		try {
 			server.startServer1(args, 5527);
-			logger.info("com.alibaba.middleware.race.sync.Server is running....");
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -112,6 +111,8 @@ public class Server {
 
 		acceptor.bind();
 		
+		logger.info("com.alibaba.middleware.race.sync.Server is running....");
+		
 		this.socketChannelContext = context;
 
 		execute(endId, new RecordLogReceiverImpl(), startId, (schema + "|" + table));
@@ -164,7 +165,7 @@ public class Server {
 
 		//FIXME 如果文件比较大，直接发送该buf
 
-		future.write(buffer.array(), 0, buffer.size() - 1);
+		future.write(buffer.array(), 0, buffer.size());
 
 		logger.info("开始向客户端传送文件，当前时间：{}", System.currentTimeMillis());
 

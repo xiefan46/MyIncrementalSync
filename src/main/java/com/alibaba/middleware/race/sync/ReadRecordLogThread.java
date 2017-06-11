@@ -58,7 +58,6 @@ public class ReadRecordLogThread implements Runnable {
 
 			context.setTable(Table.newTable(r));
 
-//			context.dispatch(r);
 			receiver.received(recalculateContext, r);
 			
 			break;
@@ -76,15 +75,6 @@ public class ReadRecordLogThread implements Runnable {
 
 			all++;
 
-			/*
-			 * logger.debug("Alter type : " + r.getAlterType());
-			 * 
-			 * if (r.getAlterType() == Record.INSERT) {
-			 * logger.debug("Receive insert record. PK : {}",
-			 * r.getPrimaryColumn().getValue()); }
-			 */
-
-//			context.dispatch(r);
 			receiver.received(recalculateContext, r);
 		}
 

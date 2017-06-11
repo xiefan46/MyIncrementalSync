@@ -4,16 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.alibaba.middleware.race.sync.codec.ByteArray;
-import com.generallycloud.baseio.common.Logger;
-import com.generallycloud.baseio.common.LoggerFactory;
 
 /**
  * @author wangkai
  *
  */
 public class Table {
-	
-	private static Logger logger = LoggerFactory.getLogger(Table.class);
 	
 	private Map<ByteArray, Integer> columnIndexs = new HashMap<>();
 	
@@ -30,10 +26,9 @@ public class Table {
 	}
 	
 	public static Table newTable(RecordLog recordLog){
-		logger.info("new table....................");
-		int index = 1;
+		int index = 0;
 		Table t = new Table();
-		t.columnSize = recordLog.getColumns().size() + 1;
+		t.columnSize = recordLog.getColumns().size();
 		for(ColumnLog c : recordLog.getColumns()){
 			t.columnIndexs.put(new ByteArray(c.getName()), index++);
 		}
