@@ -54,7 +54,9 @@ public class Server {
 	private void initPageCache() {
 		//new Thread(new PageCacheHelper()).start();
 		long startTime = System.currentTimeMillis();
-		new PageCacheHelper().readSingleThread();
+		PageCacheHelper helper = new PageCacheHelper();
+		helper.readSingleThread();
+		helper.readSingleThread();
 		logger.info("读一遍所有文件耗时 : {}", System.currentTimeMillis() - startTime);
 	}
 

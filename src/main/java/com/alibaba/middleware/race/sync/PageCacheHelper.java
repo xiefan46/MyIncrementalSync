@@ -46,7 +46,7 @@ public class PageCacheHelper implements Runnable {
 			}
 
 			ReleaseUtil.release(buf);
-
+			channel.close();
 			logger.info("预读数据完成：{}", (System.currentTimeMillis() - startTime));
 
 		} catch (Exception e) {

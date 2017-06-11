@@ -98,7 +98,7 @@ public class Client {
 		OutputStream outputStream = null;
 		String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
 		try {
-			//printResult(buf);
+			printResult(buf);
 			long startTime = System.currentTimeMillis();
 			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
 			outputStream = new RAFOutputStream(raf);
