@@ -36,11 +36,12 @@ public interface Constants {
 	String	RESULT_FILE_NAME	= "Result.rs";
 
 	boolean	COLLECT_STAT		= true;
-
+	//
+	String H2_DB_FILE="/home/admin/h2_map.db";
 	// map db file
 	String MAP_DB_FILE="/home/admin/map.db";
     long MAP_DB_FILE_ALLOCATE_START=10*1024*1024;
     long MAP_DB_FILE_INCREMENT=2*1024*1024;
-	int  MAP_DB_FILE_CACHE_SIZE=4*1024*1024;
+	int  MAP_DB_FILE_CACHE_SIZE=1000000;
 
 }
