@@ -1,0 +1,43 @@
+key 8字节 value 30字节
+5000000 kv,put into MVStore :15830 ms
+5000000 kv,get from MVStore:10033 ms
+5000000 kv,commit to disk base MVStore:3 ms
+5000000 kv,get from MVStore:5628 ms（全部在磁盘）
+
+----------
+默认配置
+5000000 kv,put into MVStore :13232 ms
+5000000 kv,get from MVStore:6307 ms
+5000000 kv,commit to disk base MVStore:3 ms
+
+----------
+5000001 kv,random get from MVStore:143403 ms（完全随机读）
+
+--------
+cache 24M,auto commit 24M
+5000000 kv,put into MVStore :11999 ms
+5000000 kv,get from MVStore:3921 ms
+5000000 kv,commit to disk base MVStore:16 ms
+5000000 kv,get from MVStore:6317 ms（全部在磁盘）
+--------
+cache 24M, without profiling
+5000000 kv,put into MVStore :11688 ms
+5000000 kv,get from MVStore:3755 ms
+5000000 kv,commit to disk base MVStore:0 ms
+--------
+cache 8M,auto commit 8M
+5000000 kv,put into MVStore :28642 ms
+5000000 kv,get from MVStore:7337 ms
+5000000 kv,commit to disk base MVStore:5 ms
+-------------
+cache 32M,auto commit 32M
+5000000 kv,put into MVStore :13526 ms
+5000000 kv,get from MVStore:7036 ms
+5000000 kv,commit to disk base MVStore:32 ms
+---------
+cache 16M,
+5000000 kv,put into MVStore :12858 ms
+5000000 kv,get from MVStore:6267 ms
+5000000 kv,commit to disk base MVStore:0 ms
+----
+5000000 kv,random put into MVStore :329205 ms
