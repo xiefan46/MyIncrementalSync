@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Logback Configuration. -->
-<configuration debug="false">
+<configuration debug="true">
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <target>System.out</target>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
@@ -64,21 +64,10 @@
         </encoder>
     </appender>
 
-
-    <logger name="com.alibaba.middleware.race.sync.Server" additivity="false">
-        <level value="WARN"/>
+    <root>
+        <level value="INFO"/>
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE_SERVER"/>
-    </logger>
-
-    <logger name="com.alibaba.middleware.race.sync.Client" additivity="false">
-        <level value="WARN"/>
         <appender-ref ref="FILE_CLIENT"/>
-    </logger>
-
-
-    <root>
-        <level value="${app.logging.level}"/>
-        <!--<appender-ref ref="STDOUT"/>-->
     </root>
 </configuration>
