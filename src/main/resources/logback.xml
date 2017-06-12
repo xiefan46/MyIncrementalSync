@@ -72,7 +72,7 @@
     </logger>
 
     <logger name="com.alibaba.middleware.race.sync.Client" additivity="false">
-        <level value="INFO"/>
+        <level value="WARN"/>
         <appender-ref ref="FILE_CLIENT"/>
     </logger>
 
