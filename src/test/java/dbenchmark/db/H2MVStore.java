@@ -12,7 +12,7 @@ public class H2MVStore {
 
    // private static MVStore mvStore= MVStore.open(Constants.H2_DB_FILE);
     private static MVStore mvStore= new MVStore.Builder()
-                                 .fileName(Constants.H2_DB_FILE)
+                                 .fileName(Constants.H2_DB_FILE_HOME+"/h2_map.db")
                                  .cacheSize(24) //default 16
 //                               .autoCommitDisabled()
 //                               .autoCommitBufferSize(24) //default 1024

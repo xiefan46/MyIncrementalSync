@@ -25,15 +25,17 @@ public class RecalculateContext {
 	
 	private Table					table;
 
+	private  H2MVStore mvStore;
 	public RecalculateContext(Context context, RecordLogReceiver recordLogReceiver,
 			BlockingQueue<RecordLog> recordLogs) {
 		this.recordLogReceiver = recordLogReceiver;
 		this.recordLogs = recordLogs;
+		this.mvStore=new H2MVStore("h2_map_1.db");
 	}
 
 	private Map<Long, Record> records = new HashMap<>();
 
-	private MVMap<Long,Record> mvRecords= H2MVStore.getRecordMap("m3");
+	private MVMap<Long,Record> mvRecords= mvStore.getRecordMap("m3");
 
 	public RecordLogReceiver getRecordLogReceiver() {
 		return recordLogReceiver;

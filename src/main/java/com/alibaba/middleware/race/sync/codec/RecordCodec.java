@@ -8,10 +8,10 @@ import com.alibaba.middleware.race.sync.util.MathUtil;
  */
 public class RecordCodec {
     /*
-    *  columns
-    *  column index:
-    *  column length:
-    *  column content:
+    *  columns: such as 4 columns record, 1 byte
+    *  column index:                    , 1 byte
+    *  column length:                   , 4 byte
+    *  column content:                  , real length byte
     *  we suppose a record will not out of 512 byte
     * */
     private final	byte []				array			= new byte[512];

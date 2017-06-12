@@ -37,7 +37,7 @@ public interface Constants {
 
 	boolean	COLLECT_STAT		= true;
 	//
-	String H2_DB_FILE="/home/admin/h2_map.db";
+	String H2_DB_FILE_HOME=MIDDLE_HOME;
 	// map db file
 	String MAP_DB_FILE="/home/admin/map.db";
     long MAP_DB_FILE_ALLOCATE_START=10*1024*1024;
