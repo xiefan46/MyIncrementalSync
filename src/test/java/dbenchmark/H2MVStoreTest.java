@@ -13,6 +13,7 @@ import java.util.Random;
  * Created by Rudy Steiner on 2017/6/10.
  */
 public class H2MVStoreTest {
+
     @Test
     public void  putAndGetTest(){
         Long key=10000000L;

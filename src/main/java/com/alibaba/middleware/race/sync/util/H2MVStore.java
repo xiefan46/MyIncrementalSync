@@ -9,7 +9,7 @@ import org.h2.mvstore.MVStore;
  * Created by Rudy Steiner on 2017/6/10.
  */
 public class H2MVStore {
-    private static MVStore mvStore;
+    private  MVStore mvStore;
     public H2MVStore(String name){
         mvStore= new MVStore.Builder()
                 .fileName(Constants.H2_DB_FILE_HOME+"/"+name)
