@@ -1,7 +1,10 @@
 package dbenchmark;
 
+import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.codec.RecordCodec;
 import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.util.FileUtils;
+import com.generallycloud.baseio.common.FileUtil;
 import dbenchmark.db.H2MVStore;
 import org.h2.mvstore.MVMap;
 import org.junit.Test;
@@ -172,5 +175,17 @@ public class H2MVStoreTest {
         }
         long elapse=System.currentTimeMillis()-t1;
         System.out.println(kvNum+" kv,get record from MVStore:"+elapse+" ms");
+    }
+    @Test
+    public  void clearH2MapTest(){
+        long t1=System.currentTimeMillis();
+        boolean del=FileUtils.delete(Constants.H2_DB_FILE_HOME,"/h2_map.db");
+        if(del==true){
+            System.out.println("ok,clear");
+        }else{
+            System.out.println("file not found");
+        }
+        long elapse=System.currentTimeMillis()-t1;
+        System.out.println("clear kv,get record from MVStore:"+elapse+" ms");
     }
 }

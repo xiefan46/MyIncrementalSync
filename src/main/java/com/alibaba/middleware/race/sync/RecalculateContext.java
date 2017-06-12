@@ -26,7 +26,7 @@ public class RecalculateContext {
 
 	private Table					table;
 
-	private KVStoreProvider			provider	= new H2KVStoreProvider();
+	private KVStoreProvider			provider	= new H2KVStoreProvider(true);
 
 	private Map<Long, Record>		records;
 
