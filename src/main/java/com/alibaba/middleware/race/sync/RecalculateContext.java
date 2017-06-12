@@ -25,13 +25,13 @@ public class RecalculateContext {
 	private Table					table;
 
 	private H2MVStore				mvStore;
-
+    private MVMap<Long,byte[]>    mvRecords;
 	public RecalculateContext(Context context, RecordLogReceiver recordLogReceiver,
 			BlockingQueue<RecordLog> recordLogs) {
 		this.recordLogReceiver = recordLogReceiver;
 		this.recordLogs = recordLogs;
 		this.mvStore = new H2MVStore("h2_map_1.db");
-		this.records = mvStore.getRecordMap("m3");
+		this.mvRecords = mvStore.getByteMap("m3");
 	}
 
 	private Map<Long, Record> records = new HashMap<>();
@@ -42,6 +42,10 @@ public class RecalculateContext {
 
 	public Map<Long, Record> getRecords() {
 		return records;
+	}
+
+	public MVMap<Long, byte[]> getMvRecords() {
+		return mvRecords;
 	}
 
 	public BlockingQueue<RecordLog> getRecordLogs() {
