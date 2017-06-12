@@ -10,7 +10,6 @@ import com.alibaba.middleware.race.sync.model.Table;
 import com.alibaba.middleware.race.sync.util.H2MVStore;
 import org.h2.mvstore.MVMap;
 
-
 /**
  * @author wangkai
  *
@@ -22,20 +21,20 @@ public class RecalculateContext {
 	private BlockingQueue<RecordLog>	recordLogs;
 
 	private Context				context;
-	
+
 	private Table					table;
 
-	private  H2MVStore mvStore;
+	private H2MVStore				mvStore;
+
 	public RecalculateContext(Context context, RecordLogReceiver recordLogReceiver,
 			BlockingQueue<RecordLog> recordLogs) {
 		this.recordLogReceiver = recordLogReceiver;
 		this.recordLogs = recordLogs;
-		this.mvStore=new H2MVStore("h2_map_1.db");
+		this.mvStore = new H2MVStore("h2_map_1.db");
+		this.records = mvStore.getRecordMap("m3");
 	}
 
 	private Map<Long, Record> records = new HashMap<>();
-
-	private MVMap<Long,Record> mvRecords= mvStore.getRecordMap("m3");
 
 	public RecordLogReceiver getRecordLogReceiver() {
 		return recordLogReceiver;
@@ -43,10 +42,6 @@ public class RecalculateContext {
 
 	public Map<Long, Record> getRecords() {
 		return records;
-	}
-
-	public MVMap<Long, Record> getMvRecords() {
-		return mvRecords;
 	}
 
 	public BlockingQueue<RecordLog> getRecordLogs() {
@@ -64,5 +59,5 @@ public class RecalculateContext {
 	public void setTable(Table table) {
 		this.table = table;
 	}
-	
+
 }
