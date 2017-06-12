@@ -43,5 +43,7 @@ public interface Constants {
     long MAP_DB_FILE_ALLOCATE_START=10*1024*1024;
     long MAP_DB_FILE_INCREMENT=2*1024*1024;
 	int  MAP_DB_FILE_CACHE_SIZE=1000000;
+    //
+	String CHRONICLE_MAP_DB_FILE="/home/admin/chronicle_map.db";
 
 }

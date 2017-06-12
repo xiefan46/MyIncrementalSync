@@ -79,6 +79,6 @@
 
     <root>
         <level value="${app.logging.level}"/>
-        <appender-ref ref="STDOUT"/>
+        <!--<appender-ref ref="STDOUT"/>-->
     </root>
 </configuration>

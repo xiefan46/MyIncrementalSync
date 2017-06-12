@@ -12,7 +12,6 @@ key 8字节 value 30字节
 
 ----------
 5000001 kv,random get from MVStore:143403 ms（完全随机读）
-
 --------
 cache 24M,auto commit 24M
 5000000 kv,put into MVStore :11999 ms
