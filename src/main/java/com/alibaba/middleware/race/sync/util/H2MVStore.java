@@ -1,4 +1,4 @@
-package dbenchmark.db;
+package com.alibaba.middleware.race.sync.util;
 
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.model.Record;
@@ -22,11 +22,8 @@ public class H2MVStore {
     public static MVMap<String,String> getMVMap(String name){
       return   mvStore.openMap(name);
     }
-    public static MVMap<String,Record> getRecordMap(String name){
+    public static MVMap<Long,Record> getRecordMap(String name){
         return   mvStore.openMap(name);
-    }
-    public static MVMap<Long,byte[]> getByteMap(String name){
-        return mvStore.openMap(name);
     }
     public static void close(){
         mvStore.close();

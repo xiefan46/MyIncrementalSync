@@ -1,5 +1,7 @@
 package dbenchmark;
 
+import com.alibaba.middleware.race.sync.codec.RecordCodec;
+import com.alibaba.middleware.race.sync.model.Record;
 import dbenchmark.db.H2MVStore;
 import org.h2.mvstore.MVMap;
 import org.junit.Test;
@@ -108,5 +110,66 @@ public class H2MVStoreTest {
         }
         long elapse=System.currentTimeMillis()-t1;
         System.out.println(kvNum+" kv,random put into MVStore :"+elapse+" ms");
+
+    }
+
+    @Test
+    public void putAndGetRecord(){
+        Random random=new Random();
+        RecordCodec codec=new RecordCodec();
+        Long key=10000000L;
+        int kvNum=5000000;  //1000w
+        long  mod=(long)(kvNum*0.1);
+        //MVMap<String,Record> map= H2MVStore.getRecordMap("m3");
+        MVMap<Long,byte[]> map= H2MVStore.getByteMap("m3");
+        //map.put()
+        long i=0;
+        int columns=3;
+        long t1=System.currentTimeMillis();
+        while(i++<=kvNum){
+            Long k=key+i;
+            Record v = new Record(columns);
+            for(int j=0;j<columns;j++) {
+                v.setColum(j,MockDataUtil.getRamdonString(random.nextInt(10)+1).getBytes());
+            }
+            int offset=codec.encode(v);
+            byte[] bytes= new byte[offset];
+            System.arraycopy(codec.getArray(),0,bytes,0,offset);
+            map.put(k,bytes);
+            if(i%mod==0){
+                byte[] mapV=map.get(k);
+                Record mapRecord=codec.decode(mapV);
+                System.out.println("MVStore k:"+(key+i)+",v:"+v.toString()+",get v:"+mapRecord.toString());
+            }
+        }
+        long elapse=System.currentTimeMillis()-t1;
+        //H2MVStore.close();
+        System.out.println(kvNum+" kv, put into MVStore :"+elapse+" ms");
+        t1=System.currentTimeMillis();
+        H2MVStore.close();
+        elapse=System.currentTimeMillis()-t1;
+        System.out.println(kvNum+" kv, close MVStore :"+elapse+" ms");
+    }
+
+    @Test
+    public void getRecord(){
+        RecordCodec codec=new RecordCodec();
+        Long key=10000000L;
+        long kvNum=5000000; //100w
+        long  mod=(long)(kvNum*0.1);
+        //MVMap<String,Record> map= H2MVStore.getRecordMap("m3");
+        MVMap<Long,byte[]> map= H2MVStore.getByteMap("m3");
+        long i=0;
+        long t1=System.currentTimeMillis();
+        while(i++<=kvNum){
+            Long k=key+i;
+            byte[] mapV=map.get(k);
+            Record mapRecord=codec.decode(mapV);
+            if(i%mod==0){
+                System.out.println("k:"+(key+i)+",v:"+mapRecord);
+            }
+        }
+        long elapse=System.currentTimeMillis()-t1;
+        System.out.println(kvNum+" kv,get record from MVStore:"+elapse+" ms");
     }
 }

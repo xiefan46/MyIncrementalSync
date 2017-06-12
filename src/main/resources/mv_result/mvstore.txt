@@ -40,3 +40,9 @@ cache 16M,
 5000000 kv,commit to disk base MVStore:0 ms
 ----
 5000000 kv,random put into MVStore :329205 ms
+
+-----------
+k: Long ,V:Record column(3)
+5000000 kv, put into MVStore :44582 ms
+5000000 kv, close MVStore :180 ms
+5000000 kv,get record from MVStore:59737 ms

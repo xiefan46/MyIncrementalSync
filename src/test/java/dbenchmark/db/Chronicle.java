@@ -1,6 +1,7 @@
 package dbenchmark.db;
 
 import com.alibaba.middleware.race.sync.Constants;
+import com.alibaba.middleware.race.sync.model.Record;
 import net.openhft.chronicle.map.ChronicleMap;
 import net.openhft.chronicle.map.ChronicleMapBuilder;
 
@@ -20,6 +21,20 @@ public class Chronicle {
                             .averageKeySize(8)
                             .averageValueSize(30)
                             .entries(1000_0000).createPersistedTo(new File(Constants.CHRONICLE_MAP_DB_FILE));
+            return  chronicMap;
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public static ChronicleMap<Long,Record> getRecordMap(String name){
+        try {
+            ChronicleMap<Long, Record> chronicMap =
+                    ChronicleMapBuilder.of(Long.class, Record.class)
+                            .name(name)
+                           // .averageKeySize(8)
+                            .averageValueSize(300)
+                            .entries(500_0000).createPersistedTo(new File(Constants.CHRONICLE_MAP_DB_FILE));
             return  chronicMap;
         }catch (IOException e){
             e.printStackTrace();

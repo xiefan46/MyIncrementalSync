@@ -7,6 +7,9 @@ import java.util.concurrent.BlockingQueue;
 import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
+import com.alibaba.middleware.race.sync.util.H2MVStore;
+import org.h2.mvstore.MVMap;
+
 
 /**
  * @author wangkai
@@ -30,12 +33,18 @@ public class RecalculateContext {
 
 	private Map<Long, Record> records = new HashMap<>();
 
+	private MVMap<Long,Record> mvRecords= H2MVStore.getRecordMap("m3");
+
 	public RecordLogReceiver getRecordLogReceiver() {
 		return recordLogReceiver;
 	}
 
 	public Map<Long, Record> getRecords() {
 		return records;
+	}
+
+	public MVMap<Long, Record> getMvRecords() {
+		return mvRecords;
 	}
 
 	public BlockingQueue<RecordLog> getRecordLogs() {
