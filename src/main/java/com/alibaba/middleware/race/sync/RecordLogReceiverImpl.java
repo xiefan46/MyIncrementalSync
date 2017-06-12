@@ -37,6 +37,7 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 			break;
 		case Constants.INSERT:
 			records.put(pk, update(table, table.newRecord(), recordLog));
+
 			break;
 		default:
 			break;
