@@ -10,6 +10,7 @@ import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.acceptor.SocketChannelAcceptor;
+import com.generallycloud.baseio.common.ThreadUtil;
 import com.generallycloud.baseio.component.ByteArrayBuffer;
 import com.generallycloud.baseio.component.IoEventHandleAdaptor;
 import com.generallycloud.baseio.component.LoggerSocketSEListener;
@@ -52,7 +53,7 @@ public class Server {
 	}
 	
 	private void initPageCache(){
-		new Thread(new PageCacheHelper()).start();
+		ThreadUtil.execute(new PageCacheHelper());
 	}
 
 	/**

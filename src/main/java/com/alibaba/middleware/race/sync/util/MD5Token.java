@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.generallycloud.baseio.common;
+package com.alibaba.middleware.race.sync.util;
 
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
