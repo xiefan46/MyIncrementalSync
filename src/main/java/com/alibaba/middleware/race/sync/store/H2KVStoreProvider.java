@@ -5,6 +5,7 @@ import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.util.FileUtils;
 import com.alibaba.middleware.race.sync.util.H2MVStore;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -31,7 +32,8 @@ public class H2KVStoreProvider implements KVStoreProvider{
     @Override
     public Map<Long, Record> provide() {
         //包装h2代码
-        return new H2MVMap<Long,Record>(store,mapName);
+       // return new H2MVMap<Long,Record>(store,mapName);
+        return new HashMap<>();
     }
     private boolean clear(){
         boolean del= FileUtils.delete(Constants.H2_DB_FILE_HOME,"/"+this.dbName);
