@@ -57,6 +57,10 @@ public class ReadRecordLogThread implements Runnable {
 
 			recordScan++;
 
+			if (recordScan % 100000 == 0) {
+				System.out.println(recordScan);
+			}
+
 			if (r == null) {
 				continue;
 			}
