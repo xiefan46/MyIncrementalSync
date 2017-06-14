@@ -8,10 +8,12 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
+import com.alibaba.middleware.race.sync.other.bytes.ByteArrayBuffer;
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.acceptor.SocketChannelAcceptor;
+import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
+import com.generallycloud.baseio.common.MathUtil;
 import com.generallycloud.baseio.common.ThreadUtil;
-import com.generallycloud.baseio.component.ByteArrayBuffer;
 import com.generallycloud.baseio.component.IoEventHandleAdaptor;
 import com.generallycloud.baseio.component.LoggerSocketSEListener;
 import com.generallycloud.baseio.component.NioSocketChannelContext;
@@ -39,7 +41,9 @@ public class Server {
 
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
-			args = new String[]{"middleware3","student","600","700"};
+			args = new String[]{"middleware3","student","0","70000000"};
+		}else{
+			args[0] = "middleware5";
 		}
 		
 		logger.info("----------------server start-----------------");
@@ -143,7 +147,7 @@ public class Server {
 
 	private void sendResultToClient(Context context) throws Exception {
 
-		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 1024);
+		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 1024,4);
 
 		RecordUtil.writeToByteArrayBuffer(context, byteArrayBuffer);
 
@@ -167,7 +171,11 @@ public class Server {
 
 		//FIXME 如果文件比较大，直接发送该buf
 
-		future.write(buffer.array(), 0, buffer.size());
+		byte [] array = buffer.array();
+		
+		MathUtil.int2Byte(array, buffer.size() - 4, 0);
+		
+		future.setBuf(UnpooledByteBufAllocator.getHeapInstance().wrap(array, 0, buffer.size()));
 
 		logger.info("开始向客户端传送文件，当前时间：{}", System.currentTimeMillis());
 

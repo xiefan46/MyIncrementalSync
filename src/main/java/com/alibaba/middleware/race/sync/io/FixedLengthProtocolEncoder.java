@@ -43,6 +43,11 @@ public class FixedLengthProtocolEncoder implements ProtocolEncoder {
 		}
 		
 		FixedLengthReadFuture f = (FixedLengthReadFuture) future;
+		
+
+		if (f.getBuf() != null) {
+			return new ChannelWriteFutureImpl(future, f.getBuf());
+		}
 
 		ByteArrayBuffer buffer = f.getWriteBuffer();
 		

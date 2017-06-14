@@ -103,6 +103,11 @@ public class FixedLengthReadFutureImpl extends AbstractChannelReadFuture impleme
 	}
 	
 	@Override
+	public void setBuf(ByteBuf buf) {
+		this.buf = buf;
+	}
+	
+	@Override
 	public ByteBuf getBuf() {
 		return buf;
 	}

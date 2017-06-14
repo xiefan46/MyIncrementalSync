@@ -22,4 +22,6 @@ public interface FixedLengthReadFuture extends ReadFuture{
 
 	ByteBuf getBuf();
 	
+	void setBuf(ByteBuf buf);
+	
 }

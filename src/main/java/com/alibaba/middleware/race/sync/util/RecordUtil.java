@@ -11,8 +11,8 @@ import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.RecalculateContext;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
 import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.other.bytes.ByteArrayBuffer;
 import com.generallycloud.baseio.common.CloseUtil;
-import com.generallycloud.baseio.component.ByteArrayBuffer;
 
 /**
  * Created by xiefan on 6/4/17.

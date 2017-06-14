@@ -38,9 +38,9 @@ public class RecordLogCodec {
 	public RecordLog decode(byte[] data,byte [] tableSchema, int offset, int last,int cols) {
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
 		off += TIME_SKIP;
-		if (!compare(data, off + 1, tableSchema)) {
-			return null;
-		}
+//		if (!compare(data, off + 1, tableSchema)) {
+//			return null;
+//		}
 		RecordLog r = new RecordLog();
 		int end;
 		off = off + tableSchema.length + 2;

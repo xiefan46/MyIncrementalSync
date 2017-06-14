@@ -94,9 +94,10 @@ public class Client {
 		OutputStream outputStream = null;
 		String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
 		try {
-			printResult(buf);
+//			printResult(buf);
 			long startTime = System.currentTimeMillis();
 			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
+			raf.setLength(0);
 			outputStream = new RAFOutputStream(raf);
 			outputStream.write(buf.array(), 0, buf.limit());
 			outputStream.flush();
