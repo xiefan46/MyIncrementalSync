@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.common.FileUtil;
+import com.generallycloud.baseio.common.ThreadUtil;
 
 import util.MockDataUtil;
 
@@ -35,6 +36,7 @@ public class MainThreadTest {
 
 	@Test
 	public void testBasic() throws Exception {
+//		ThreadUtil.execute(new PageCacheHelper());
 		RecordLogReceiver recordLogReceiver = new RecordLogReceiverImpl();
 		String schema = "middleware3";
 		String table = "student";

@@ -41,19 +41,20 @@ public class MainThread {
 		readRecordLogThread.run();
 
 		logger.info("等待所有线程完成总耗时 : {}", System.currentTimeMillis() - startTime);
+		JvmUsingState.print();
 	}
 
 	private ReadChannel initChannels2() throws IOException {
 		File root = new File(Constants.DATA_HOME);
 		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 10,
-				1024 * 128);
+				1024 * 256);
 	}
 
 	private ReadChannel initChannels3() throws IOException {
 		File root = new File(Constants.TESTER_HOME + "/canal.txt");
 		RandomAccessFile raf = new RandomAccessFile(root, "r");
 		RAFInputStream inputStream = new RAFInputStream(raf);
-		return new SimpleReadChannel(inputStream, 1024 * 128);
+		return new SimpleReadChannel(inputStream, 1024 * 256);
 	}
 
 }

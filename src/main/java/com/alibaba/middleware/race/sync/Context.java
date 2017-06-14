@@ -1,10 +1,5 @@
 package com.alibaba.middleware.race.sync;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
-
-import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
 
 /**
@@ -18,9 +13,7 @@ public class Context {
 	private long					startId;
 	private String					tableSchema;
 	private boolean				executeByCoreProcesses	= false;
-	private BlockingQueue<RecordLog>	recordLogQueue;
 	private RecalculateContext		recalculateContext;
-	private RecalculateThread		recalculateThread;
 	private Table					table;
 	private int					availableProcessors		= Runtime.getRuntime()
 			.availableProcessors() - 2;
@@ -41,9 +34,7 @@ public class Context {
 	}
 
 	public void initialize() {
-		recordLogQueue = new ArrayBlockingQueue<>(1024 * 8);
-		recalculateContext = new RecalculateContext(this, getReceiver(), recordLogQueue);
-		recalculateThread = new RecalculateThread(recalculateContext);
+		recalculateContext = new RecalculateContext(this, getReceiver());
 	}
 
 	public void setReceiver(RecordLogReceiver receiver) {
@@ -74,23 +65,10 @@ public class Context {
 		return recalculateContext;
 	}
 
-	public void stopRecalculateThreads() {
-		recalculateThread.stop();
-	}
-
-	public RecalculateThread getRecalculateThread() {
-		return recalculateThread;
-	}
-
-	public void dispatch(RecordLog recordLog) throws InterruptedException {
-		for(;!recordLogQueue.offer(recordLog,8,TimeUnit.MICROSECONDS);){
-		}
-	}
-
 	public boolean isExecuteByCoreProcesses() {
 		return executeByCoreProcesses;
 	}
-
+	
 	public int getAvailableProcessors() {
 		return availableProcessors;
 	}

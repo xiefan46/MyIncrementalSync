@@ -2,10 +2,7 @@ package com.alibaba.middleware.race.sync;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 
-import com.alibaba.middleware.race.sync.model.Record;
-import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
 
 /**
@@ -16,30 +13,22 @@ public class RecalculateContext {
 
 	private RecordLogReceiver		recordLogReceiver;
 
-	private BlockingQueue<RecordLog>	recordLogs;
-
 	private Context				context;
 	
 	private Table					table;
 
-	public RecalculateContext(Context context, RecordLogReceiver recordLogReceiver,
-			BlockingQueue<RecordLog> recordLogs) {
+	public RecalculateContext(Context context, RecordLogReceiver recordLogReceiver) {
 		this.recordLogReceiver = recordLogReceiver;
-		this.recordLogs = recordLogs;
 	}
 
-	private Map<Long, Record> records = new HashMap<>();
+	private Map<Long, byte[][]> records = new HashMap<>();
 
 	public RecordLogReceiver getRecordLogReceiver() {
 		return recordLogReceiver;
 	}
 
-	public Map<Long, Record> getRecords() {
+	public Map<Long, byte[][]> getRecords() {
 		return records;
-	}
-
-	public BlockingQueue<RecordLog> getRecordLogs() {
-		return recordLogs;
 	}
 
 	public Context getContext() {

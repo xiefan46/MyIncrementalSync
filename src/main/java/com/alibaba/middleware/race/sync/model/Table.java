@@ -17,8 +17,8 @@ public class Table {
 	
 	private ByteArray byteArray = new ByteArray(null);
 	
-	public Record newRecord() {
-		return new Record(columnSize);
+	public byte[][] newRecord() {
+		return new byte[columnSize][];
 	}
 	
 	public int getIndex(byte [] name){

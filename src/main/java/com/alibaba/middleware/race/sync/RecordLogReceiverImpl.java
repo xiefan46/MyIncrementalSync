@@ -5,7 +5,6 @@ import java.util.Map;
 import com.alibaba.middleware.race.sync.model.ColumnLog;
 import com.alibaba.middleware.race.sync.model.Constants;
 import com.alibaba.middleware.race.sync.model.PrimaryColumnLog;
-import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
 
@@ -16,7 +15,7 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	@Override
 	public void received(RecalculateContext context, RecordLog recordLog) throws Exception {
-		Map<Long, Record> records = context.getRecords();
+		Map<Long, byte[][]> records = context.getRecords();
 		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
 		Table table = context.getTable();
 		Long pk = pcl.getLongValue();
@@ -24,13 +23,12 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 		case Constants.UPDATE:
 			if (pcl.isPkChange()) {
 				Long beforeValue = pcl.getBeforeValue();
-				Record oldRecord = records.remove(beforeValue);
+				byte[][] oldRecord = records.remove(beforeValue);
 				update(table, oldRecord, recordLog);
 				records.put(pk, oldRecord);
 				break;
 			} 
-			Record oldRecord = records.get(pk);
-			update(table, oldRecord, recordLog);
+			update(table, records.get(pk), recordLog);
 			break;
 		case Constants.DELETE:
 			records.remove(pk);
@@ -43,9 +41,9 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 		}
 	}
 
-	private Record update(Table table, Record oldRecord, RecordLog recordLog) {
+	private byte[][] update(Table table, byte[][] oldRecord, RecordLog recordLog) {
 		for (ColumnLog c : recordLog.getColumns()) {
-			oldRecord.setColum(table.getIndex(c.getName()), c.getValue());
+			oldRecord[table.getIndex(c.getName())] = c.getValue();
 		}
 		return oldRecord;
 	}

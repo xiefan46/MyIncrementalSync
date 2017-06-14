@@ -10,7 +10,6 @@ import java.util.List;
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.RecalculateContext;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
-import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.other.bytes.ByteArrayBuffer;
 import com.generallycloud.baseio.common.CloseUtil;
 
@@ -29,19 +28,18 @@ public class RecordUtil {
 	
 	private static final byte[] NUM_MAPPING			= new byte[]{'0','1','2','3','4','5','6','7','8','9'};  
 
-	public static void formatResultString(long id,Record record, ByteBuffer buffer) {
+	public static void formatResultString(long id,byte [][] record, ByteBuffer buffer) {
 		buffer.clear();
 		byte [] idCache = ID_CACHE;
 		int off = valueOfLong(id, idCache);
 		buffer.put(idCache, off+1, LONG_LEN - off);
 		buffer.put(FIELD_SEPERATOR_BYTE);
-		byte[][] array = record.getColumns();
-		byte len = (byte) (array.length - 1);
+		byte len = (byte) (record.length - 1);
 		for (byte i = 0; i < len; i++) {
-			buffer.put(array[i]);
+			buffer.put(record[i]);
 			buffer.put(FIELD_SEPERATOR_BYTE);
 		}
-		buffer.put(array[len]);
+		buffer.put(record[len]);
 		buffer.put(FIELD_N_BYTE);
 	}
 	
@@ -74,7 +72,7 @@ public class RecordUtil {
 		RecalculateContext rContext = context.getRecalculateContext();
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
 		for (long i = startId + 1; i < endId; i++) {
-			Record r = rContext.getRecords().get(i);
+			byte [][] r = rContext.getRecords().get(i);
 			if (r == null) {
 				continue;
 			}
@@ -83,13 +81,13 @@ public class RecordUtil {
 		}
 	}
 
-	private static List<Record> getResult(Context context) {
+	private static List<byte [][]> getResult(Context context) {
 		long startId = context.getStartId();
 		long endId = context.getEndId();
-		List<Record> records = new ArrayList<>();
+		List<byte [][]> records = new ArrayList<>();
 		RecalculateContext rContext = context.getRecalculateContext();
 		for (long i = startId + 1; i < endId; i++) {
-			Record r = rContext.getRecords().get(i);
+			byte [][] r = rContext.getRecords().get(i);
 			if (r == null) {
 				continue;
 			}

@@ -47,6 +47,7 @@ public class Server {
 		}
 		
 		logger.info("----------------server start-----------------");
+		JvmUsingState.print();
 		initProperties();
 		Server server = get();
 		try {
@@ -57,7 +58,8 @@ public class Server {
 	}
 	
 	private void initPageCache(){
-		ThreadUtil.execute(new PageCacheHelper());
+//		ThreadUtil.execute(new PageCacheHelper());
+		ThreadUtil.execute(new JvmUsingState());
 	}
 
 	/**
@@ -131,7 +133,7 @@ public class Server {
 		Context context = new Context(endId, receiver, startId, tableSchema);
 		
 		context.initialize();
-
+		
 		mainThread.execute(context);
 
 		sendResultToClient(context);
