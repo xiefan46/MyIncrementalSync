@@ -23,7 +23,7 @@ public class RecordLog {
 	// 该记录的列信息
 	private List<ColumnLog>	columns;
 	// 该记录的主键
-	private PrimaryColumnLog	primaryColumn;
+	private PrimaryColumnLog	primaryColumn = new PrimaryColumnLog();
 
 	//	public long getTimestamp() {
 	//		return timestamp;

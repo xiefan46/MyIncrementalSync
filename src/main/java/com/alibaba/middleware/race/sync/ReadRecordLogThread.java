@@ -36,8 +36,7 @@ public class ReadRecordLogThread implements Runnable {
 		}
 	}
 
-	public void execute(ReadRecordLogContext readRecordLogContext, Context context)
-			throws Exception {
+	public void execute(ReadRecordLogContext readRecordLogContext, Context context) throws Exception {
 
 		RecordLogReceiver receiver = context.getReceiver();
 
@@ -51,9 +50,13 @@ public class ReadRecordLogThread implements Runnable {
 
 		ReadChannel channel = readRecordLogContext.getChannel();
 
+		RecordLog r = new RecordLog();
+
+		r.newColumns(8);
+
 		for (; channel.hasRemaining();) {
 
-			RecordLog r = channelReader.read(channel, tableSchemaBytes, 8);
+			channelReader.read(channel, tableSchemaBytes, r);
 
 			recordScan++;
 
@@ -70,11 +73,9 @@ public class ReadRecordLogThread implements Runnable {
 			break;
 		}
 
-		int cols = context.getTable().getColumnSize();
-
 		for (; channel.hasRemaining();) {
 
-			RecordLog r = channelReader.read(channel, tableSchemaBytes, cols);
+			r = channelReader.read(channel, tableSchemaBytes, r);
 			recordScan++;
 			if (r == null) {
 				continue;

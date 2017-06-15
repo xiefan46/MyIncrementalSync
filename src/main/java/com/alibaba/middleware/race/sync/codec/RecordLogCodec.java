@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race.sync.codec;
 
+import java.util.List;
+
 import com.alibaba.middleware.race.sync.model.ColumnLog;
 import com.alibaba.middleware.race.sync.model.Constants;
 import com.alibaba.middleware.race.sync.model.PrimaryColumnLog;
@@ -35,25 +37,31 @@ public class RecordLogCodec {
 		return true;
 	}
 
-	public RecordLog decode(byte[] data,byte [] tableSchema, int offset, int last,int cols) {
+	private ColumnLog getColumnLog(List<ColumnLog> cols,int index){
+		if (index >= cols.size()) {
+			cols.add(new ColumnLog());
+		}
+		return cols.get(index);
+	}
+	
+	public RecordLog decode(byte[] data,byte [] tableSchema, int offset, int last,RecordLog r) {
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
 		off += TIME_SKIP;
 //		if (!compare(data, off + 1, tableSchema)) {
 //			return null;
 //		}
-		RecordLog r = new RecordLog();
 		int end;
 		off = off + tableSchema.length + 2;
 		byte alterType = data[off];
 		r.setAlterType(alterType);
 		off += 2;
+		int cIndex = 0;
+		List<ColumnLog> columns = r.getColumns();
 		if (Constants.UPDATE == alterType) {
-			r.newColumns(cols);
 			for (;;) {
 				end = findNextChar(data, off, ':');
 				if (data[end + 3] == '1') {
-					PrimaryColumnLog c = new PrimaryColumnLog();
-					r.setPrimaryColumn(c);
+					PrimaryColumnLog c = r.getPrimaryColumn();
 //					c.setName(data, off, end - off);
 					off = end + U_D_SKIP;
 					end = findNextChar(data, off, '|');
@@ -68,9 +76,9 @@ public class RecordLogCodec {
 					}
 					continue;
 				}
-				ColumnLog c = new ColumnLog();
+				ColumnLog c = getColumnLog(columns, cIndex++);
+				c.setUpdate(true);
 				c.setName(data, off, end - off);
-				r.addColumn(c);
 				off = end + U_D_SKIP;
 				end = findNextChar(data, off, '|');
 				off = end + 1;
@@ -85,9 +93,8 @@ public class RecordLogCodec {
 
 		if (Constants.DELETE == alterType) {
 			end = findNextChar(data, off, ':');
-			PrimaryColumnLog c = new PrimaryColumnLog();
+			PrimaryColumnLog c = r.getPrimaryColumn();
 //			c.setName(data, off, end - off);
-			r.setPrimaryColumn(c);
 			off = end + U_D_SKIP;
 			end = findNextChar(data, off, '|');
 			c.setLongValue(parseLong(data, off, end));
@@ -96,12 +103,10 @@ public class RecordLogCodec {
 		}
 
 		if (Constants.INSERT == alterType) {
-			r.newColumns(cols);
 			for (;;) {
 				end = findNextChar(data, off, ':');
 				if (data[end + 3] == '1') {
-					PrimaryColumnLog c = new PrimaryColumnLog();
-					r.setPrimaryColumn(c);
+					PrimaryColumnLog c = r.getPrimaryColumn();
 //					c.setName(data, off, end - off);
 					off = end + I_SKIP;
 					end = findNextChar(data, off, '|');
@@ -113,9 +118,9 @@ public class RecordLogCodec {
 					}
 					continue;
 				}
-				ColumnLog c = new ColumnLog();
+				ColumnLog c = getColumnLog(columns, cIndex++);
 				c.setName(data, off, end - off);
-				r.addColumn(c);
+				c.setUpdate(true);
 				off = end + I_SKIP;
 				end = findNextChar(data, off, '|');
 				c.setValue(data, off, end - off);

@@ -21,7 +21,7 @@ public class RecalculateContext {
 		this.recordLogReceiver = recordLogReceiver;
 	}
 
-	private Map<Long, byte[][]> records = new HashMap<>();
+	private Map<Long, byte[][]> records = new HashMap<>((int)(1024 * 256 * 1.5));
 
 	public RecordLogReceiver getRecordLogReceiver() {
 		return recordLogReceiver;

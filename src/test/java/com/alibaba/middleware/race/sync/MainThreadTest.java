@@ -1,19 +1,13 @@
 package com.alibaba.middleware.race.sync;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.common.FileUtil;
-import com.generallycloud.baseio.common.ThreadUtil;
-
-import util.MockDataUtil;
 
 /**
  * Created by xiefan on 6/4/17.

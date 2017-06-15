@@ -43,7 +43,11 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	private byte[][] update(Table table, byte[][] oldRecord, RecordLog recordLog) {
 		for (ColumnLog c : recordLog.getColumns()) {
+			if (!c.isUpdate()) {
+				break;
+			}
 			oldRecord[table.getIndex(c.getName())] = c.getValue();
+			c.setUpdate(false);
 		}
 		return oldRecord;
 	}
