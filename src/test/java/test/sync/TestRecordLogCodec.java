@@ -3,7 +3,7 @@ package test.sync;
 import java.io.File;
 import java.io.RandomAccessFile;
 
-import com.alibaba.middleware.race.sync.ChannelReader;
+import com.alibaba.middleware.race.sync.ChannelReader2;
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.channel.RAFInputStream;
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
@@ -27,7 +27,7 @@ public class TestRecordLogCodec {
 
 		ReadChannel channel = new SimpleReadChannel(inputStream, 1024 * 1024 * 1);
 
-		ChannelReader reader = ChannelReader.get();
+		ChannelReader2 reader = ChannelReader2.get();
 
 		byte[] cs = "middleware3|student".getBytes();
 
@@ -38,7 +38,7 @@ public class TestRecordLogCodec {
 		RecordLog r = new RecordLog();
 		r.newColumns(10);
 		
-		for (; channel.hasRemaining();) {
+		for (; channel.hasBufRemaining();) {
 			
 			reader.read(channel, cs,r);
 			if (r == null) {

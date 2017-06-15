@@ -25,6 +25,10 @@ public abstract class ReadChannel extends InputStream {
 	}
 
 	public abstract boolean hasRemaining();
+	
+	public boolean hasBufRemaining(){
+		return hasRemaining() || buf.hasRemaining();
+	}
 
 	public abstract int read(ByteBuf buf) throws IOException;
 

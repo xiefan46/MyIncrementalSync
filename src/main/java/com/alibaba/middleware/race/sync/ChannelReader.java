@@ -22,6 +22,8 @@ public class ChannelReader {
 
 	private ChannelReader() {
 	}
+	
+	private int maxRecordLen;
 
 	private RecordLogCodec codec = RecordLogCodec.get();
 
@@ -45,6 +47,10 @@ public class ChannelReader {
 			return read(channel, tableSchema, r);
 		}
 		int end = findNextChar(readBuffer, offset + HEAD_SKIP, limit, '\n');
+		int len = end - offset;
+		if (len > maxRecordLen) {
+			maxRecordLen = len;
+		}
 		if (end == -1) {
 			if (!channel.hasRemaining()) {
 				return null;
@@ -68,6 +74,10 @@ public class ChannelReader {
 				return -1;
 			}
 		}
+	}
+	
+	public int getMaxRecordLen() {
+		return maxRecordLen;
 	}
 
 }

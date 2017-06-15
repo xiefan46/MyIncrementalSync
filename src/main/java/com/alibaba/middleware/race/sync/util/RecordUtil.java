@@ -7,6 +7,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.RecalculateContext;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
@@ -17,6 +20,8 @@ import com.generallycloud.baseio.common.CloseUtil;
  * Created by xiefan on 6/4/17.
  */
 public class RecordUtil {
+	
+	private static final Logger logger = LoggerFactory.getLogger(RecordUtil.class);
 
 	private static final byte	FIELD_SEPERATOR_BYTE	= '\t';
 
@@ -69,6 +74,7 @@ public class RecordUtil {
 	public static void writeToByteArrayBuffer(Context context, ByteArrayBuffer buffer) {
 		long startId = context.getStartId();
 		long endId = context.getEndId();
+		int all = 0;
 		RecalculateContext rContext = context.getRecalculateContext();
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
 		for (long i = startId + 1; i < endId; i++) {
@@ -76,9 +82,11 @@ public class RecordUtil {
 			if (r == null) {
 				continue;
 			}
+			all++;
 			RecordUtil.formatResultString(i, r, array);
 			buffer.write(array.array(), 0, array.position());
 		}
+		logger.info("result size:{}",all);
 	}
 
 	private static List<byte [][]> getResult(Context context) {

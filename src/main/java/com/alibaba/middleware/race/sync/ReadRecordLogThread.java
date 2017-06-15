@@ -31,6 +31,7 @@ public class ReadRecordLogThread implements Runnable {
 			execute(context, context.getContext());
 			logger.info("线程 {} 执行耗时: {},总扫描记录数 {},需要重放的记录数 {}", Thread.currentThread().getId(),
 					System.currentTimeMillis() - startTime, recordScan, recordDeal);
+			logger.info("max_record_len:{}",ChannelReader.get().getMaxRecordLen() + 1);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -46,7 +47,7 @@ public class ReadRecordLogThread implements Runnable {
 
 		byte[] tableSchemaBytes = tableSchema.getBytes();
 
-		ChannelReader channelReader = ChannelReader.get();
+		ChannelReader2 channelReader = ChannelReader2.get();
 
 		ReadChannel channel = readRecordLogContext.getChannel();
 
@@ -54,7 +55,7 @@ public class ReadRecordLogThread implements Runnable {
 
 		r.newColumns(8);
 
-		for (; channel.hasRemaining();) {
+		for (; channel.hasBufRemaining();) {
 
 			channelReader.read(channel, tableSchemaBytes, r);
 
@@ -73,7 +74,7 @@ public class ReadRecordLogThread implements Runnable {
 			break;
 		}
 
-		for (; channel.hasRemaining();) {
+		for (; channel.hasBufRemaining();) {
 
 			r = channelReader.read(channel, tableSchemaBytes, r);
 			recordScan++;
