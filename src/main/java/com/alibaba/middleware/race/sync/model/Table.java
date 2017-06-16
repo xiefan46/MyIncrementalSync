@@ -32,7 +32,6 @@ public class Table {
 		for (ColumnLog c : recordLog.getColumns()) {
 			t.columnIndexs.put(new ByteArray(c.getName()), index++);
 		}
-		System.out.println("column size : " + t.columnSize);
 		return t;
 	}
 

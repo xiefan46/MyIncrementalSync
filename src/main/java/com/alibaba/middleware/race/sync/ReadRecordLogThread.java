@@ -68,7 +68,7 @@ public class ReadRecordLogThread implements Runnable {
 
 			recordDeal++;
 			context.setTable(Table.newTable(r));
-			dispatcher.start(context);
+			dispatcher.start(r);
 			//receiver.received(context, r);
 			dispatcher.dispatch(r);
 

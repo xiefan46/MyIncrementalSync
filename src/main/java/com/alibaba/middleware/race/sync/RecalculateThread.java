@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by xiefan on 6/16/17.
@@ -16,7 +17,7 @@ public class RecalculateThread extends Thread {
 
 	private Map<Long, byte[][]>	records	= new HashMap<>((int) (1024 * 256 * 1.5));
 
-	private Queue<RecordLog>		logQueue	= new ConcurrentLinkedQueue<>();
+	private Queue<RecordLog>		logQueue	= new LinkedBlockingQueue<>();
 
 	private boolean			readOver	= false;
 
@@ -33,6 +34,7 @@ public class RecalculateThread extends Thread {
 	@Override
 	public void run() {
 		try {
+			Thread.currentThread().sleep(100);
 			long startTime = System.currentTimeMillis();
 			while (!readOver || !logQueue.isEmpty()) {
 				while (!logQueue.isEmpty()) {
@@ -52,7 +54,10 @@ public class RecalculateThread extends Thread {
 	}
 
 	public void submit(RecordLog recordLog) {
-		this.logQueue.offer(recordLog);
+		boolean flag = this.logQueue.offer(recordLog);
+		while (!flag) {
+			flag = this.logQueue.offer(recordLog);
+		}
 	}
 
 	public Map<Long, byte[][]> getRecords() {
@@ -80,18 +85,28 @@ public class RecalculateThread extends Thread {
 	}
 
 	public void received(RecordLog recordLog) throws Exception {
+		//logger.info("receive log.pk : {}", recordLog.getPrimaryColumn().getLongValue());
 		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
 		Long pk = pcl.getLongValue();
 		switch (recordLog.getAlterType()) {
 		case com.alibaba.middleware.race.sync.model.Constants.UPDATE:
 			if (pcl.isPkChange()) {
+
 				Long beforeValue = pcl.getBeforeValue();
 				byte[][] oldRecord = records.remove(beforeValue);
+				if (oldRecord == null) {
+					throw new RuntimeException("Update not exist record. Old pk : "
+							+ beforeValue + " New pk : " + pk);
+				}
 				update(table, oldRecord, recordLog);
 				records.put(pk, oldRecord);
 				break;
 			}
-			update(table, records.get(pk), recordLog);
+			byte[][] oldRecord = records.get(pk);
+			if (oldRecord == null) {
+				throw new RuntimeException("Update not exist record." + "pk : " + pk);
+			}
+			update(table, oldRecord, recordLog);
 			break;
 		case com.alibaba.middleware.race.sync.model.Constants.DELETE:
 			records.remove(pk);
@@ -100,7 +115,7 @@ public class RecalculateThread extends Thread {
 			records.put(pk, update(table, table.newRecord(), recordLog));
 			break;
 		default:
-			break;
+			throw new RuntimeException("Type not exist");
 		}
 	}
 
@@ -112,6 +127,7 @@ public class RecalculateThread extends Thread {
 			Integer index = table.getIndex(c.getName());
 			oldRecord[index] = c.getValue();
 			c.setUpdate(false);
+
 		}
 		return oldRecord;
 	}

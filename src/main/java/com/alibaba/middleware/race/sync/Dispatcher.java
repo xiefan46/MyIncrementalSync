@@ -23,9 +23,9 @@ public class Dispatcher {
 		this.threadNum = threadNum;
 	}
 
-	public void start(Context context) {
+	public void start(RecordLog r) {
 		for (int i = 0; i < threadNum; i++) {
-			RecalculateThread thread = new RecalculateThread(context.getTable());
+			RecalculateThread thread = new RecalculateThread(Table.newTable(r));
 			threadList.add(thread);
 			thread.start();
 		}
@@ -37,7 +37,7 @@ public class Dispatcher {
 		if (recordLog.isPKUpdate()) {
 			Byte oldDirect = redirectMap.remove(oldId);
 			byte newThread = hashFun(id);
-			if (oldDirect == null) //如果oldDirect不为空,则为连锁update
+			if (oldDirect == null) //如果oldDirect不为空,则为连锁update 
 				oldDirect = hashFun(oldId);
 			if (oldDirect != newThread)
 				redirectMap.put(id, oldDirect);
@@ -48,6 +48,7 @@ public class Dispatcher {
 				threadId = hashFun(id);
 			threadList.get(threadId).submit(recordLog);
 		}
+
 	}
 
 	public void readRecordOver() {
