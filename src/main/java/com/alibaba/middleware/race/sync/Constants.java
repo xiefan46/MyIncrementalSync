@@ -36,5 +36,9 @@ public interface Constants {
 	String	RESULT_FILE_NAME	= "Result.rs";
 
 	boolean	COLLECT_STAT		= true;
+	
+	boolean	ENABLE_COMPRESS	= false;
+	
+	int		RESULT_LENGTH		= 38334025;
 
 }

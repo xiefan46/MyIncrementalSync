@@ -1,13 +1,16 @@
 package com.alibaba.middleware.race.sync;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.middleware.race.sync.channel.ByteArrayInputStream;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
+import com.alibaba.middleware.race.sync.compress.Lz4CompressedInputStream;
 import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
 import com.alibaba.middleware.race.sync.util.MD5Token;
@@ -89,8 +92,9 @@ public class Client {
 
 		connector.connect();
 	}
-
-	private void writeToFile(ByteBuf buf) {
+	
+	
+	private void writeToFile(byte []array,int off,int len) {
 		OutputStream outputStream = null;
 		String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
 		try {
@@ -99,13 +103,36 @@ public class Client {
 			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
 			raf.setLength(0);
 			outputStream = new RAFOutputStream(raf);
-			outputStream.write(buf.array(), 0, buf.limit());
+			outputStream.write(array, 0, len);
 			outputStream.flush();
-			logger.info("写结果文件到本地文件系统耗时 : {}", System.currentTimeMillis() - startTime);
+			logger.info("写结果文件到本地文件系统耗时 : {},{}", System.currentTimeMillis() - startTime,len);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		} finally {
 			CloseUtil.close(outputStream);
+		}
+	}
+
+	private void writeToFile(ByteBuf buf) throws IOException {
+		if (Constants.ENABLE_COMPRESS) {
+			ByteArrayInputStream inputStream = new ByteArrayInputStream(buf.array(),0,buf.limit());
+			Lz4CompressedInputStream lz4InputStream = new Lz4CompressedInputStream(inputStream, 1024 * 512);
+			byte [] read = new byte[1024 * 512];
+			String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
+			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
+			OutputStream outputStream = new RAFOutputStream(raf);;
+			raf.setLength(0);
+			long startTime = System.currentTimeMillis();
+			for(;;){
+				int len = lz4InputStream.read(read);
+				if (len == -1) {
+					break;
+				}
+				outputStream.write(read, 0, len);
+			}
+			logger.info("写结果文件到本地文件系统耗时 : {},{}", System.currentTimeMillis() - startTime);
+		}else{
+			writeToFile(buf.array(), 0, buf.limit());
 		}
 	}
 

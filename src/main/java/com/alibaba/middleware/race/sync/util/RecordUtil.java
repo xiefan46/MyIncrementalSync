@@ -2,6 +2,7 @@ package com.alibaba.middleware.race.sync.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
@@ -64,7 +65,7 @@ public class RecordUtil {
 
 	}
 
-	public static void writeToByteArrayBuffer(Context context, ByteArrayBuffer buffer) {
+	public static void writeToByteArrayBuffer(Context context, OutputStream out) throws IOException {
 		int startId = (int) context.getStartId();
 		int endId = (int) context.getEndId();
 		RecalculateContext rContext = context.getRecalculateContext();
@@ -75,7 +76,7 @@ public class RecordUtil {
 				continue;
 			}
 			RecordUtil.formatResultString(i, r, array);
-			buffer.write(array.array(), 0, array.position());
+			out.write(array.array(), 0, array.position());
 		}
 	}
 

@@ -5,6 +5,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.middleware.race.sync.channel.SingleBufferedOutputStream;
+import com.alibaba.middleware.race.sync.compress.Lz4CompressedOutputStream;
 import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
@@ -41,9 +43,9 @@ public class Server {
 
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
-			args = new String[]{"middleware3","student","0","70000000"};
+			args = new String[] { "middleware3", "student", "0", "70000000" };
 		}
-		
+
 		logger.info("----------------server start-----------------");
 		JvmUsingState.print();
 		initProperties();
@@ -54,9 +56,9 @@ public class Server {
 			logger.error(e.getMessage(), e);
 		}
 	}
-	
-	private void initPageCache(){
-//		ThreadUtil.execute(new PageCacheHelper());
+
+	private void initPageCache() {
+		// ThreadUtil.execute(new PageCacheHelper());
 		ThreadUtil.execute(new JvmUsingState());
 	}
 
@@ -77,7 +79,7 @@ public class Server {
 	 */
 	private void startServer1(String[] args, int port) throws Exception {
 		initPageCache();
-		
+
 		// 第一个参数是Schema Name
 		logger.info("tableSchema:" + args[0]);
 		// 第二个参数是Schema Name
@@ -116,22 +118,21 @@ public class Server {
 		context.setProtocolFactory(new FixedLengthProtocolFactory());
 
 		acceptor.bind();
-		
+
 		logger.info("com.alibaba.middleware.race.sync.Server is running....");
-		
+
 		this.socketChannelContext = context;
 
 		execute(endId, new RecordLogReceiverImpl(), startId, (schema + "|" + table));
 
 	}
 
-	private void execute(long endId, RecordLogReceiver receiver, long startId, String tableSchema)
-			throws Exception {
+	private void execute(long endId, RecordLogReceiver receiver, long startId, String tableSchema) throws Exception {
 
 		Context context = new Context(endId, receiver, startId, tableSchema);
-		
+
 		context.initialize();
-		
+
 		mainThread.execute(context);
 
 		sendResultToClient(context);
@@ -147,19 +148,40 @@ public class Server {
 
 	private void sendResultToClient(Context context) throws Exception {
 
-		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 1024,4);
+		if (Constants.ENABLE_COMPRESS) {
 
-		RecordUtil.writeToByteArrayBuffer(context, byteArrayBuffer);
+			ByteArrayBuffer target = new ByteArrayBuffer(1024 * 1024 * 8, 4);
 
-		writeToClient(byteArrayBuffer);
+			int cBuffer = (int) (1024 * 512 * 1.005);
+			
+			Lz4CompressedOutputStream outputStream = new Lz4CompressedOutputStream(target,cBuffer);
+
+			SingleBufferedOutputStream buffer = new SingleBufferedOutputStream(outputStream, 1024 * 512);
+
+			RecordUtil.writeToByteArrayBuffer(context, buffer);
+
+			buffer.flush();
+
+			writeToClient(target);
+		} else {
+
+			ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(Constants.RESULT_LENGTH + 4, 4);
+
+			RecordUtil.writeToByteArrayBuffer(context, byteArrayBuffer);
+
+			writeToClient(byteArrayBuffer);
+		}
 	}
 
 	private void writeToClient(ByteArrayBuffer buffer) {
+		writeToClient(buffer.array(), buffer.size());
+	}
+
+	private void writeToClient(byte[] array, int len) {
 
 		SocketChannelContext channelContext = Server.get().getSocketChannelContext();
 
-		Map<Integer, SocketSession> sessions = channelContext.getSessionManager()
-				.getManagedSessions();
+		Map<Integer, SocketSession> sessions = channelContext.getSessionManager().getManagedSessions();
 
 		if (sessions.size() == 0) {
 			throw new RuntimeException("null client");
@@ -169,13 +191,9 @@ public class Server {
 
 		FixedLengthReadFuture future = new FixedLengthReadFutureImpl(channelContext);
 
-		//FIXME 如果文件比较大，直接发送该buf
+		MathUtil.int2Byte(array, len - 4, 0);
 
-		byte [] array = buffer.array();
-		
-		MathUtil.int2Byte(array, buffer.size() - 4, 0);
-		
-		future.setBuf(UnpooledByteBufAllocator.getHeapInstance().wrap(array, 0, buffer.size()));
+		future.setBuf(UnpooledByteBufAllocator.getHeapInstance().wrap(array, 0, len));
 
 		logger.info("开始向客户端传送文件，当前时间：{}", System.currentTimeMillis());
 
