@@ -77,7 +77,7 @@ public class RecordLogCodec2 {
 					continue;
 				}
 				ColumnLog c = getColumnLog(columns, cIndex++);
-				c.setUpdate(true);
+				r.increamentEdit();
 				c.setName(data, off, end - off);
 				off = end + U_D_SKIP;
 				end = findNextChar(data, off, '|');
@@ -117,7 +117,7 @@ public class RecordLogCodec2 {
 				}
 				ColumnLog c = getColumnLog(columns, cIndex++);
 				c.setName(data, off, end - off);
-				c.setUpdate(true);
+				r.increamentEdit();
 				off = end + I_SKIP;
 				end = findNextChar(data, off, '|');
 				c.setValue(data, off, end - off);
@@ -139,8 +139,8 @@ public class RecordLogCodec2 {
 		}
 	}
 
-	private long parseLong(byte[] data, int offset, int end) {
-		long all = 0;
+	private int parseLong(byte[] data, int offset, int end) {
+		int all = 0;
 		for (int i = offset; i < end; i++) {
 			all = all * 10 + (data[i] - 48);
 		}

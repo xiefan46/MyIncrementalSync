@@ -20,18 +20,12 @@ public class ReadRecordLogThread implements Runnable {
 		this.context = context;
 	}
 
-	private int	recordScan	= 0;
-
-	private int	recordDeal	= 0;
-
 	@Override
 	public void run() {
 		try {
 			long startTime = System.currentTimeMillis();
 			execute(context, context.getContext());
-			logger.info("线程 {} 执行耗时: {},总扫描记录数 {},需要重放的记录数 {}", Thread.currentThread().getId(),
-					System.currentTimeMillis() - startTime, recordScan, recordDeal);
-			logger.info("max_record_len:{}",ChannelReader.get().getMaxRecordLen() + 1);
+			logger.info("线程 {} 执行耗时: {}", Thread.currentThread().getId(), System.currentTimeMillis() - startTime);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -59,13 +53,9 @@ public class ReadRecordLogThread implements Runnable {
 
 			channelReader.read(channel, tableSchemaBytes, r);
 
-			recordScan++;
-
 			if (r == null) {
 				continue;
 			}
-
-			recordDeal++;
 
 			context.setTable(Table.newTable(r));
 
@@ -77,11 +67,9 @@ public class ReadRecordLogThread implements Runnable {
 		for (; channel.hasBufRemaining();) {
 
 			r = channelReader.read(channel, tableSchemaBytes, r);
-			recordScan++;
 			if (r == null) {
 				continue;
 			}
-			recordDeal++;
 			receiver.received(recalculateContext, r);
 		}
 

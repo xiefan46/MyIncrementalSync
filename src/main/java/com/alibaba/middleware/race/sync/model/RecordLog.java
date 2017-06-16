@@ -18,6 +18,7 @@ public class RecordLog {
 	//	// 数据变更对应的表名
 	//	private String			table;
 
+	private int 			edit = 0;
 	//  I(1)代表insert, U(2)代表update, D(0)代表delete
 	private byte			alterType;
 	// 该记录的列信息
@@ -66,6 +67,18 @@ public class RecordLog {
 			return primaryColumn.isPkChange();
 		}
 		return false;
+	}
+	
+	public void increamentEdit(){
+		edit++;
+	}
+	
+	public void resetEdit(){
+		edit = 0;
+	}
+	
+	public int getEdit(){
+		return edit;
 	}
 
 }

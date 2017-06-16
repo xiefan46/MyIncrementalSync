@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.sync;
 
+import java.util.List;
 import java.util.Map;
 
 import com.alibaba.middleware.race.sync.model.ColumnLog;
@@ -15,14 +16,14 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	@Override
 	public void received(RecalculateContext context, RecordLog recordLog) throws Exception {
-		Map<Long, byte[][]> records = context.getRecords();
+		Map<Integer, byte[][]> records = context.getRecords();
 		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
 		Table table = context.getTable();
-		Long pk = pcl.getLongValue();
+		Integer pk = pcl.getLongValue();
 		switch (recordLog.getAlterType()) {
 		case Constants.UPDATE:
 			if (pcl.isPkChange()) {
-				Long beforeValue = pcl.getBeforeValue();
+				Integer beforeValue = pcl.getBeforeValue();
 				byte[][] oldRecord = records.remove(beforeValue);
 				update(table, oldRecord, recordLog);
 				records.put(pk, oldRecord);
@@ -42,13 +43,12 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 	}
 
 	private byte[][] update(Table table, byte[][] oldRecord, RecordLog recordLog) {
-		for (ColumnLog c : recordLog.getColumns()) {
-			if (!c.isUpdate()) {
-				break;
-			}
+		List<ColumnLog> columnLogs = recordLog.getColumns();
+		for (int i = 0; i < recordLog.getEdit(); i++) {
+			ColumnLog c = columnLogs.get(i);
 			oldRecord[table.getIndex(c.getName())] = c.getValue();
-			c.setUpdate(false);
 		}
+		recordLog.resetEdit();
 		return oldRecord;
 	}
 

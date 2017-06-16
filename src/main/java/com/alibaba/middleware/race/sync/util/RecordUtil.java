@@ -4,11 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.RecalculateContext;
@@ -21,8 +16,6 @@ import com.generallycloud.baseio.common.CloseUtil;
  */
 public class RecordUtil {
 	
-	private static final Logger logger = LoggerFactory.getLogger(RecordUtil.class);
-
 	private static final byte	FIELD_SEPERATOR_BYTE	= '\t';
 
 	private static final byte	FIELD_N_BYTE			= '\n';
@@ -72,36 +65,18 @@ public class RecordUtil {
 	}
 
 	public static void writeToByteArrayBuffer(Context context, ByteArrayBuffer buffer) {
-		long startId = context.getStartId();
-		long endId = context.getEndId();
-		int all = 0;
+		int startId = (int) context.getStartId();
+		int endId = (int) context.getEndId();
 		RecalculateContext rContext = context.getRecalculateContext();
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
-		for (long i = startId + 1; i < endId; i++) {
+		for (int i = startId + 1; i < endId; i++) {
 			byte [][] r = rContext.getRecords().get(i);
 			if (r == null) {
 				continue;
 			}
-			all++;
 			RecordUtil.formatResultString(i, r, array);
 			buffer.write(array.array(), 0, array.position());
 		}
-		logger.info("result size:{}",all);
-	}
-
-	private static List<byte [][]> getResult(Context context) {
-		long startId = context.getStartId();
-		long endId = context.getEndId();
-		List<byte [][]> records = new ArrayList<>();
-		RecalculateContext rContext = context.getRecalculateContext();
-		for (long i = startId + 1; i < endId; i++) {
-			byte [][] r = rContext.getRecords().get(i);
-			if (r == null) {
-				continue;
-			}
-			records.add(r);
-		}
-		return records;
 	}
 
 	public static void writeToFile(ByteArrayBuffer buffer, String fileName) throws IOException {

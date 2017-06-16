@@ -21,13 +21,13 @@ public class RecalculateContext {
 		this.recordLogReceiver = recordLogReceiver;
 	}
 
-	private Map<Long, byte[][]> records = new HashMap<>((int)(1024 * 256 * 1.5));
+	private Map<Integer, byte[][]> records = new HashMap<>((int)(1024 * 256 * 1.5));
 
 	public RecordLogReceiver getRecordLogReceiver() {
 		return recordLogReceiver;
 	}
 
-	public Map<Long, byte[][]> getRecords() {
+	public Map<Integer, byte[][]> getRecords() {
 		return records;
 	}
 

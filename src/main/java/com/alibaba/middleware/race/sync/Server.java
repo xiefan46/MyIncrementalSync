@@ -42,8 +42,6 @@ public class Server {
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
 			args = new String[]{"middleware3","student","0","70000000"};
-		}else{
-			args[0] = "middleware5";
 		}
 		
 		logger.info("----------------server start-----------------");
