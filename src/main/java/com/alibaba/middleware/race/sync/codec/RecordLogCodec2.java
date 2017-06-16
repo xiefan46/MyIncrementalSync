@@ -18,7 +18,7 @@ public class RecordLogCodec2 {
 	
 	private final int			I_SKIP		= "1:1|NULL|X".length();
 	
-	private final int			HEAD_SKIP		= "|mysql-bin.".length();
+	private final int			HEAD_SKIP		= "|mysql-bin.".length() + 0;
 	
 	private final int			TIME_SKIP		= "1496720884000".length() + 1;
 	

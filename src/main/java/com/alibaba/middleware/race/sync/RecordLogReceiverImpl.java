@@ -46,7 +46,7 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 		List<ColumnLog> columnLogs = recordLog.getColumns();
 		for (int i = 0; i < recordLog.getEdit(); i++) {
 			ColumnLog c = columnLogs.get(i);
-			oldRecord[table.getIndex(c.getName())] = c.getValue();
+			oldRecord[table.getIndex1(c.getName())] = c.getValue();
 		}
 		recordLog.resetEdit();
 		return oldRecord;
