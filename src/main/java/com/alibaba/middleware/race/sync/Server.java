@@ -41,11 +41,11 @@ public class Server {
 
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
-			args = new String[]{"middleware3","student","0","70000000"};
-		}else{
+			args = new String[] { "middleware3", "student", "0", "70000000" };
+		} else {
 			args[0] = "middleware5";
 		}
-		
+
 		logger.info("----------------server start-----------------");
 		JvmUsingState.print();
 		initProperties();
@@ -56,9 +56,9 @@ public class Server {
 			logger.error(e.getMessage(), e);
 		}
 	}
-	
-	private void initPageCache(){
-//		ThreadUtil.execute(new PageCacheHelper());
+
+	private void initPageCache() {
+		//		ThreadUtil.execute(new PageCacheHelper());
 		ThreadUtil.execute(new JvmUsingState());
 	}
 
@@ -79,7 +79,7 @@ public class Server {
 	 */
 	private void startServer1(String[] args, int port) throws Exception {
 		initPageCache();
-		
+
 		// 第一个参数是Schema Name
 		logger.info("tableSchema:" + args[0]);
 		// 第二个参数是Schema Name
@@ -118,9 +118,9 @@ public class Server {
 		context.setProtocolFactory(new FixedLengthProtocolFactory());
 
 		acceptor.bind();
-		
+
 		logger.info("com.alibaba.middleware.race.sync.Server is running....");
-		
+
 		this.socketChannelContext = context;
 
 		execute(endId, new RecordLogReceiverImpl(), startId, (schema + "|" + table));
@@ -131,9 +131,7 @@ public class Server {
 			throws Exception {
 
 		Context context = new Context(endId, receiver, startId, tableSchema);
-		
-		context.initialize();
-		
+
 		mainThread.execute(context);
 
 		sendResultToClient(context);
@@ -149,7 +147,7 @@ public class Server {
 
 	private void sendResultToClient(Context context) throws Exception {
 
-		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 1024,4);
+		ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(1024 * 1024, 4);
 
 		RecordUtil.writeToByteArrayBuffer(context, byteArrayBuffer);
 
@@ -173,10 +171,10 @@ public class Server {
 
 		//FIXME 如果文件比较大，直接发送该buf
 
-		byte [] array = buffer.array();
-		
+		byte[] array = buffer.array();
+
 		MathUtil.int2Byte(array, buffer.size() - 4, 0);
-		
+
 		future.setBuf(UnpooledByteBufAllocator.getHeapInstance().wrap(array, 0, buffer.size()));
 
 		logger.info("开始向客户端传送文件，当前时间：{}", System.currentTimeMillis());

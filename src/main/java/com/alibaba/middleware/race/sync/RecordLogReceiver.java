@@ -6,8 +6,9 @@ import com.alibaba.middleware.race.sync.model.RecordLog;
  * @author wangkai
  *
  */
+@Deprecated
 public interface RecordLogReceiver {
 
-	void received(RecalculateContext context, RecordLog record) throws Exception;
+	void received(Context context, RecordLog record) throws Exception;
 
 }

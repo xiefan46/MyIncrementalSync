@@ -20,9 +20,11 @@ public class ReadRecordLogThread implements Runnable {
 		this.context = context;
 	}
 
-	private int	recordScan	= 0;
+	private int		recordScan	= 0;
 
-	private int	recordDeal	= 0;
+	private int		recordDeal	= 0;
+
+	private Dispatcher	dispatcher	= new Dispatcher(1);
 
 	@Override
 	public void run() {
@@ -31,17 +33,16 @@ public class ReadRecordLogThread implements Runnable {
 			execute(context, context.getContext());
 			logger.info("线程 {} 执行耗时: {},总扫描记录数 {},需要重放的记录数 {}", Thread.currentThread().getId(),
 					System.currentTimeMillis() - startTime, recordScan, recordDeal);
-			logger.info("max_record_len:{}",ChannelReader.get().getMaxRecordLen() + 1);
+			logger.info("max_record_len:{}", ChannelReader.get().getMaxRecordLen() + 1);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
 	}
 
-	public void execute(ReadRecordLogContext readRecordLogContext, Context context) throws Exception {
+	public void execute(ReadRecordLogContext readRecordLogContext, Context context)
+			throws Exception {
 
 		RecordLogReceiver receiver = context.getReceiver();
-
-		RecalculateContext recalculateContext = context.getRecalculateContext();
 
 		String tableSchema = context.getTableSchema();
 
@@ -66,10 +67,10 @@ public class ReadRecordLogThread implements Runnable {
 			}
 
 			recordDeal++;
-
 			context.setTable(Table.newTable(r));
-
-			receiver.received(recalculateContext, r);
+			dispatcher.start(context);
+			//receiver.received(context, r);
+			dispatcher.dispatch(r);
 
 			break;
 		}
@@ -82,9 +83,12 @@ public class ReadRecordLogThread implements Runnable {
 				continue;
 			}
 			recordDeal++;
-			receiver.received(recalculateContext, r);
+			//receiver.received(context, r);
+			dispatcher.dispatch(r);
 		}
 
+		dispatcher.readRecordOver();
+		dispatcher.waitForOk(context);
 	}
 
 }

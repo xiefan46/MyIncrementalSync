@@ -11,10 +11,11 @@ import com.alibaba.middleware.race.sync.model.Table;
 /**
  * Created by xiefan on 6/4/17.
  */
+@Deprecated
 public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	@Override
-	public void received(RecalculateContext context, RecordLog recordLog) throws Exception {
+	public void received(Context context, RecordLog recordLog) throws Exception {
 		Map<Long, byte[][]> records = context.getRecords();
 		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
 		Table table = context.getTable();
@@ -27,7 +28,7 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 				update(table, oldRecord, recordLog);
 				records.put(pk, oldRecord);
 				break;
-			} 
+			}
 			update(table, records.get(pk), recordLog);
 			break;
 		case Constants.DELETE:

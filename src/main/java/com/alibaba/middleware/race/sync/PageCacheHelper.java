@@ -14,38 +14,39 @@ import com.generallycloud.baseio.common.ReleaseUtil;
  * @author wangkai
  *
  */
-public class PageCacheHelper implements Runnable{
-	
+@Deprecated
+public class PageCacheHelper implements Runnable {
+
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Override
 	public void run() {
-		
+
 		try {
 			long startTime = System.currentTimeMillis();
-			
+
 			File root = new File(Constants.DATA_HOME);
-			ReadChannel channel =  MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 10,
-					1024 * 1024 * 1);
-			
+			ReadChannel channel = MuiltFileReadChannelSplitor
+					.newChannel(root.getAbsolutePath() + "/", 1, 10, 1024 * 1024 * 1);
+
 			ByteBuf buf = channel.getByteBuf();
-			
-			for(;;){
+
+			for (;;) {
 				if (!channel.hasRemaining()) {
 					break;
 				}
 				channel.read(buf);
 				buf.limit(0);
 			}
-			
+
 			ReleaseUtil.release(buf);
-			
-			logger.info("预读数据完成：{}",(System.currentTimeMillis() - startTime));
-			
+
+			logger.info("预读数据完成：{}", (System.currentTimeMillis() - startTime));
+
 		} catch (Exception e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 		}
-		
+
 	}
 
 }
