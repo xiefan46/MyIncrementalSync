@@ -26,7 +26,7 @@ public class ReadRecordLogThread implements Runnable {
 
 	private int		pkUpdate		= 0;
 
-	private Dispatcher	dispatcher	= new Dispatcher(8);
+	private Dispatcher	dispatcher	= new Dispatcher(16);
 
 	@Override
 	public void run() {
