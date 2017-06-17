@@ -86,4 +86,8 @@ public class Dispatcher {
 		return result;
 	}
 
+	public Map<Long, Byte> getRedirectMap() {
+		return redirectMap;
+	}
+
 }

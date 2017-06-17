@@ -34,7 +34,6 @@ public class RecalculateThread extends Thread {
 	@Override
 	public void run() {
 		try {
-			Thread.currentThread().sleep(100);
 			long startTime = System.currentTimeMillis();
 			while (!readOver || !logQueue.isEmpty()) {
 				while (!logQueue.isEmpty()) {

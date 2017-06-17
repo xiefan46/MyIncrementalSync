@@ -24,7 +24,9 @@ public class ReadRecordLogThread implements Runnable {
 
 	private int		recordDeal	= 0;
 
-	private Dispatcher	dispatcher	= new Dispatcher(4);
+	private int		pkUpdate		= 0;
+
+	private Dispatcher	dispatcher	= new Dispatcher(8);
 
 	@Override
 	public void run() {
@@ -41,6 +43,8 @@ public class ReadRecordLogThread implements Runnable {
 
 	public void execute(ReadRecordLogContext readRecordLogContext, Context context)
 			throws Exception {
+
+		long start = System.currentTimeMillis();
 
 		RecordLogReceiver receiver = context.getReceiver();
 
@@ -65,6 +69,9 @@ public class ReadRecordLogThread implements Runnable {
 			}
 
 			recordDeal++;
+			if (r.isPKUpdate()) {
+				pkUpdate++;
+			}
 
 			context.setTable(Table.newTable(r));
 
@@ -85,12 +92,18 @@ public class ReadRecordLogThread implements Runnable {
 			if (r == null) {
 				continue;
 			}
-
+			if (r.isPKUpdate()) {
+				pkUpdate++;
+			}
 			recordDeal++;
 			dispatcher.dispatch(r);
 			r = RecordLog.newRecordLog();
 			//receiver.received(recalculateContext, r);
 		}
+
+		logger.info("读取并分发所有记录耗时 : {} . RedirectMap 大小 : {}. Pk更新的log条目 : {}",
+				System.currentTimeMillis() - start, dispatcher.getRedirectMap().size(),
+				pkUpdate);
 
 		dispatcher.readRecordOver();
 		dispatcher.waitForOk(context);
