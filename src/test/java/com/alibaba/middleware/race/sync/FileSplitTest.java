@@ -14,7 +14,7 @@ import java.io.IOException;
  */
 public class FileSplitTest {
 
-	private String	inputFilePath	= "/home/xiefan/下载/canal.txt";
+	private String	inputFilePath	= "/home/admin/test/canal.txt";
 
 	private String	outputDir		= Constants.DATA_HOME;
 

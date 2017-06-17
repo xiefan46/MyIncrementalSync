@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.alibaba.middleware.race.sync.model.Table;
+import com.alibaba.middleware.race.sync.util.collection.ShardMap;
 
 /**
  * @author wangkai
@@ -21,7 +22,8 @@ public class RecalculateContext {
 		this.recordLogReceiver = recordLogReceiver;
 	}
 
-	private Map<Integer, byte[][]> records = new HashMap<>((int)(1024 * 256 * 1.5));
+	 //private Map<Integer, byte[][]> records = new HashMap<>();
+	private Map<Integer, byte[][]> records = new ShardMap<>(10,16);
 
 	public RecordLogReceiver getRecordLogReceiver() {
 		return recordLogReceiver;
