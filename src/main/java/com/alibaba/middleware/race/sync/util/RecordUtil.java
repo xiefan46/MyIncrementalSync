@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.RecalculateContext;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
 import com.alibaba.middleware.race.sync.other.bytes.ByteArrayBuffer;
 import com.generallycloud.baseio.common.CloseUtil;
@@ -75,10 +74,9 @@ public class RecordUtil {
 		long startId = context.getStartId();
 		long endId = context.getEndId();
 		int all = 0;
-		RecalculateContext rContext = context.getRecalculateContext();
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
 		for (long i = startId + 1; i < endId; i++) {
-			byte [][] r = rContext.getRecords().get(i);
+			byte [][] r = context.getRecords().get(i);
 			if (r == null) {
 				continue;
 			}
@@ -93,9 +91,8 @@ public class RecordUtil {
 		long startId = context.getStartId();
 		long endId = context.getEndId();
 		List<byte [][]> records = new ArrayList<>();
-		RecalculateContext rContext = context.getRecalculateContext();
 		for (long i = startId + 1; i < endId; i++) {
-			byte [][] r = rContext.getRecords().get(i);
+			byte [][] r = context.getRecords().get(i);
 			if (r == null) {
 				continue;
 			}

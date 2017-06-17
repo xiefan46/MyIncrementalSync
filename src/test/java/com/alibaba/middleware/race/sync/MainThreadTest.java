@@ -37,7 +37,6 @@ public class MainThreadTest {
 		long startId = 600;
 		long endId = 700;
 		Context context = new Context(endId, recordLogReceiver , startId, (schema + "|" + table));
-		context.initialize();
 		MainThread mainThread = new MainThread();
 		mainThread.execute(context);
 		

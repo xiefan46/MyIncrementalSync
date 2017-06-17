@@ -25,7 +25,8 @@ public class ChannelReader2 {
 
 	private RecordLogCodec2 codec = RecordLogCodec2.get();
 
-	public RecordLog read(ReadChannel channel, byte[] tableSchema, RecordLog r) throws IOException {
+	public RecordLog read(ReadChannel channel, byte[] tableSchema, RecordLog r)
+			throws IOException {
 		ByteBuf buf = channel.getByteBuf();
 		byte[] readBuffer = buf.array();
 		int offset = buf.position();
@@ -44,6 +45,21 @@ public class ChannelReader2 {
 		int off = codec.decode(readBuffer, tableSchema, offset, r);
 		buf.position(off + 1);
 		return r;
+	}
+
+	public static boolean print(RecordLog r) {
+
+		if (r.getAlterType() == Constants.INSERT && r.getPrimaryColumn().getLongValue() == 0)
+			return true;
+		if (r.getAlterType() == Constants.UPDATE && r.getPrimaryColumn().getLongValue() == 0)
+			return true;
+		if (r.getAlterType() == Constants.UPDATE && r.getPrimaryColumn().getBeforeValue() == 0)
+			return true;
+		if (r.getPrimaryColumn().getLongValue() == 1000000)
+			return true;
+		if (r.getPrimaryColumn().getLongValue() == 0)
+			return true;
+		return false;
 	}
 
 }

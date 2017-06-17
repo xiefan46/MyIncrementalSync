@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race.sync.model;
 
+import com.alibaba.middleware.race.sync.Constants;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,6 +68,12 @@ public class RecordLog {
 			return primaryColumn.isPkChange();
 		}
 		return false;
+	}
+
+	public static RecordLog newRecordLog(){
+		RecordLog r = new RecordLog();
+		r.newColumns(8);
+		return r;
 	}
 
 }

@@ -2,21 +2,29 @@ package com.alibaba.middleware.race.sync;
 
 import com.alibaba.middleware.race.sync.model.Table;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author wangkai
  *
  */
 public class Context {
 
-	private long					endId;
-	private RecordLogReceiver		receiver;
-	private long					startId;
-	private String					tableSchema;
-	private boolean				executeByCoreProcesses	= false;
-	private RecalculateContext		recalculateContext;
-	private Table					table;
-	private int					availableProcessors		= Runtime.getRuntime()
-			.availableProcessors() - 2;
+	private long				endId;
+
+	private RecordLogReceiver	receiver;
+
+	private long				startId;
+
+	private String				tableSchema;
+
+	private Table				table;
+
+	private int				availableProcessors	= Runtime.getRuntime().availableProcessors()
+			- 2;
+
+	private Map<Long, byte[][]>	records			= new HashMap<>((int) (1024 * 256 * 1.5));
 
 	public Context(long endId, RecordLogReceiver receiver, long startId, String tableSchema) {
 		this.endId = endId;
@@ -31,10 +39,6 @@ public class Context {
 
 	public String getTableSchema() {
 		return tableSchema;
-	}
-
-	public void initialize() {
-		recalculateContext = new RecalculateContext(this, getReceiver());
 	}
 
 	public void setReceiver(RecordLogReceiver receiver) {
@@ -61,14 +65,6 @@ public class Context {
 		this.startId = startId;
 	}
 
-	public RecalculateContext getRecalculateContext() {
-		return recalculateContext;
-	}
-
-	public boolean isExecuteByCoreProcesses() {
-		return executeByCoreProcesses;
-	}
-	
 	public int getAvailableProcessors() {
 		return availableProcessors;
 	}
@@ -77,9 +73,15 @@ public class Context {
 		return table;
 	}
 
+	public Map<Long, byte[][]> getRecords() {
+		return records;
+	}
+
+	public void setRecords(Map<Long, byte[][]> records) {
+		this.records = records;
+	}
+
 	public void setTable(Table table) {
 		this.table = table;
-		this.recalculateContext.setTable(table);
 	}
-	
 }

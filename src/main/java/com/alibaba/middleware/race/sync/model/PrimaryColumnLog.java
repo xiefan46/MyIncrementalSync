@@ -5,9 +5,9 @@ package com.alibaba.middleware.race.sync.model;
  */
 public class PrimaryColumnLog extends ColumnLog {
 
-	private long beforeValue;
-	
-	private long value;
+	private long	beforeValue;
+
+	private long	value;
 
 	public long getBeforeValue() {
 		return beforeValue;
@@ -29,6 +29,4 @@ public class PrimaryColumnLog extends ColumnLog {
 		this.value = value;
 	}
 
-	
-	
 }
