@@ -17,7 +17,7 @@ public class Dispatcher {
 
 	private int					threadNum;
 
-	private Map<Long, Byte>			redirectMap	= new HashMap<>();
+	private Map<Integer, Byte>		redirectMap	= new HashMap<>();
 
 	private List<RecalculateThread>	threadList	= new ArrayList<>();
 
@@ -36,8 +36,8 @@ public class Dispatcher {
 	}
 
 	public void dispatch(RecordLog recordLog) {
-		long id = recordLog.getPrimaryColumn().getLongValue();
-		long oldId = recordLog.getPrimaryColumn().getBeforeValue();
+		int id = recordLog.getPrimaryColumn().getLongValue();
+		int oldId = recordLog.getPrimaryColumn().getBeforeValue();
 		if (recordLog.isPKUpdate()) {
 			Byte oldDirect = redirectMap.remove(oldId);
 			byte newThread = hashFun(id);
@@ -86,7 +86,7 @@ public class Dispatcher {
 		return result;
 	}
 
-	public Map<Long, Byte> getRedirectMap() {
+	public Map<Integer, Byte> getRedirectMap() {
 		return redirectMap;
 	}
 
