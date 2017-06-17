@@ -15,17 +15,18 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class RecalculateThread extends Thread {
 
-	private Map<Long, byte[][]>	records	= new HashMap<>((int) (1024 * 256 * 1.5));
+	private Map<Integer, byte[][]>	records	= new HashMap<>((int) (1024 * 256 * 1.5));
 
-	private Queue<RecordLog>		logQueue	= new ConcurrentLinkedQueue<>();
+	private Queue<RecordLog>			logQueue	= new ConcurrentLinkedQueue<>();
 
-	private boolean			readOver	= false;
+	private boolean				readOver	= false;
 
-	private Table				table;
+	private Table					table;
 
-	private static final Logger	logger	= LoggerFactory.getLogger(RecalculateThread.class);
+	private static final Logger		logger	= LoggerFactory
+			.getLogger(RecalculateThread.class);
 
-	private int				count	= 0;
+	private int					count	= 0;
 
 	public RecalculateThread(Table table) {
 		this.table = table;
@@ -56,12 +57,8 @@ public class RecalculateThread extends Thread {
 		this.logQueue.add(recordLog);
 	}
 
-	public Map<Long, byte[][]> getRecords() {
+	public Map<Integer, byte[][]> getRecords() {
 		return records;
-	}
-
-	public void setRecords(Map<Long, byte[][]> records) {
-		this.records = records;
 	}
 
 	public boolean isReadOver() {
@@ -75,12 +72,12 @@ public class RecalculateThread extends Thread {
 	public void received(RecordLog recordLog) throws Exception {
 		//logger.info("receive log.pk : {}", recordLog.getPrimaryColumn().getLongValue());
 		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
-		Long pk = pcl.getLongValue();
+		Integer pk = pcl.getLongValue();
 		switch (recordLog.getAlterType()) {
 		case Constants.UPDATE:
 			if (pcl.isPkChange()) {
 
-				Long beforeValue = pcl.getBeforeValue();
+				Integer beforeValue = pcl.getBeforeValue();
 				byte[][] oldRecord = records.remove(beforeValue);
 				if (oldRecord == null) {
 

@@ -24,7 +24,7 @@ public class Context {
 	private int				availableProcessors	= Runtime.getRuntime().availableProcessors()
 			- 2;
 
-	private Map<Long, byte[][]>	records			= new HashMap<>((int) (1024 * 256 * 1.5));
+	private Map<Integer, byte[][]>	records			= new HashMap<>((int) (1024 * 256 * 1.5));
 
 	public Context(long endId, RecordLogReceiver receiver, long startId, String tableSchema) {
 		this.endId = endId;
@@ -73,12 +73,8 @@ public class Context {
 		return table;
 	}
 
-	public Map<Long, byte[][]> getRecords() {
+	public Map<Integer, byte[][]> getRecords() {
 		return records;
-	}
-
-	public void setRecords(Map<Long, byte[][]> records) {
-		this.records = records;
 	}
 
 	public void setTable(Table table) {

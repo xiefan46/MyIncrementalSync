@@ -14,14 +14,14 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	@Override
 	public void received(Context context, RecordLog recordLog) throws Exception {
-		Map<Long, byte[][]> records = context.getRecords();
+		Map<Integer, byte[][]> records = context.getRecords();
 		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
 		Table table = context.getTable();
-		Long pk = pcl.getLongValue();
+		Integer pk = pcl.getLongValue();
 		switch (recordLog.getAlterType()) {
 		case Constants.UPDATE:
 			if (pcl.isPkChange()) {
-				Long beforeValue = pcl.getBeforeValue();
+				Integer beforeValue = pcl.getBeforeValue();
 				byte[][] oldRecord = records.remove(beforeValue);
 				update(table, oldRecord, recordLog);
 				records.put(pk, oldRecord);

@@ -13,21 +13,22 @@ import com.alibaba.middleware.race.sync.model.RecordLog;
 public class RecordLogCodec {
 
 	private static RecordLogCodec	recordLogCodec	= new RecordLogCodec();
-	
+
 	private final int			U_D_SKIP		= "1:1|X".length();
-	
+
 	private final int			I_SKIP		= "1:1|NULL|X".length();
-	
+
 	private final int			HEAD_SKIP		= "|mysql-bin.".length();
-	
+
 	private final int			TIME_SKIP		= "1496720884000".length() + 1;
-	
+
 	public static RecordLogCodec get() {
 		return recordLogCodec;
 	}
-	
-	private RecordLogCodec(){}
-	
+
+	private RecordLogCodec() {
+	}
+
 	private boolean compare(byte[] data, int offset, byte[] tableSchema) {
 		for (int i = 0; i < tableSchema.length; i++) {
 			if (tableSchema[i] != data[offset + i]) {
@@ -37,19 +38,19 @@ public class RecordLogCodec {
 		return true;
 	}
 
-	private ColumnLog getColumnLog(List<ColumnLog> cols,int index){
+	private ColumnLog getColumnLog(List<ColumnLog> cols, int index) {
 		if (index >= cols.size()) {
 			cols.add(new ColumnLog());
 		}
 		return cols.get(index);
 	}
-	
-	public RecordLog decode(byte[] data,byte [] tableSchema, int offset, int last,RecordLog r) {
+
+	public RecordLog decode(byte[] data, byte[] tableSchema, int offset, int last, RecordLog r) {
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
 		off += TIME_SKIP;
-//		if (!compare(data, off + 1, tableSchema)) {
-//			return null;
-//		}
+		//		if (!compare(data, off + 1, tableSchema)) {
+		//			return null;
+		//		}
 		int end;
 		off = off + tableSchema.length + 2;
 		byte alterType = data[off];
@@ -62,14 +63,14 @@ public class RecordLogCodec {
 				end = findNextChar(data, off, ':');
 				if (data[end + 3] == '1') {
 					PrimaryColumnLog c = r.getPrimaryColumn();
-//					c.setName(data, off, end - off);
+					//					c.setName(data, off, end - off);
 					off = end + U_D_SKIP;
 					end = findNextChar(data, off, '|');
 					c.setBeforeValue(parseLong(data, off, end));
 					off = end + 1;
 					end = findNextChar(data, off, '|');
 					c.setLongValue(parseLong(data, off, end));
-//					c.setValue(data,off,end-off);
+					//					c.setValue(data,off,end-off);
 					off = end + 1;
 					if (off >= last) {
 						return r;
@@ -94,11 +95,11 @@ public class RecordLogCodec {
 		if (Constants.DELETE == alterType) {
 			end = findNextChar(data, off, ':');
 			PrimaryColumnLog c = r.getPrimaryColumn();
-//			c.setName(data, off, end - off);
+			//			c.setName(data, off, end - off);
 			off = end + U_D_SKIP;
 			end = findNextChar(data, off, '|');
 			c.setLongValue(parseLong(data, off, end));
-//			c.setValue(data,off,end-off);
+			//			c.setValue(data,off,end-off);
 			return r;
 		}
 
@@ -107,11 +108,11 @@ public class RecordLogCodec {
 				end = findNextChar(data, off, ':');
 				if (data[end + 3] == '1') {
 					PrimaryColumnLog c = r.getPrimaryColumn();
-//					c.setName(data, off, end - off);
+					//					c.setName(data, off, end - off);
 					off = end + I_SKIP;
 					end = findNextChar(data, off, '|');
 					c.setLongValue(parseLong(data, off, end));
-//					c.setValue(data,off,end-off);
+					//					c.setValue(data,off,end-off);
 					off = end + 1;
 					if (off >= last) {
 						return r;
@@ -142,8 +143,8 @@ public class RecordLogCodec {
 		}
 	}
 
-	private long parseLong(byte[] data, int offset, int end) {
-		long all = 0;
+	private int parseLong(byte[] data, int offset, int end) {
+		int all = 0;
 		for (int i = offset; i < end; i++) {
 			all = all * 10 + (data[i] - 48);
 		}

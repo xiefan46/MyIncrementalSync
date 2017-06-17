@@ -139,8 +139,8 @@ public class RecordLogCodec2 {
 		}
 	}
 
-	private long parseLong(byte[] data, int offset, int end) {
-		long all = 0;
+	private int parseLong(byte[] data, int offset, int end) {
+		int all = 0;
 		for (int i = offset; i < end; i++) {
 			all = all * 10 + (data[i] - 48);
 		}
