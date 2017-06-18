@@ -46,8 +46,6 @@ public class ReadRecordLogThread implements Runnable {
 
 		long start = System.currentTimeMillis();
 
-		RecordLogReceiver receiver = context.getReceiver();
-
 		String tableSchema = context.getTableSchema();
 
 		byte[] tableSchemaBytes = tableSchema.getBytes();
@@ -89,21 +87,24 @@ public class ReadRecordLogThread implements Runnable {
 
 			r = channelReader.read(channel, tableSchemaBytes, r);
 			recordScan++;
+			/*
+			 * if (recordScan % 100000 == 0) { logger.info("record scan : " +
+			 * recordScan); }
+			 */
 			if (r == null) {
 				continue;
 			}
 			if (r.isPKUpdate()) {
 				pkUpdate++;
 			}
+
 			recordDeal++;
 			dispatcher.dispatch(r);
 			r = RecordLog.newRecordLog();
 			//receiver.received(recalculateContext, r);
 		}
 
-		logger.info("读取并分发所有记录耗时 : {} . RedirectMap 大小 : {}. Pk更新的log条目 : {}",
-				System.currentTimeMillis() - start, dispatcher.getRedirectMap().size(),
-				pkUpdate);
+		logger.info("读取并分发所有记录耗时 : {} .", System.currentTimeMillis() - start);
 
 		dispatcher.readRecordOver();
 		dispatcher.waitForOk(context);

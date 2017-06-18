@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.sync;
 
+import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.Table;
 
 import java.util.HashMap;
@@ -13,8 +14,6 @@ public class Context {
 
 	private long				endId;
 
-	private RecordLogReceiver	receiver;
-
 	private long				startId;
 
 	private String				tableSchema;
@@ -24,25 +23,16 @@ public class Context {
 	private int				availableProcessors	= Runtime.getRuntime().availableProcessors()
 			- 2;
 
-	private Map<Integer, byte[][]>	records			= new HashMap<>((int) (1024 * 256 * 1.5));
+	private Map<Integer, Record>	records			= new HashMap<>((int) (1024 * 256 * 1.5));
 
-	public Context(long endId, RecordLogReceiver receiver, long startId, String tableSchema) {
+	public Context(long endId, long startId, String tableSchema) {
 		this.endId = endId;
-		this.receiver = receiver;
 		this.startId = startId;
 		this.tableSchema = tableSchema;
 	}
 
-	public RecordLogReceiver getReceiver() {
-		return receiver;
-	}
-
 	public String getTableSchema() {
 		return tableSchema;
-	}
-
-	public void setReceiver(RecordLogReceiver receiver) {
-		this.receiver = receiver;
 	}
 
 	public void setTableSchema(String tableSchema) {
@@ -73,7 +63,7 @@ public class Context {
 		return table;
 	}
 
-	public Map<Integer, byte[][]> getRecords() {
+	public Map<Integer, Record> getRecords() {
 		return records;
 	}
 

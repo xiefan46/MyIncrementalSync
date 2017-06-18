@@ -1,14 +1,12 @@
 package com.alibaba.middleware.race.sync;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
 import com.generallycloud.baseio.common.Logger;
 import com.generallycloud.baseio.common.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by xiefan on 6/16/17.
@@ -17,7 +15,7 @@ public class Dispatcher {
 
 	private int					threadNum;
 
-	private Map<Integer, Byte>		redirectMap	= new HashMap<>();
+	//private Map<Integer, Byte>		redirectMap	= new HashMap<>();
 
 	private List<RecalculateThread>	threadList	= new ArrayList<>();
 
@@ -29,7 +27,7 @@ public class Dispatcher {
 
 	public void start(RecordLog r) {
 		for (int i = 0; i < threadNum; i++) {
-			RecalculateThread thread = new RecalculateThread(Table.newTable(r));
+			RecalculateThread thread = new RecalculateThread(Table.newTable(r), this);
 			threadList.add(thread);
 			thread.start();
 		}
@@ -39,18 +37,9 @@ public class Dispatcher {
 		int id = recordLog.getPrimaryColumn().getLongValue();
 		int oldId = recordLog.getPrimaryColumn().getBeforeValue();
 		if (recordLog.isPKUpdate()) {
-			Byte oldDirect = redirectMap.remove(oldId);
-			byte newThread = hashFun(id);
-			if (oldDirect == null) //如果oldDirect不为空,则为连锁update 
-				oldDirect = hashFun(oldId);
-			if (oldDirect != newThread)
-				redirectMap.put(id, oldDirect);
-			threadList.get(oldDirect).submit(recordLog);
+			threadList.get(hashFun(oldId)).submit(recordLog);
 		} else {
-			Byte threadId = redirectMap.get(id);
-			if (threadId == null)
-				threadId = hashFun(id);
-			threadList.get(threadId).submit(recordLog);
+			threadList.get(hashFun(id)).submit(recordLog);
 		}
 
 	}
@@ -77,17 +66,11 @@ public class Dispatcher {
 		}
 	}
 
-	private byte hashFun(long id) {
-		byte result = (byte) (id % threadNum);
-		/*
-		 * if (id < 0) { System.out.println("id : " + id + " result : " +
-		 * result); }
-		 */
+	public int hashFun(int id) {
+		int result = id % threadNum;
+		if (result < 0)
+			result = -result;
 		return result;
-	}
-
-	public Map<Integer, Byte> getRedirectMap() {
-		return redirectMap;
 	}
 
 }

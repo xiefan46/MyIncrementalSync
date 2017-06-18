@@ -19,4 +19,31 @@ public class Record {
 		return columns;
 	}
 
+	private byte	alterType;
+
+	private int	newId;
+
+	public void setColumns(byte[][] columns) {
+		this.columns = columns;
+	}
+
+	public byte getAlterType() {
+		return alterType;
+	}
+
+	public void setAlterType(byte alterType) {
+		this.alterType = alterType;
+	}
+
+	public int getNewId() {
+		return newId;
+	}
+
+	public void setNewId(int newId) {
+		this.newId = newId;
+	}
+
+	public void setColumn(int index, byte[] value) {
+		columns[index] = value;
+	}
 }

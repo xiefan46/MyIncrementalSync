@@ -37,14 +37,16 @@ public interface Constants {
 
 	boolean	COLLECT_STAT		= true;
 
-	byte		DELETE	= 'D';
+	byte		DELETE			= 'D';
 
-	byte		UPDATE	= 'U';
+	byte		UPDATE			= 'U';
 
-	byte		INSERT	= 'I';
+	byte		INSERT			= 'I';
+
+	byte		PK_UPDATE			= 'P';
 	/**
 	 * 变更信息中不同列之间的分隔符
 	 */
-	String	SEP		= "|";
+	String	SEP				= "|";
 
 }

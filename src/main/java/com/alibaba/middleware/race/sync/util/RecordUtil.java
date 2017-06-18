@@ -7,6 +7,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.middleware.race.sync.Constants;
+import com.alibaba.middleware.race.sync.model.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,12 +81,16 @@ public class RecordUtil {
 		int all = 0;
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
 		for (int i = startId + 1; i < endId; i++) {
-			byte[][] r = context.getRecords().get(i);
+			Record r = context.getRecords().get(i);
 			if (r == null) {
 				continue;
 			}
+			if (r.getAlterType() != Constants.INSERT) {
+				throw new RuntimeException(
+						"Error alter type in result. Type : " + (char) r.getAlterType());
+			}
 			all++;
-			RecordUtil.formatResultString(i, r, array);
+			RecordUtil.formatResultString(i, r.getColumns(), array);
 			buffer.write(array.array(), 0, array.position());
 		}
 		logger.info("result size:{}", all);
