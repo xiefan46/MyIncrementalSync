@@ -23,7 +23,7 @@ public class RecalculateContext {
 	}
 
 	 //private Map<Integer, byte[][]> records = new HashMap<>();
-	 private Map<Integer, byte[][]> records = new ShardMap<>(10,16);
+	 private Map<Integer, byte[][]> records = new ShardMap<>(2,16);
 
 	public RecordLogReceiver getRecordLogReceiver() {
 		return recordLogReceiver;
