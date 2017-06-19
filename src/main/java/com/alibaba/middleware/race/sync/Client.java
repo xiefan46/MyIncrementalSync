@@ -87,6 +87,8 @@ public class Client {
 
 		context.setProtocolFactory(new FixedLengthProtocolFactory());
 
+		Thread.currentThread().sleep(5000);
+
 		connector.connect();
 	}
 
@@ -94,7 +96,7 @@ public class Client {
 		OutputStream outputStream = null;
 		String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
 		try {
-//			printResult(buf);
+			printResult(buf);
 			long startTime = System.currentTimeMillis();
 			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
 			raf.setLength(0);
@@ -110,9 +112,9 @@ public class Client {
 	}
 
 	private void printResult(ByteBuf buf) {
-		String str = new String(buf.array(), 0, buf.limit());
-		logger.info("r:");
-		logger.info(str);
+		//String str = new String(buf.array(), 0, buf.limit());
+		//logger.info("r:");
+		//logger.info(str);
 		//generate md5
 		String md5 = MD5Token.getInstance().getLongToken(buf.array(), 0, buf.limit());
 		logger.info("Result file md5 : " + md5);

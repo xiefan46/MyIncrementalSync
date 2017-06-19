@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.sync;
 
+import com.alibaba.middleware.race.sync.codec.RecordLogCodec2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +32,6 @@ public class ReadRecordLogThread implements Runnable {
 			execute(context, context.getContext());
 			logger.info("线程 {} 执行耗时: {},总扫描记录数 {},需要重放的记录数 {}", Thread.currentThread().getId(),
 					System.currentTimeMillis() - startTime, recordScan, recordDeal);
-			logger.info("max_record_len:{}", ChannelReader.get().getMaxRecordLen() + 1);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -54,7 +54,7 @@ public class ReadRecordLogThread implements Runnable {
 
 		RecordLog r = new RecordLog();
 
-		r.newColumns(8);
+		r.newColumns();
 
 		for (; channel.hasBufRemaining();) {
 
@@ -67,8 +67,9 @@ public class ReadRecordLogThread implements Runnable {
 			}
 
 			recordDeal++;
-
-			context.setTable(Table.newTable(r));
+			Table table = RecordLogCodec2.get().getTable();
+			RecordLogCodec2.get().setTableInit(true);
+			context.setTable(table);
 
 			receiver.received(recalculateContext, r);
 
@@ -83,13 +84,17 @@ public class ReadRecordLogThread implements Runnable {
 				continue;
 			}
 			recordDeal++;
-			context.getTable().statRecord(r);
+
 			if (recordDeal % 5000000 == 0) {
 				logger.info("record deal : {}", recordDeal);
-				context.getTable().printStat();
+
 			}
 			receiver.received(recalculateContext, r);
 		}
+
+		logger.info("table diff col name : {} . diff col value {} ",
+				context.getTable().getColNameToId().size(),
+				context.getTable().getColValueToId().size());
 
 	}
 

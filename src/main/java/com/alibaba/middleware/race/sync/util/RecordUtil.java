@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.middleware.race.sync.model.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,39 +21,43 @@ import com.generallycloud.baseio.common.CloseUtil;
  * Created by xiefan on 6/4/17.
  */
 public class RecordUtil {
-	
-	private static final Logger logger = LoggerFactory.getLogger(RecordUtil.class);
+
+	private static final Logger	logger				= LoggerFactory
+			.getLogger(RecordUtil.class);
 
 	private static final byte	FIELD_SEPERATOR_BYTE	= '\t';
 
 	private static final byte	FIELD_N_BYTE			= '\n';
-	
-	private static final int	LONG_LEN 			= String.valueOf(Long.MAX_VALUE).length() -1; 
+
+	private static final int		LONG_LEN				= String.valueOf(Long.MAX_VALUE)
+			.length() - 1;
 
 	private static final byte[]	ID_CACHE				= new byte[LONG_LEN + 1];
-	
-	private static final byte[] NUM_MAPPING			= new byte[]{'0','1','2','3','4','5','6','7','8','9'};  
 
-	public static void formatResultString(long id,byte [][] record, ByteBuffer buffer) {
+	private static final byte[]	NUM_MAPPING			= new byte[] { '0', '1', '2', '3', '4',
+			'5', '6', '7', '8', '9' };
+
+	public static void formatResultString(Table table, long id, short[] record,
+			ByteBuffer buffer) {
 		buffer.clear();
-		byte [] idCache = ID_CACHE;
+		byte[] idCache = ID_CACHE;
 		int off = valueOfLong(id, idCache);
-		buffer.put(idCache, off+1, LONG_LEN - off);
+		buffer.put(idCache, off + 1, LONG_LEN - off);
 		buffer.put(FIELD_SEPERATOR_BYTE);
 		byte len = (byte) (record.length - 1);
 		for (byte i = 0; i < len; i++) {
-			buffer.put(record[i]);
+			buffer.put(table.getColArrayById(record[i]).copy());
 			buffer.put(FIELD_SEPERATOR_BYTE);
 		}
-		buffer.put(record[len]);
+		buffer.put(table.getColArrayById(record[len]).copy());
 		buffer.put(FIELD_N_BYTE);
 	}
-	
-	private static int valueOfLong(long v,byte [] array){
+
+	private static int valueOfLong(long v, byte[] array) {
 		long v1 = v;
 		int off = LONG_LEN;
 		byte[] NUM_MAPPING1 = NUM_MAPPING;
-		for(;;){
+		for (;;) {
 			if (v1 == 0) {
 				return off;
 			}
@@ -78,30 +83,15 @@ public class RecordUtil {
 		RecalculateContext rContext = context.getRecalculateContext();
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
 		for (long i = startId + 1; i < endId; i++) {
-			byte [][] r = rContext.getRecords().get(i);
+			short[] r = rContext.getRecords().get(i);
 			if (r == null) {
 				continue;
 			}
 			all++;
-			RecordUtil.formatResultString(i, r, array);
+			RecordUtil.formatResultString(context.getTable(), i, r, array);
 			buffer.write(array.array(), 0, array.position());
 		}
-		logger.info("result size:{}",all);
-	}
-
-	private static List<byte [][]> getResult(Context context) {
-		long startId = context.getStartId();
-		long endId = context.getEndId();
-		List<byte [][]> records = new ArrayList<>();
-		RecalculateContext rContext = context.getRecalculateContext();
-		for (long i = startId + 1; i < endId; i++) {
-			byte [][] r = rContext.getRecords().get(i);
-			if (r == null) {
-				continue;
-			}
-			records.add(r);
-		}
-		return records;
+		logger.info("result size:{}", all);
 	}
 
 	public static void writeToFile(ByteArrayBuffer buffer, String fileName) throws IOException {

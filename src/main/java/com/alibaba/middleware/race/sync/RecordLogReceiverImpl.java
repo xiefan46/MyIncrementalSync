@@ -15,7 +15,7 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	@Override
 	public void received(RecalculateContext context, RecordLog recordLog) throws Exception {
-		Map<Long, byte[][]> records = context.getRecords();
+		Map<Long, short[]> records = context.getRecords();
 		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
 		Table table = context.getTable();
 		Long pk = pcl.getLongValue();
@@ -23,11 +23,11 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 		case Constants.UPDATE:
 			if (pcl.isPkChange()) {
 				Long beforeValue = pcl.getBeforeValue();
-				byte[][] oldRecord = records.remove(beforeValue);
+				short[] oldRecord = records.remove(beforeValue);
 				update(table, oldRecord, recordLog);
 				records.put(pk, oldRecord);
 				break;
-			} 
+			}
 			update(table, records.get(pk), recordLog);
 			break;
 		case Constants.DELETE:
@@ -41,13 +41,10 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 		}
 	}
 
-	private byte[][] update(Table table, byte[][] oldRecord, RecordLog recordLog) {
+	private short[] update(Table table, short[] oldRecord, RecordLog recordLog) {
 		for (ColumnLog c : recordLog.getColumns()) {
-			if (!c.isUpdate()) {
-				break;
-			}
-			oldRecord[table.getIndex(c.getName())] = c.getValue();
-			c.setUpdate(false);
+			oldRecord[c.getNameIndex()] = c.getValue();
+
 		}
 		return oldRecord;
 	}

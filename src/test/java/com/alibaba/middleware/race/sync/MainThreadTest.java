@@ -27,22 +27,23 @@ public class MainThreadTest {
 		cleanUpAll();
 	}
 
-
 	@Test
 	public void testBasic() throws Exception {
-//		ThreadUtil.execute(new PageCacheHelper());
+		//		ThreadUtil.execute(new PageCacheHelper());
 		RecordLogReceiver recordLogReceiver = new RecordLogReceiverImpl();
 		String schema = "middleware3";
 		String table = "student";
 		long startId = 600;
 		long endId = 700;
-		Context context = new Context(endId, recordLogReceiver , startId, (schema + "|" + table));
+		Context context = new Context(endId, recordLogReceiver, startId, (schema + "|" + table));
 		context.initialize();
 		MainThread mainThread = new MainThread();
 		mainThread.execute(context);
-		
-		RecordUtil.writeResultToLocalFile(context, Constants.RESULT_HOME + "/" +Constants.RESULT_FILE_NAME);
+
+		RecordUtil.writeResultToLocalFile(context,
+				Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME);
 	}
+
 
 	@After
 	public void after() throws Exception {

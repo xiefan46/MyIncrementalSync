@@ -6,38 +6,26 @@ package com.alibaba.middleware.race.sync.model;
  */
 public class ColumnLog {
 
-	private byte[]		name;
 
-	private byte[]		value;
+	private byte nameIndex;
 
-	private boolean	update;
+	private short value;
 
-	public void setName(byte[] bytes, int off, int len) {
-		byte[] array = new byte[len];
-		System.arraycopy(bytes, off, array, 0, len);
-		this.name = array;
+
+
+	public byte getNameIndex() {
+		return nameIndex;
 	}
 
-	public void setValue(byte[] bytes, int off, int len) {
-		byte[] array = new byte[len];
-		System.arraycopy(bytes, off, array, 0, len);
-		this.value = array;
+	public void setNameIndex(byte nameIndex) {
+		this.nameIndex = nameIndex;
 	}
 
-	public byte[] getName() {
-		return name;
-	}
-
-	public byte[] getValue() {
+	public short getValue() {
 		return value;
 	}
 
-	public boolean isUpdate() {
-		return update;
+	public void setValue(short value) {
+		this.value = value;
 	}
-
-	public void setUpdate(boolean update) {
-		this.update = update;
-	}
-
 }

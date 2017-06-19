@@ -32,13 +32,19 @@ public class ByteArray2 {
 		return this;
 	}
 
+	public byte[] copy(){
+		byte[] bytes = new byte[len];
+		System.arraycopy(array,off,bytes,0,len);
+		return bytes;
+	}
+
 	@Override
 	public boolean equals(Object obj) {
-		return compare((ByteArray)obj);
+		return compare((ByteArray2) obj);
 	}
 	
 	
-	public boolean compare(ByteArray other){
+	public boolean compare(ByteArray2 other){
 		byte[] thisArray = this.array;
 		byte[] otherArray = other.getArray();
 

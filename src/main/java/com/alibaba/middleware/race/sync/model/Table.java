@@ -1,16 +1,9 @@
 package com.alibaba.middleware.race.sync.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
-import com.alibaba.middleware.race.sync.codec.ByteArray;
-import com.generallycloud.baseio.common.Logger;
-import com.generallycloud.baseio.common.LoggerFactory;
+import com.alibaba.middleware.race.sync.codec.ByteArray2;
 
 /**
  * @author wangkai
@@ -18,57 +11,82 @@ import com.generallycloud.baseio.common.LoggerFactory;
  */
 public class Table {
 
-	private Map<ByteArray, Integer>	columnIndexs	= new HashMap<>();
+	private final ThreadLocal<ByteArray2>	arrayLocal	= new ThreadLocal<ByteArray2>() {
+													@Override
+													protected ByteArray2 initialValue() {
+														return new ByteArray2(null, 0,
+																0);
+													}
+												};
 
-	private int					columnSize;
+	private Map<ByteArray2, Byte>			colNameToId	= new HashMap<>();
 
-	private ByteArray				byteArray		= new ByteArray(null);
+	private static short				globalId		= 0;
 
-	public List<Set<String>>			diffValue		= new ArrayList<>();
+	private Map<ByteArray2, Short>		colValueToId	= new HashMap<>();
 
-	private static final Logger		logger		= LoggerFactory.getLogger(Table.class);
+	private Map<Short, ByteArray2>		idToColValue	= new HashMap<>();
 
-	public byte[][] newRecord() {
-		return new byte[columnSize][];
+	private byte						colSize		= 0;
+
+	public Table() {
+
 	}
 
-	public int getIndex(byte[] name) {
-		return columnIndexs.get(byteArray.reset(name));
+	public void addCol(byte[] buffer, int offset, int length) {
+		byte[] bytes = new byte[length];
+		System.arraycopy(buffer, offset, bytes, 0, length);
+		ByteArray2 array = new ByteArray2(bytes, 0, bytes.length);
+		colNameToId.put(array, colSize++);
 	}
 
-	public static Table newTable(RecordLog recordLog) {
-		int index = 0;
-		Table t = new Table();
-		t.columnSize = recordLog.getColumns().size();
-		for (int i = 0; i < t.columnSize; i++) {
-			t.diffValue.add(new HashSet<String>());
+	public byte getColNameId(byte[] array, int offset, int length) {
+		ByteArray2 array2 = arrayLocal.get().reset(array, offset, length);
+		Byte id = colNameToId.get(array2);
+		if (id == null) {
+			throw new RuntimeException("Fail to encode col name");
 		}
-		for (ColumnLog c : recordLog.getColumns()) {
-			t.columnIndexs.put(new ByteArray(c.getName()), index++);
+		return id;
+	}
+
+	public short getColValueId(byte[] array, int offset, int length) {
+		ByteArray2 array2 = arrayLocal.get().reset(array, offset, length);
+		Short id = colValueToId.get(array2);
+		if (id == null) {
+			id = globalId++;
+			byte[] bytes = new byte[length];
+			System.arraycopy(array, offset, bytes, 0, length);
+			colValueToId.put(new ByteArray2(bytes, 0, bytes.length), id);
+			idToColValue.put(id, new ByteArray2(bytes, 0, bytes.length));
 		}
-		return t;
+		return id;
 	}
 
-	public int getColumnSize() {
-		return columnSize;
+	public byte getColSize() {
+		return colSize;
 	}
 
-	public void statRecord(RecordLog recordLog) {
-		for (ColumnLog c : recordLog.getColumns()) {
-			byte[] value = c.getValue();
-			if (value != null)
-				diffValue.get(getIndex(c.getName())).add(new String(value, 0, value.length));
-		}
+	public ByteArray2 getColArrayById(short id) {
+		return idToColValue.get(id);
 	}
 
-	public void printStat() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("different value num : [");
-		for (int i = 0; i < columnSize; i++) {
-			sb.append(i + ":" + diffValue.get(i).size() + " ");
-		}
-		sb.append("]");
-		logger.info(sb.toString());
+	public short[] newRecord() {
+		return new short[colSize];
 	}
 
+	public Map<ByteArray2, Byte> getColNameToId() {
+		return colNameToId;
+	}
+
+	public void setColNameToId(Map<ByteArray2, Byte> colNameToId) {
+		this.colNameToId = colNameToId;
+	}
+
+	public Map<ByteArray2, Short> getColValueToId() {
+		return colValueToId;
+	}
+
+	public void setColValueToId(Map<ByteArray2, Short> colValueToId) {
+		this.colValueToId = colValueToId;
+	}
 }

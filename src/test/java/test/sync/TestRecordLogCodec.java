@@ -36,7 +36,7 @@ public class TestRecordLogCodec {
 		long old = System.currentTimeMillis();
 		
 		RecordLog r = new RecordLog();
-		r.newColumns(10);
+		r.newColumns();
 		
 		for (; channel.hasBufRemaining();) {
 			
