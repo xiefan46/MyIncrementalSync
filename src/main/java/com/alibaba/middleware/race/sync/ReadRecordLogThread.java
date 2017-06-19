@@ -31,13 +31,14 @@ public class ReadRecordLogThread implements Runnable {
 			execute(context, context.getContext());
 			logger.info("线程 {} 执行耗时: {},总扫描记录数 {},需要重放的记录数 {}", Thread.currentThread().getId(),
 					System.currentTimeMillis() - startTime, recordScan, recordDeal);
-			logger.info("max_record_len:{}",ChannelReader.get().getMaxRecordLen() + 1);
+			logger.info("max_record_len:{}", ChannelReader.get().getMaxRecordLen() + 1);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
 	}
 
-	public void execute(ReadRecordLogContext readRecordLogContext, Context context) throws Exception {
+	public void execute(ReadRecordLogContext readRecordLogContext, Context context)
+			throws Exception {
 
 		RecordLogReceiver receiver = context.getReceiver();
 
@@ -82,6 +83,11 @@ public class ReadRecordLogThread implements Runnable {
 				continue;
 			}
 			recordDeal++;
+			context.getTable().statRecord(r);
+			if (recordDeal % 5000000 == 0) {
+				logger.info("record deal : {}", recordDeal);
+				context.getTable().printStat();
+			}
 			receiver.received(recalculateContext, r);
 		}
 
