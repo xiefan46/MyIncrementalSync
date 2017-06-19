@@ -32,13 +32,11 @@ public class MainThread {
 		
 		long startTime = System.currentTimeMillis();
 
-		ReadChannel channels = initChannels2();
-
-		ReadRecordLogContext readRecordLogContext = new ReadRecordLogContext(channels, context);
-
-		ReadRecordLogThread readRecordLogThread = new ReadRecordLogThread(readRecordLogContext);
-
-		readRecordLogThread.run();
+		ReadChannel channel = initChannels2();
+		
+		context.setChannel(channel);
+		
+		context.getReadRecordLogThread().execute(context);
 
 		logger.info("等待所有线程完成总耗时 : {}", System.currentTimeMillis() - startTime);
 		JvmUsingState.print();
@@ -46,7 +44,7 @@ public class MainThread {
 
 	private ReadChannel initChannels2() throws IOException {
 		File root = new File(Constants.DATA_HOME);
-		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 10,
+		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 9,
 				1024 * 256);
 	}
 

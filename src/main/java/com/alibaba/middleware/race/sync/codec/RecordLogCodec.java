@@ -57,7 +57,6 @@ public class RecordLogCodec {
 		r.setAlterType(alterType);
 		off += 2;
 		int cIndex = 0;
-		List<ColumnLog> columns = r.getColumns();
 		if (Constants.UPDATE == alterType) {
 			for (;;) {
 				end = findNextChar(data, off, ':');
@@ -77,8 +76,7 @@ public class RecordLogCodec {
 					}
 					continue;
 				}
-				ColumnLog c = getColumnLog(columns, cIndex++);
-				c.setUpdate(true);
+				ColumnLog c = r.getColumn();
 				c.setName(data, off, end - off);
 				off = end + U_D_SKIP;
 				end = findNextChar(data, off, '|');
@@ -119,9 +117,8 @@ public class RecordLogCodec {
 					}
 					continue;
 				}
-				ColumnLog c = getColumnLog(columns, cIndex++);
+				ColumnLog c = r.getColumn();
 				c.setName(data, off, end - off);
-				c.setUpdate(true);
 				off = end + I_SKIP;
 				end = findNextChar(data, off, '|');
 				c.setValue(data, off, end - off);

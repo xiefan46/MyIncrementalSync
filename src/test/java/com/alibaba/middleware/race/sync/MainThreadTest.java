@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.common.FileUtil;
+import com.generallycloud.baseio.common.ThreadUtil;
 
 /**
  * Created by xiefan on 6/4/17.
@@ -34,6 +35,7 @@ public class MainThreadTest {
 		String table = "student";
 		long startId = 600;
 		long endId = 700;
+		ThreadUtil.execute(new JvmUsingState());
 		Context context = new Context(endId, startId, (schema + "|" + table));
 		MainThread mainThread = new MainThread();
 		mainThread.execute(context);

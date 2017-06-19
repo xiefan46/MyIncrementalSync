@@ -4,16 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
-import com.alibaba.middleware.race.sync.Constants;
-import com.alibaba.middleware.race.sync.model.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
+import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.other.bytes.ByteArrayBuffer;
 import com.generallycloud.baseio.common.CloseUtil;
 
@@ -81,14 +78,14 @@ public class RecordUtil {
 		int all = 0;
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
 		for (int i = startId + 1; i < endId; i++) {
-			Record r = context.getRecords().get(i);
+			Record r = context.getRecord(i);
 			if (r == null) {
 				continue;
 			}
-			if (r.getAlterType() != Constants.INSERT) {
-				throw new RuntimeException(
-						"Error alter type in result. Type : " + (char) r.getAlterType());
-			}
+//			if (r.getAlterType() != Constants.INSERT) {
+//				throw new RuntimeException(
+//						"Error alter type in result. Type : " + (char) r.getAlterType());
+//			}
 			all++;
 			RecordUtil.formatResultString(i, r.getColumns(), array);
 			buffer.write(array.array(), 0, array.position());

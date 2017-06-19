@@ -9,7 +9,6 @@ public class PrimaryColumnLog extends ColumnLog {
 
 	private int	value;
 
-
 	public boolean isPkChange() {
 		return getLongValue() != getBeforeValue();
 	}

@@ -1,100 +1,118 @@
 package com.alibaba.middleware.race.sync;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.middleware.race.sync.codec.ByteArray;
+import com.alibaba.middleware.race.sync.dis.RecordLogEvent;
+import com.alibaba.middleware.race.sync.dis.RecordLogEventFactory;
+import com.alibaba.middleware.race.sync.dis.RecordLogEventProducer;
 import com.alibaba.middleware.race.sync.model.ColumnLog;
 import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
+import com.lmax.disruptor.BlockingWaitStrategy;
+import com.lmax.disruptor.EventHandler;
+import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.dsl.Disruptor;
+import com.lmax.disruptor.dsl.ProducerType;
 
 /**
  * Created by xiefan on 6/16/17.
  */
-public class RecalculateThread extends Thread implements Constants {
+public class RecalculateThread implements Constants, EventHandler<RecordLogEvent> {
 
-	private Map<Integer, Record>			records		= new HashMap<>(
-			(int) (1024 * 256 * 1.5));
+	private Map<Integer, Record>		records;
 
-	private LinkedBlockingQueue<RecordLog>	logQueue		= new LinkedBlockingQueue<>(100000);
+	private Table					table;
 
-	private boolean					readOver		= false;
-
-	private Table						table;
-
-	private static final Logger			logger		= LoggerFactory
+	private static final Logger		logger		= LoggerFactory
 			.getLogger(RecalculateThread.class);
 
-	private int						count		= 0;
+	private int					count		= 0;
 
-	private static final String			CAN_NOT_HANDLE	= "Can not handle this alter type";
+	private Context				context;
 
-	private static final String			TYPE_NOT_EXIST	= "Type not exist";
+	private ByteArray				byteArrayTEMP	= new ByteArray(null);
 
-	private Dispatcher					dispatcher;
+	private Dispatcher				dispatcher;
 
-	public RecalculateThread(Table table, Dispatcher dispatcher) {
+	private ReadRecordLogThread		readRecordLogThread;
+
+	private RecordLogEventProducer	eventProducer;
+	
+	private Disruptor<RecordLogEvent> disruptor;
+
+	private static final String		CAN_NOT_HANDLE	= "Can not handle this alter type";
+
+	private static final String		TYPE_NOT_EXIST	= "Type not exist";
+
+	public RecalculateThread(Context context, Table table, Map<Integer, Record> records) {
+		this.context = context;
+		this.dispatcher = context.getDispatcher();
+		this.readRecordLogThread = context.getReadRecordLogThread();
 		this.table = table;
-		this.dispatcher = dispatcher;
+		this.records = records;
+	}
+
+	public void startup(final int i) {
+
+		RecordLogEventFactory factory = new RecordLogEventFactory();
+
+		ThreadFactory threadFactory = new ThreadFactory() {
+			@Override
+			public Thread newThread(Runnable r) {
+				return new Thread(r, "recalculate" + i);
+			}
+		};
+
+		disruptor = new Disruptor<>(factory,
+				context.getRingBufferSize(), threadFactory, ProducerType.SINGLE,
+				new BlockingWaitStrategy());
+
+		disruptor.handleEventsWith(this);
+
+		RingBuffer<RecordLogEvent> ringBuffer = disruptor.start();
+
+		eventProducer = new RecordLogEventProducer(ringBuffer);
+	}
+	
+	public void stop(){
+		disruptor.shutdown();
 	}
 
 	@Override
-	public void run() {
+	public void onEvent(RecordLogEvent event, long sequence, boolean endOfBatch) throws Exception {
 		try {
-			long startTime = System.currentTimeMillis();
-			while (!readOver || !logQueue.isEmpty()) {
-				while (!logQueue.isEmpty()) {
-					RecordLog recordLog = logQueue.poll(10, TimeUnit.MILLISECONDS);
-					if (recordLog != null) {
-						count++;
-						received(recordLog);
-					}
-				}
-				Thread.currentThread().sleep(10);
-			}
-			logger.info("线程 {} 重放完成, 耗时 : {}, 重放记录数 {}", Thread.currentThread().getId(),
-					System.currentTimeMillis() - startTime, count);
+			Table table = this.table;
+			//			long startTime = System.currentTimeMillis();
+			RecordLog r = event.getRecordLog();
+			count++;
+			received(table, r);
+			readRecordLogThread.getRecordLogEventProducer().publish(r);
+			//			logger.info("线程 {} 重放完成, 耗时 : {}, 重放记录数 {}", Thread.currentThread().getId(),
+			//					System.currentTimeMillis() - startTime, count);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public void submit(RecordLog recordLog) {
-		try {
-			boolean flag = logQueue.offer(recordLog, 10, TimeUnit.MILLISECONDS);
-			while (!flag) {
-				flag = logQueue.offer(recordLog, 10, TimeUnit.MILLISECONDS);
-			}
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-
+	public void submit(RecordLog recordLog) throws InterruptedException {
+		eventProducer.publish(recordLog);
 	}
 
 	public Map<Integer, Record> getRecords() {
 		return records;
 	}
 
-	public boolean isReadOver() {
-		return readOver;
-	}
-
-	public void setReadOver(boolean readOver) {
-		this.readOver = readOver;
-	}
-
-	public void received(RecordLog recordLog) throws Exception {
+	public void received(Table table, RecordLog recordLog) throws Exception {
 		//logger.info("receive log.pk : {}", recordLog.getPrimaryColumn().getLongValue());
 		switch (recordLog.getAlterType()) {
 		case INSERT:
-			handleInsert(recordLog);
+			handleInsert(table, recordLog);
 			break;
 		case UPDATE:
 			handleUpdate(recordLog);
@@ -103,14 +121,14 @@ public class RecalculateThread extends Thread implements Constants {
 			handleDelete(recordLog);
 			break;
 		case PK_UPDATE:
-			handlePkUpdate(recordLog);
+			handlePkUpdate(table, recordLog);
 			break;
 		default:
 			throw createTypeNotExistException(recordLog.getAlterType());
 		}
 	}
 
-	private void handleInsert(RecordLog recordLog) throws Exception {
+	private void handleInsert(Table table, RecordLog recordLog) throws Exception {
 		int pk = recordLog.getPrimaryColumn().getLongValue();
 		Record record = records.get(pk);
 		if (record == null) {
@@ -133,7 +151,7 @@ public class RecalculateThread extends Thread implements Constants {
 				update2(table, record, recordLog);
 				record.setAlterType(INSERT);
 				records.remove(pk);
-				redirect(pk, record);
+				redirect(table, pk, record,recordLog);
 				break;
 			default:
 				throw createTypeNotExistException(record.getAlterType());
@@ -194,7 +212,7 @@ public class RecalculateThread extends Thread implements Constants {
 		}
 	}
 
-	private void handlePkUpdate(RecordLog recordLog) throws Exception {
+	private void handlePkUpdate(Table table, RecordLog recordLog) throws Exception {
 		int pkOld = recordLog.getPrimaryColumn().getBeforeValue();
 		Record recordOld = records.get(pkOld);
 		/*
@@ -214,7 +232,7 @@ public class RecalculateThread extends Thread implements Constants {
 				recordOld.setAlterType(INSERT);
 				records.remove(pkOld);
 				recordOld.setNewId(recordLog.getPrimaryColumn().getLongValue());
-				redirect(pkOld, recordOld);
+				redirect(table, pkOld, recordOld,recordLog);
 				break;
 			case UPDATE:
 				update(table, recordOld, recordLog);
@@ -245,52 +263,55 @@ public class RecalculateThread extends Thread implements Constants {
 	}
 
 	private Record update(Table table, Record oldRecord, RecordLog recordLog) {
-		for (ColumnLog c : recordLog.getColumns()) {
-			if (c.getValue() != null) {
-				Integer index = table.getIndex(c.getName());
-				oldRecord.setColum(index, c.getValue());
+		for (int i = 0; i < recordLog.getEdit(); i++) {
+			ColumnLog c = recordLog.getColumn(i);
+			if (c.getValue() == null) {
+				continue;
 			}
+			Integer index = table.getIndex(byteArrayTEMP.reset(c.getName()));
+			oldRecord.setColum(index, c.getValue());
 		}
 		return oldRecord;
 	}
 
 	private Record update2(Table table, Record oldRecord, RecordLog recordLog) {
-		for (ColumnLog c : recordLog.getColumns()) {
-			if (c.getValue() != null) {
-				Integer index = table.getIndex(c.getName());
-				if (oldRecord.getColumns()[index] == null) {
-					oldRecord.setColum(index, c.getValue()); //INSERT的优先级较低
-				}
+		for (int i = 0; i < recordLog.getEdit(); i++) {
+			ColumnLog c = recordLog.getColumn(i);
+			if (c.getValue() == null) {
+				continue;
+			}
+			Integer index = table.getIndex(byteArrayTEMP.reset(c.getName()));
+			if (oldRecord.getColumns()[index] == null) {
+				oldRecord.setColum(index, c.getValue()); //INSERT的优先级较低
 			}
 		}
 		return oldRecord;
 	}
 
-	private void redirect(int oldId, Record r) throws Exception {
+	private void redirect(Table table, int oldId, Record r, RecordLog recordLog) throws Exception {
 		if (r.getAlterType() != INSERT)
 			throw new RuntimeException(CAN_NOT_HANDLE);
 		int oldHash = dispatcher.hashFun(oldId);
 		int newHash = dispatcher.hashFun(r.getNewId());
 		if (oldHash != newHash) {
-			dispatcher.dispatch(createRecordLog(r));
+			dispatcher.dispatch(newHash, createRecordLog(table, r, recordLog));
 		} else {
-			received(createRecordLog(r));
+			received(table, createRecordLog(table, r, recordLog));
 		}
 	}
 
-	private RecordLog createRecordLog(Record r) {
-		RecordLog recordLog = RecordLog.newRecordLog();
+	private RecordLog createRecordLog(Table table, Record r, RecordLog recordLog) {
+		recordLog.reset();
 		recordLog.getPrimaryColumn().setLongValue(r.getNewId());
 		recordLog.getPrimaryColumn().setBeforeValue(r.getNewId());
 		recordLog.setAlterType(r.getAlterType());
 		byte[][] columns = r.getColumns();
 		for (int i = 0; i < columns.length; i++) {
-			ColumnLog columnLog = new ColumnLog();
-			recordLog.getColumns().add(columnLog);
+			ColumnLog columnLog = recordLog.getColumn();
 			byte[] name = table.getNameByIndex(i);
 			byte[] value = columns[i];
-			columnLog.setName(name, 0, name.length);
-			columnLog.setValue(value, 0, value.length);
+			columnLog.setName(name);
+			columnLog.setValue(value);
 		}
 		return recordLog;
 	}

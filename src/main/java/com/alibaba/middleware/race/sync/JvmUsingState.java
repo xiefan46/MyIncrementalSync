@@ -17,8 +17,10 @@ public class JvmUsingState implements Runnable {
 
 	@Override
 	public void run() {
-		ThreadUtil.sleep(15000);
-		print();
+		for(;;){
+			ThreadUtil.sleep(4000);
+			print();
+		}
 	}
 
 	public static void print() {

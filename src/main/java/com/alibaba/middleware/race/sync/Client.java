@@ -13,6 +13,7 @@ import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
 import com.alibaba.middleware.race.sync.util.MD5Token;
 import com.generallycloud.baseio.buffer.ByteBuf;
 import com.generallycloud.baseio.common.CloseUtil;
+import com.generallycloud.baseio.common.ThreadUtil;
 import com.generallycloud.baseio.component.IoEventHandleAdaptor;
 import com.generallycloud.baseio.component.LoggerSocketSEListener;
 import com.generallycloud.baseio.component.NioSocketChannelContext;
@@ -87,7 +88,7 @@ public class Client {
 
 		context.setProtocolFactory(new FixedLengthProtocolFactory());
 
-		Thread.currentThread().sleep(5000);
+		ThreadUtil.sleep(3000);
 
 		connector.connect();
 	}

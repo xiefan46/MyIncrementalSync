@@ -1,10 +1,8 @@
 package com.alibaba.middleware.race.sync;
 
+import com.alibaba.middleware.race.sync.channel.ReadChannel;
 import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.Table;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author wangkai
@@ -20,10 +18,15 @@ public class Context {
 
 	private Table				table;
 
-	private int				availableProcessors	= Runtime.getRuntime().availableProcessors()
-			- 2;
+	private ReadChannel			channel;
 
-	private Map<Integer, Record>	records			= new HashMap<>((int) (1024 * 256 * 1.5));
+	private ReadRecordLogThread	readRecordLogThread = new ReadRecordLogThread();
+
+	private int				availableProcessors	= (Runtime.getRuntime().availableProcessors() - 1) / 2;
+
+	private Dispatcher			dispatcher		= new Dispatcher(this);
+	
+	private int 				ringBufferSize		= (int) (1024 * 1024 * 0.5);
 
 	public Context(long endId, long startId, String tableSchema) {
 		this.endId = endId;
@@ -63,11 +66,36 @@ public class Context {
 		return table;
 	}
 
-	public Map<Integer, Record> getRecords() {
-		return records;
-	}
-
 	public void setTable(Table table) {
 		this.table = table;
+		this.dispatcher.setTable(table);
 	}
+
+	public Dispatcher getDispatcher() {
+		return dispatcher;
+	}
+
+	public ReadChannel getChannel() {
+		return channel;
+	}
+
+	public void setChannel(ReadChannel channel) {
+		this.channel = channel;
+	}
+
+	public Record getRecord(int id) {
+		return dispatcher.getRecord(id);
+	}
+
+	public ReadRecordLogThread getReadRecordLogThread() {
+		return readRecordLogThread;
+	}
+	
+	/**
+	 * @return the ringBufferSize
+	 */
+	public int getRingBufferSize() {
+		return ringBufferSize;
+	}
+
 }

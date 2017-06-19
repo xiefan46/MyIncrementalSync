@@ -20,6 +20,7 @@ public class RecordLog {
 	//	// 数据变更对应的表名
 	//	private String			table;
 
+	private int edit;
 	//  I(1)代表insert, U(2)代表update, D(0)代表delete
 	private byte			alterType;
 	// 该记录的列信息
@@ -43,16 +44,20 @@ public class RecordLog {
 		this.alterType = alterType;
 	}
 
-	public void addColumn(ColumnLog column) {
-		columns.add(column);
+	public ColumnLog getColumn() {
+		return columns.get(edit++);
+	}
+	
+	public ColumnLog getColumn(int index) {
+		return columns.get(index);
 	}
 
 	public void newColumns(int cols) {
-		this.columns = new ArrayList<>(cols);
-	}
-
-	public List<ColumnLog> getColumns() {
-		return columns;
+		List<ColumnLog> columns = new ArrayList<>(cols);
+		for (int i = 0; i < cols; i++) {
+			columns.add(new ColumnLog());
+		}
+		this.columns = columns;
 	}
 
 	public PrimaryColumnLog getPrimaryColumn() {
@@ -62,6 +67,14 @@ public class RecordLog {
 	public void setPrimaryColumn(PrimaryColumnLog primaryColumn) {
 		this.primaryColumn = primaryColumn;
 	}
+	
+	public void reset(){
+		edit = 0;
+	}
+	
+	public int getEdit() {
+		return edit;
+	}
 
 	public boolean isPKUpdate() {
 		if (this.alterType == Constants.UPDATE) {
@@ -70,9 +83,9 @@ public class RecordLog {
 		return false;
 	}
 
-	public static RecordLog newRecordLog(){
+	public static RecordLog newRecordLog(int cols){
 		RecordLog r = new RecordLog();
-		r.newColumns(8);
+		r.newColumns(cols);
 		return r;
 	}
 

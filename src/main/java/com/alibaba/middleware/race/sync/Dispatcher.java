@@ -1,76 +1,81 @@
 package com.alibaba.middleware.race.sync;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
+import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
-import com.generallycloud.baseio.common.Logger;
-import com.generallycloud.baseio.common.LoggerFactory;
 
 /**
  * Created by xiefan on 6/16/17.
  */
 public class Dispatcher {
 
+	private Table					table;
+
 	private int					threadNum;
 
-	//private Map<Integer, Byte>		redirectMap	= new HashMap<>();
+	private Map<Integer, Record>[]	recordMaps;
 
-	private List<RecalculateThread>	threadList	= new ArrayList<>();
+	private RecalculateThread[]		threads;
+	
+	private Context context;
 
-	public Dispatcher(int threadNum) {
-		this.threadNum = threadNum;
+	public Dispatcher(Context context) {
+		this.context = context;
 	}
 
-	private static final Logger logger = LoggerFactory.getLogger(Dispatcher.class);
-
-	public void start(RecordLog r) {
+	@SuppressWarnings("unchecked")
+	public void start(RecordLog r) throws InterruptedException {
+		threadNum = context.getAvailableProcessors();
+		recordMaps = new Map[threadNum];
+		threads = new RecalculateThread[threadNum];
 		for (int i = 0; i < threadNum; i++) {
-			RecalculateThread thread = new RecalculateThread(Table.newTable(r), this);
-			threadList.add(thread);
-			thread.start();
+			recordMaps[i] = new HashMap<>((int)(1024 * 1024 * ((32f / threadNum))));
+		}
+		for (int i = 0; i < threadNum; i++) {
+			threads[i] = new RecalculateThread(context, table, recordMaps[i]);
+		}
+		for (int i = 0; i < threadNum; i++) {
+			threads[i].startup(i);
 		}
 	}
 
-	public void dispatch(RecordLog recordLog) {
+	public void dispatch(RecordLog recordLog) throws InterruptedException {
 		int id = recordLog.getPrimaryColumn().getLongValue();
 		int oldId = recordLog.getPrimaryColumn().getBeforeValue();
-		if (recordLog.isPKUpdate()) {
-			threadList.get(hashFun(oldId)).submit(recordLog);
-		} else {
-			threadList.get(hashFun(id)).submit(recordLog);
+		if (id < 0) {
+			context.getReadRecordLogThread().getRecordLogEventProducer().publish(recordLog);
+			return;
 		}
+		if (recordLog.isPKUpdate()) {
+			threads[hashFun(oldId)].submit(recordLog);
+		} else {
+			threads[hashFun(id)].submit(recordLog);
+		}
+	}
 
+	public void dispatch(int index, RecordLog recordLog) throws InterruptedException {
+		threads[index].submit(recordLog);
 	}
 
 	public void readRecordOver() {
-		for (RecalculateThread thread : threadList) {
-			thread.setReadOver(true);
+		for (RecalculateThread thread : threads) {
+			thread.stop();
 		}
-		logger.info("thread num : " + threadList.size());
 	}
 
-	public void waitForOk(Context context) {
-		long total = 0;
-		try {
-			for (RecalculateThread thread : threadList) {
-				thread.join();
-				long start = System.currentTimeMillis();
-				context.getRecords().putAll(thread.getRecords());
-				total += (System.currentTimeMillis() - start);
-			}
-			logger.info("合并结果花费时间 : {}", total);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	public Record getRecord(int id) {
+		return recordMaps[hashFun(id)].get(id);
+
 	}
 
 	public int hashFun(int id) {
-		int result = id % threadNum;
-		if (result < 0)
-			result = -result;
-		return result;
+		return id % threadNum;
 	}
 
+	public void setTable(Table table) {
+		this.table = table;
+	}
 }

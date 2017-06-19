@@ -1,115 +1,155 @@
 package com.alibaba.middleware.race.sync;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadFactory;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
+import com.alibaba.middleware.race.sync.dis.RecordLogEvent;
+import com.alibaba.middleware.race.sync.dis.RecordLogEventFactory;
+import com.alibaba.middleware.race.sync.dis.RecordLogEventProducer;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
+import com.generallycloud.baseio.common.ThreadUtil;
+import com.lmax.disruptor.EventHandler;
+import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.dsl.Disruptor;
 
 /**
  * @author wangkai
  */
-public class ReadRecordLogThread implements Runnable {
+public class ReadRecordLogThread {
 
-	private Logger				logger	= LoggerFactory.getLogger(getClass());
+	private Logger				logger		= LoggerFactory.getLogger(getClass());
 
-	private ReadRecordLogContext	context;
+	private int				recordScan	= 0;
 
-	public ReadRecordLogThread(ReadRecordLogContext context) {
-		this.context = context;
-	}
+	private int				pkUpdate		= 0;
 
-	private int		recordScan	= 0;
+	private RecordLogEventProducer recordLogEventProducer;
 
-	private int		recordDeal	= 0;
-
-	private int		pkUpdate		= 0;
-
-	private Dispatcher	dispatcher	= new Dispatcher(8);
-
-	@Override
-	public void run() {
+	public void execute(Context context) {
 		try {
 			long startTime = System.currentTimeMillis();
-			execute(context, context.getContext());
-			logger.info("线程 {} 执行耗时: {},总扫描记录数 {},需要重放的记录数 {}", Thread.currentThread().getId(),
-					System.currentTimeMillis() - startTime, recordScan, recordDeal);
+			execute0(context, context.getDispatcher());
+			logger.info("线程 {} 执行耗时: {},总扫描记录数 {},pk update {}", Thread.currentThread().getId(),
+					System.currentTimeMillis() - startTime, recordScan, pkUpdate);
 			logger.info("max_record_len:{}", ChannelReader.get().getMaxRecordLen() + 1);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
 	}
 
-	public void execute(ReadRecordLogContext readRecordLogContext, Context context)
-			throws Exception {
+	private void execute0(Context context, final Dispatcher dispatcher) throws Exception {
 
 		long start = System.currentTimeMillis();
 
 		String tableSchema = context.getTableSchema();
 
-		byte[] tableSchemaBytes = tableSchema.getBytes();
+		final byte[] tableSchemaBytes = tableSchema.getBytes();
 
-		ChannelReader2 channelReader = ChannelReader2.get();
+		final ChannelReader2 channelReader = ChannelReader2.get();
 
-		ReadChannel channel = readRecordLogContext.getChannel();
-
-		RecordLog r = RecordLog.newRecordLog();
+		final ReadChannel channel = context.getChannel();
+		
+		RecordLog rFirst = RecordLog.newRecordLog(8);
 
 		for (; channel.hasBufRemaining();) {
 
-			channelReader.read(channel, tableSchemaBytes, r);
+			channelReader.read(channel, tableSchemaBytes, rFirst);
 
-			recordScan++;
-
-			if (r == null) {
+			if (rFirst == null) {
 				continue;
 			}
 
-			recordDeal++;
-			if (r.isPKUpdate()) {
+			recordScan++;
+
+			if (rFirst.isPKUpdate()) {
 				pkUpdate++;
 			}
 
-			context.setTable(Table.newTable(r));
+			context.setTable(Table.newTable(rFirst));
 
-			dispatcher.start(r);
-
-			dispatcher.dispatch(r);
-
-			r = RecordLog.newRecordLog();
-			//receiver.received(recalculateContext, r);
+			dispatcher.start(rFirst);
 
 			break;
 		}
 
-		for (; channel.hasBufRemaining();) {
+		RecordLogEventFactory factory = new RecordLogEventFactory();
 
-			r = channelReader.read(channel, tableSchemaBytes, r);
-			recordScan++;
-
-			if (recordScan % 5000000 == 0) {
-				logger.info("record scan : " + recordScan);
+		ThreadFactory threadFactory = new ThreadFactory() {
+			@Override
+			public Thread newThread(Runnable r) {
+				return new Thread(r,"channel-reader");
 			}
+		};
 
-			if (r == null) {
-				continue;
-			}
-			if (r.isPKUpdate()) {
-				pkUpdate++;
-			}
+		final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-			recordDeal++;
-			dispatcher.dispatch(r);
-			r = RecordLog.newRecordLog();
-			//receiver.received(recalculateContext, r);
+		int rSize = context.getRingBufferSize();
+		
+		Disruptor<RecordLogEvent> disruptor = new Disruptor<>(factory,rSize, threadFactory);
+
+		EventHandler eventHandler = new EventHandler<RecordLogEvent>() {
+
+			@Override
+			public void onEvent(RecordLogEvent event, long sequence, boolean endOfBatch)
+					throws Exception {
+
+				if (!channel.hasBufRemaining()) {
+					countDownLatch.countDown();
+					return;
+				}
+
+				RecordLog r = event.getRecordLog();
+				
+				r.reset();
+
+				if (!channelReader.read(channel, tableSchemaBytes, r)) {
+					countDownLatch.countDown();
+					return;
+				}
+				recordScan++;
+				if (r.isPKUpdate()) {
+					pkUpdate++;
+				}
+
+				dispatcher.dispatch(r);
+			}
+		};
+
+		disruptor.handleEventsWith(eventHandler);
+
+		RingBuffer<RecordLogEvent> ringBuffer = disruptor.start();
+		
+		recordLogEventProducer = new RecordLogEventProducer(ringBuffer);
+		
+		int cols = context.getTable().getColumnSize();
+
+		dispatcher.dispatch(rFirst);
+		
+		rSize = rSize / 2;
+		
+		for (int i = 0; i < rSize; i++) {
+			recordLogEventProducer.publish(RecordLog.newRecordLog(cols));
 		}
 
-		logger.info("读取并分发所有记录耗时 : {} .", System.currentTimeMillis() - start);
-
+		countDownLatch.await();
+		
 		dispatcher.readRecordOver();
-		dispatcher.waitForOk(context);
+		
+		//FIXME 判断重放已经完成
+		
+		logger.info("读取并分发所有记录耗时 : {} .", System.currentTimeMillis() - start);
+	}
 
+	/**
+	 * @return the recordLogEventProducer
+	 */
+	public RecordLogEventProducer getRecordLogEventProducer() {
+		return recordLogEventProducer;
 	}
 
 }
