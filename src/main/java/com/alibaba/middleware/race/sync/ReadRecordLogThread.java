@@ -87,10 +87,11 @@ public class ReadRecordLogThread implements Runnable {
 
 			r = channelReader.read(channel, tableSchemaBytes, r);
 			recordScan++;
-			/*
-			 * if (recordScan % 100000 == 0) { logger.info("record scan : " +
-			 * recordScan); }
-			 */
+
+			if (recordScan % 5000000 == 0) {
+				logger.info("record scan : " + recordScan);
+			}
+
 			if (r == null) {
 				continue;
 			}

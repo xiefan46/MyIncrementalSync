@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,24 +20,25 @@ import com.alibaba.middleware.race.sync.model.Table;
  */
 public class RecalculateThread extends Thread implements Constants {
 
-	private Map<Integer, Record>	records		= new HashMap<>((int) (1024 * 256 * 1.5));
+	private Map<Integer, Record>			records		= new HashMap<>(
+			(int) (1024 * 256 * 1.5));
 
-	private Queue<RecordLog>		logQueue		= new ConcurrentLinkedQueue<>();
+	private LinkedBlockingQueue<RecordLog>	logQueue		= new LinkedBlockingQueue<>(100000);
 
-	private boolean			readOver		= false;
+	private boolean					readOver		= false;
 
-	private Table				table;
+	private Table						table;
 
-	private static final Logger	logger		= LoggerFactory
+	private static final Logger			logger		= LoggerFactory
 			.getLogger(RecalculateThread.class);
 
-	private int				count		= 0;
+	private int						count		= 0;
 
-	private static final String	CAN_NOT_HANDLE	= "Can not handle this alter type";
+	private static final String			CAN_NOT_HANDLE	= "Can not handle this alter type";
 
-	private static final String	TYPE_NOT_EXIST	= "Type not exist";
+	private static final String			TYPE_NOT_EXIST	= "Type not exist";
 
-	private Dispatcher			dispatcher;
+	private Dispatcher					dispatcher;
 
 	public RecalculateThread(Table table, Dispatcher dispatcher) {
 		this.table = table;
@@ -48,7 +51,7 @@ public class RecalculateThread extends Thread implements Constants {
 			long startTime = System.currentTimeMillis();
 			while (!readOver || !logQueue.isEmpty()) {
 				while (!logQueue.isEmpty()) {
-					RecordLog recordLog = logQueue.poll();
+					RecordLog recordLog = logQueue.poll(10, TimeUnit.MILLISECONDS);
 					if (recordLog != null) {
 						count++;
 						received(recordLog);
@@ -64,7 +67,15 @@ public class RecalculateThread extends Thread implements Constants {
 	}
 
 	public void submit(RecordLog recordLog) {
-		this.logQueue.add(recordLog);
+		try {
+			boolean flag = logQueue.offer(recordLog, 10, TimeUnit.MILLISECONDS);
+			while (!flag) {
+				flag = logQueue.offer(recordLog, 10, TimeUnit.MILLISECONDS);
+			}
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
 	}
 
 	public Map<Integer, Record> getRecords() {
