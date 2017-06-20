@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race.sync.model;
 
+import com.alibaba.middleware.race.sync.Constants;
+
 /**
  * 具体某一列变更的情况
  */

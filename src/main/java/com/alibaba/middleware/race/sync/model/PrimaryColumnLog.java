@@ -7,7 +7,7 @@ public class PrimaryColumnLog extends ColumnLog {
 
 	private int	beforeValue;
 
-	private int	value;
+	private int	longValue;
 
 	public boolean isPkChange() {
 		return getLongValue() != getBeforeValue();
@@ -22,10 +22,10 @@ public class PrimaryColumnLog extends ColumnLog {
 	}
 
 	public int getLongValue() {
-		return value;
+		return longValue;
 	}
 
 	public void setLongValue(int value) {
-		this.value = value;
+		this.longValue = value;
 	}
 }

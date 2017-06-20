@@ -3,6 +3,8 @@ package com.alibaba.middleware.race.sync.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.middleware.race.sync.Constants;
+
 /**
  * @author wangkai
  */
@@ -20,7 +22,7 @@ public class RecordLog {
 
 	private int edit;
 	//  I(1)代表insert, U(2)代表update, D(0)代表delete
-	private byte			alterType;
+	private volatile byte			alterType;
 	// 该记录的列信息
 	private List<ColumnLog>	columns;
 	// 该记录的主键
@@ -75,7 +77,7 @@ public class RecordLog {
 	}
 
 	public boolean isPKUpdate() {
-		return primaryColumn.isPkChange();
+		return Constants.PK_UPDATE == alterType;
 	}
 
 	public static RecordLog newRecordLog(int cols){

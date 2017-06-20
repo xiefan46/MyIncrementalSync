@@ -3,6 +3,8 @@ package com.alibaba.middleware.race.sync.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.middleware.race.sync.Constants;
+
 /**
  * 保存数据变更信息
  * Created by wanshao on 2017/5/8.

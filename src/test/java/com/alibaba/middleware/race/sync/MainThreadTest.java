@@ -31,7 +31,7 @@ public class MainThreadTest {
 	@Test
 	public void testBasic() throws Exception {
 		//		ThreadUtil.execute(new PageCacheHelper());
-		String schema = "middleware3";
+		String schema = "middleware5";
 		String table = "student";
 		long startId = 600;
 		long endId = 700;

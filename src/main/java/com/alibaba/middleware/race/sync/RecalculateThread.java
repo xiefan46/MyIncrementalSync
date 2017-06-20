@@ -79,7 +79,10 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 			Table table = this.table;
 			//			long startTime = System.currentTimeMillis();
 			RecordLog r = event.getRecordLog();
-			received(table, r);
+			boolean res = received(table, r);
+			if (!res) {
+				return;
+			}
 			readRecordLogThread.getRecordLogEventProducer().publish(r);
 			//			logger.info("线程 {} 重放完成, 耗时 : {}, 重放记录数 {}", Thread.currentThread().getId(),
 			//					System.currentTimeMillis() - startTime, count);
@@ -96,27 +99,23 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 		return records;
 	}
 
-	public void received(Table table, RecordLog recordLog) throws Exception {
+	public boolean received(Table table, RecordLog recordLog) throws Exception {
 		//logger.info("receive log.pk : {}", recordLog.getPrimaryColumn().getLongValue());
 		switch (recordLog.getAlterType()) {
 		case INSERT:
-			handleInsert(table, recordLog);
-			break;
+			return handleInsert(table, recordLog);
 		case UPDATE:
-			handleUpdate(recordLog);
-			break;
+			return handleUpdate(recordLog);
 		case DELETE:
-			handleDelete(recordLog);
-			break;
+			return handleDelete(recordLog);
 		case PK_UPDATE:
-			handlePkUpdate(table, recordLog);
-			break;
+			return handlePkUpdate(table, recordLog);
 		default:
 			throw createTypeNotExistException(recordLog.getAlterType());
 		}
 	}
 
-	private void handleInsert(Table table, RecordLog recordLog) throws Exception {
+	private boolean handleInsert(Table table, RecordLog recordLog) throws Exception {
 		int pk = recordLog.getPrimaryColumn().getLongValue();
 		Record record = records.get(pk);
 		if (record == null) {
@@ -124,6 +123,7 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 			update(table, record, recordLog);
 			record.setAlterType(INSERT);
 			records.put(pk, record);
+			return true;
 		} else {
 			switch (record.getAlterType()) {
 			case INSERT:
@@ -131,23 +131,22 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 			case UPDATE:
 				update2(table, record, recordLog);
 				record.setAlterType(INSERT);
-				break;
+				return true;
 			case DELETE:
 				records.remove(pk);
-				break;
+				return true;
 			case PK_UPDATE:
 				update2(table, record, recordLog);
 				record.setAlterType(INSERT);
 				records.remove(pk);
-				redirect(table, pk, record,recordLog);
-				break;
+				return redirect(table, pk, record,recordLog);
 			default:
 				throw createTypeNotExistException(record.getAlterType());
 			}
 		}
 	}
 
-	private void handleUpdate(RecordLog recordLog) {
+	private boolean handleUpdate(RecordLog recordLog) {
 		int pk = recordLog.getPrimaryColumn().getLongValue();
 		Record record = records.get(pk);
 		if (record == null) {
@@ -156,18 +155,19 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 			update(table, record, recordLog);
 			record.setAlterType(UPDATE);
 			records.put(pk, record);
+			return true;
 		} else {
 			switch (record.getAlterType()) {
 			case INSERT:
 				update(table, record, recordLog);
-				break;
+				return true;
 			case DELETE:
 				throw createCanNotHandleException(recordLog, record);
 			case PK_UPDATE:
 				throw createCanNotHandleException(recordLog, record);
 			case UPDATE:
 				update(table, record, recordLog);
-				break;
+				return true;
 			default:
 				throw createTypeNotExistException(record.getAlterType());
 
@@ -175,21 +175,22 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 		}
 	}
 
-	private void handleDelete(RecordLog recordLog) {
+	private boolean handleDelete(RecordLog recordLog) {
 		int pk = recordLog.getPrimaryColumn().getLongValue();
 		Record record = records.get(pk);
 		if (record == null) {
 			record = table.newRecord();
 			record.setAlterType(DELETE);
 			records.put(pk, record);
+			return true;
 		} else {
 			switch (record.getAlterType()) {
 			case INSERT:
 				records.remove(pk); //有insert证明已经完成,可以删除
-				break;
+				return true;
 			case UPDATE:
 				record.setAlterType(DELETE); //等待insert到来才能删除
-				break;
+				return true;
 			case DELETE:
 				throw createCanNotHandleException(recordLog, record);
 			case PK_UPDATE:
@@ -200,7 +201,7 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 		}
 	}
 
-	private void handlePkUpdate(Table table, RecordLog recordLog) throws Exception {
+	private boolean handlePkUpdate(Table table, RecordLog recordLog) throws Exception {
 		int pkOld = recordLog.getPrimaryColumn().getBeforeValue();
 		Record recordOld = records.get(pkOld);
 		/*
@@ -213,6 +214,7 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 			update(table, recordOld, recordLog);
 			recordOld.setNewId(recordLog.getPrimaryColumn().getLongValue());
 			records.put(pkOld, recordOld);
+			return true;
 		} else {
 			switch (recordOld.getAlterType()) {
 			case INSERT:
@@ -220,13 +222,12 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 				recordOld.setAlterType(INSERT);
 				records.remove(pkOld);
 				recordOld.setNewId(recordLog.getPrimaryColumn().getLongValue());
-				redirect(table, pkOld, recordOld,recordLog);
-				break;
+				return redirect(table, pkOld, recordOld,recordLog);
 			case UPDATE:
 				update(table, recordOld, recordLog);
 				recordOld.setAlterType(PK_UPDATE);
 				recordOld.setNewId(recordLog.getPrimaryColumn().getLongValue());
-				break;
+				return true;
 			case DELETE:
 				throw createCanNotHandleException(recordLog, recordOld);
 			case PK_UPDATE:
@@ -274,15 +275,16 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 		return oldRecord;
 	}
 
-	private void redirect(Table table, int oldId, Record r, RecordLog recordLog) throws Exception {
+	private boolean redirect(Table table, int oldId, Record r, RecordLog recordLog) throws Exception {
 		if (r.getAlterType() != INSERT)
 			throw new RuntimeException(CAN_NOT_HANDLE);
 		int oldHash = dispatcher.hashFun(oldId);
 		int newHash = dispatcher.hashFun(r.getNewId());
 		if (oldHash != newHash) {
 			dispatcher.dispatch(newHash, createRecordLog(table, r, recordLog));
+			return false;
 		} else {
-			received(table, createRecordLog(table, r, recordLog));
+			return received(table, createRecordLog(table, r, recordLog));
 		}
 	}
 

@@ -22,7 +22,7 @@ public class Context {
 
 	private ReadRecordLogThread	readRecordLogThread = new ReadRecordLogThread();
 
-	private int				availableProcessors	= (Runtime.getRuntime().availableProcessors() - 1) / 2;
+	private int				availableProcessors	= (Runtime.getRuntime().availableProcessors() - 0) / 2;
 
 	private Dispatcher			dispatcher		= new Dispatcher(this);
 	

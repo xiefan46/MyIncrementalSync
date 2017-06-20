@@ -40,7 +40,7 @@ public class RecordLogCodec2 {
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
 		off += TIME_SKIP;
 //		if (!compare(data, off + 1, tableSchema)) {
-//			return null;
+//			return findNextChar(data, offset + tableSchema.length, '\n');
 //		}
 		int end;
 		off = off + tableSchema.length + 2;
