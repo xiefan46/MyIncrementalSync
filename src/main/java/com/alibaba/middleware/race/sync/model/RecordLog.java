@@ -1,7 +1,5 @@
 package com.alibaba.middleware.race.sync.model;
 
-import com.alibaba.middleware.race.sync.Constants;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,15 +75,26 @@ public class RecordLog {
 	}
 
 	public boolean isPKUpdate() {
-		if (this.alterType == Constants.UPDATE) {
-			return primaryColumn.isPkChange();
-		}
-		return false;
+		return primaryColumn.isPkChange();
 	}
 
 	public static RecordLog newRecordLog(int cols){
 		RecordLog r = new RecordLog();
 		r.newColumns(cols);
+		return r;
+	}
+	
+	public void newFullColumns(int cols) {
+		List<ColumnLog> columns = new ArrayList<>(cols);
+		for (int i = 0; i < cols; i++) {
+			columns.add(new FullColumnLog(i));
+		}
+		this.columns = columns;
+	}
+	
+	public static RecordLog newFullRecordLog(int cols){
+		RecordLog r = new RecordLog();
+		r.newFullColumns(cols);
 		return r;
 	}
 

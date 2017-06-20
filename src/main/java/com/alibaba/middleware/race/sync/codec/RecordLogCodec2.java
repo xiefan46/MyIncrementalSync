@@ -4,6 +4,7 @@ import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.model.ColumnLog;
 import com.alibaba.middleware.race.sync.model.PrimaryColumnLog;
 import com.alibaba.middleware.race.sync.model.RecordLog;
+import com.alibaba.middleware.race.sync.model.Table;
 
 /**
  * @author wangkai
@@ -35,7 +36,7 @@ public class RecordLogCodec2 {
 		return true;
 	}
 
-	public int decode(byte[] data,byte [] tableSchema, int offset,RecordLog r) {
+	public int decode(Table table,byte[] data,byte [] tableSchema, int offset,RecordLog r) {
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
 		off += TIME_SKIP;
 //		if (!compare(data, off + 1, tableSchema)) {
@@ -70,7 +71,7 @@ public class RecordLogCodec2 {
 				}
 				ColumnLog c = r.getColumn();
 //				r.increamentEdit();
-				c.setName(data, off, end - off);
+				c.setName(table,data, off, end - off);
 //				System.out.println(new String(c.getNameByte()));
 				off = end + U_D_SKIP;
 				end = findNextChar(data, off, '|');
@@ -109,7 +110,7 @@ public class RecordLogCodec2 {
 					continue;
 				}
 				ColumnLog c = r.getColumn();
-				c.setName(data, off, end - off);
+				c.setName(table,data, off, end - off);
 //				System.out.println(new String(c.getNameByte()));
 //				r.increamentEdit();
 				off = end + I_SKIP;

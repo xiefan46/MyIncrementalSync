@@ -3,10 +3,6 @@ package com.alibaba.middleware.race.sync;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.alibaba.middleware.race.sync.codec.ByteArray;
 import com.alibaba.middleware.race.sync.dis.RecordLogEvent;
 import com.alibaba.middleware.race.sync.dis.RecordLogEventFactory;
 import com.alibaba.middleware.race.sync.dis.RecordLogEventProducer;
@@ -14,7 +10,7 @@ import com.alibaba.middleware.race.sync.model.ColumnLog;
 import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
-import com.lmax.disruptor.BlockingWaitStrategy;
+import com.lmax.disruptor.BusySpinWaitStrategy;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
@@ -29,14 +25,7 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 
 	private Table					table;
 
-	private static final Logger		logger		= LoggerFactory
-			.getLogger(RecalculateThread.class);
-
-	private int					count		= 0;
-
 	private Context				context;
-
-	private ByteArray				byteArrayTEMP	= new ByteArray(null);
 
 	private Dispatcher				dispatcher;
 
@@ -71,7 +60,7 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 
 		disruptor = new Disruptor<>(factory,
 				context.getRingBufferSize(), threadFactory, ProducerType.SINGLE,
-				new BlockingWaitStrategy());
+				new BusySpinWaitStrategy());
 
 		disruptor.handleEventsWith(this);
 
@@ -90,7 +79,6 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 			Table table = this.table;
 			//			long startTime = System.currentTimeMillis();
 			RecordLog r = event.getRecordLog();
-			count++;
 			received(table, r);
 			readRecordLogThread.getRecordLogEventProducer().publish(r);
 			//			logger.info("线程 {} 重放完成, 耗时 : {}, 重放记录数 {}", Thread.currentThread().getId(),
@@ -268,8 +256,7 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 			if (c.getValue() == null) {
 				continue;
 			}
-			Integer index = table.getIndex(byteArrayTEMP.reset(c.getName()));
-			oldRecord.setColum(index, c.getValue());
+			oldRecord.setColum(c.getName(), c.getValue());
 		}
 		return oldRecord;
 	}
@@ -280,9 +267,8 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 			if (c.getValue() == null) {
 				continue;
 			}
-			Integer index = table.getIndex(byteArrayTEMP.reset(c.getName()));
-			if (oldRecord.getColumns()[index] == null) {
-				oldRecord.setColum(index, c.getValue()); //INSERT的优先级较低
+			if (oldRecord.getColumns()[c.getName()] == null) {
+				oldRecord.setColum(c.getName(), c.getValue()); //INSERT的优先级较低
 			}
 		}
 		return oldRecord;
@@ -308,10 +294,8 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 		byte[][] columns = r.getColumns();
 		for (int i = 0; i < columns.length; i++) {
 			ColumnLog columnLog = recordLog.getColumn();
-			byte[] name = table.getNameByIndex(i);
-			byte[] value = columns[i];
-			columnLog.setName(name);
-			columnLog.setValue(value);
+			columnLog.setName(i);
+			columnLog.setValue(columns[i]);
 		}
 		return recordLog;
 	}

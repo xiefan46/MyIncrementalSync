@@ -8,12 +8,13 @@ import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
 import com.alibaba.middleware.race.sync.model.RecordLog;
+import com.alibaba.middleware.race.sync.model.Table;
 
 /**
  * @author wangkai
  */
 public class TestRecordLogCodec {
-	
+
 	private static ReadChannel initChannels2() throws IOException {
 		File root = new File(Constants.DATA_HOME);
 		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 10,
@@ -29,25 +30,41 @@ public class TestRecordLogCodec {
 		byte[] cs = "middleware3|student".getBytes();
 
 		int all = 0;
-		
+
 		long old = System.currentTimeMillis();
-		
+
 		RecordLog r = new RecordLog();
 		r.newColumns(10);
-		
+
+		Table table = null;
+
+		RecordLog rFirst = RecordLog.newFullRecordLog(8);
+
 		for (; channel.hasBufRemaining();) {
-			
-			reader.read(channel, cs,r);
-			if (r == null) {
-//				System.out.println("------------------");
+
+			reader.read(null, channel, cs, rFirst);
+
+			if (rFirst == null) {
 				continue;
 			}
-			all++;
-//			System.out.println(JSONObject.toJSONString(r));
+
+			table = Table.newTable(rFirst);
+
+			break;
 		}
-		
-		System.out.println("time:"+(System.currentTimeMillis() - old));
-		
+
+		for (; channel.hasBufRemaining();) {
+			reader.read(table, channel, cs, r);
+			if (r == null) {
+				//				System.out.println("------------------");
+				continue;
+			}
+			r.reset();
+			all++;
+		}
+
+		System.out.println("time:" + (System.currentTimeMillis() - old));
+
 		System.out.println(all);
 	}
 }

@@ -34,28 +34,9 @@ public class ByteArray2 {
 
 	@Override
 	public boolean equals(Object obj) {
-		return compare((ByteArray)obj);
+		return ByteArray.equals((ByteArray)obj, this);
 	}
 	
-	
-	public boolean compare(ByteArray other){
-		byte[] thisArray = this.array;
-		byte[] otherArray = other.getArray();
-
-		if (getLen() != otherArray.length) {
-			return false;
-		}
-		
-		int thisOff = getOff();
-
-		for (int i = 0; i < len; i++) {
-			if (otherArray[i] != thisArray[thisOff + i]) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	public int getLen() {
 		return len;
 	}
@@ -76,6 +57,12 @@ public class ByteArray2 {
 			hash = h;
 		}
 		return h;
+	}
+
+	public byte[] getBytes() {
+		byte[] array = new byte[len];
+		System.arraycopy(this.array, off, array, 0, len);
+		return array;
 	}
 
 }

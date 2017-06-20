@@ -32,7 +32,7 @@ public class Dispatcher {
 		recordMaps = new Map[threadNum];
 		threads = new RecalculateThread[threadNum];
 		for (int i = 0; i < threadNum; i++) {
-			recordMaps[i] = new HashMap<>((int)(1024 * 1024 * ((32f / threadNum))));
+			recordMaps[i] = new HashMap<>((int)(1024 * 1024 * ((8f / threadNum))));
 		}
 		for (int i = 0; i < threadNum; i++) {
 			threads[i] = new RecalculateThread(context, table, recordMaps[i]);

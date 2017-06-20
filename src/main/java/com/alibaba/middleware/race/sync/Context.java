@@ -26,7 +26,7 @@ public class Context {
 
 	private Dispatcher			dispatcher		= new Dispatcher(this);
 	
-	private int 				ringBufferSize		= (int) (1024 * 1024 * 0.5);
+	private int 				ringBufferSize		= (int) (1024 * 1024 * 1);
 
 	public Context(long endId, long startId, String tableSchema) {
 		this.endId = endId;

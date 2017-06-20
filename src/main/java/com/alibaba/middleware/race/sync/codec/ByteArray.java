@@ -24,18 +24,9 @@ public class ByteArray {
 		return this;
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) {
-			return false;
-		}
-
-		if (obj == this) {
-			return true;
-		}
-
-		byte[] other = ((ByteArray) obj).getArray();
-		byte[] _this = this.array;
+	public static boolean equals(ByteArray array1,ByteArray array2) {
+		byte[] other = ((ByteArray) array2).getArray();
+		byte[] _this = array1.array;
 
 		if (other.length != _this.length) {
 			return false;
@@ -47,6 +38,30 @@ public class ByteArray {
 			}
 		}
 
+		return true;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof ByteArray) {
+			return equals(this, (ByteArray) obj);
+		}
+		return equals(this, (ByteArray2) obj);
+	}
+	
+	public static boolean equals(ByteArray array,ByteArray2 array2){
+		byte[] arrayArray = array.array;
+		byte[] array2Array = array2.getArray();
+		int len = array2.getLen();
+		if (len != arrayArray.length) {
+			return false;
+		}
+		int off = array2.getOff();
+		for (int i = 0; i < len; i++) {
+			if (arrayArray[i] != array2Array[off + i]) {
+				return false;
+			}
+		}
 		return true;
 	}
 

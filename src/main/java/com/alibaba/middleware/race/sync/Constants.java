@@ -43,7 +43,7 @@ public interface Constants {
 
 	byte		INSERT			= 'I';
 
-	byte		PK_UPDATE			= 'P';
+	byte		PK_UPDATE		= 'P';
 	/**
 	 * 变更信息中不同列之间的分隔符
 	 */

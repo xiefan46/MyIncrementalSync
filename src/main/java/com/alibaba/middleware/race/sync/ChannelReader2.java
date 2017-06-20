@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
 import com.alibaba.middleware.race.sync.codec.RecordLogCodec2;
 import com.alibaba.middleware.race.sync.model.RecordLog;
+import com.alibaba.middleware.race.sync.model.Table;
 import com.generallycloud.baseio.buffer.ByteBuf;
 
 /**
@@ -25,23 +26,24 @@ public class ChannelReader2 {
 
 	private RecordLogCodec2 codec = RecordLogCodec2.get();
 
-	public boolean read(ReadChannel channel, byte[] tableSchema, RecordLog r) throws IOException {
+	public boolean read(Table table, ReadChannel channel, byte[] tableSchema, RecordLog r)
+			throws IOException {
 		ByteBuf buf = channel.getByteBuf();
 		byte[] readBuffer = buf.array();
 		int offset = buf.position();
 		if (buf.remaining() < MAX_RECORD_LEN) {
 			if (!channel.hasRemaining()) {
 				if (buf.remaining() > 1) {
-					int off = codec.decode(readBuffer, tableSchema, offset, r);
+					int off = codec.decode(table, readBuffer, tableSchema, offset, r);
 					buf.position(off + 1);
 					return true;
 				}
 				return false;
 			}
 			channel.read(buf);
-			return read(channel, tableSchema, r);
+			return read(table, channel, tableSchema, r);
 		}
-		int off = codec.decode(readBuffer, tableSchema, offset, r);
+		int off = codec.decode(table, readBuffer, tableSchema, offset, r);
 		buf.position(off + 1);
 		return true;
 	}

@@ -12,10 +12,11 @@ import com.alibaba.middleware.race.sync.dis.RecordLogEventFactory;
 import com.alibaba.middleware.race.sync.dis.RecordLogEventProducer;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
-import com.generallycloud.baseio.common.ThreadUtil;
+import com.lmax.disruptor.BusySpinWaitStrategy;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
+import com.lmax.disruptor.dsl.ProducerType;
 
 /**
  * @author wangkai
@@ -36,7 +37,6 @@ public class ReadRecordLogThread {
 			execute0(context, context.getDispatcher());
 			logger.info("线程 {} 执行耗时: {},总扫描记录数 {},pk update {}", Thread.currentThread().getId(),
 					System.currentTimeMillis() - startTime, recordScan, pkUpdate);
-			logger.info("max_record_len:{}", ChannelReader.get().getMaxRecordLen() + 1);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -44,6 +44,8 @@ public class ReadRecordLogThread {
 
 	private void execute0(Context context, final Dispatcher dispatcher) throws Exception {
 
+		logger.info("process {}",context.getAvailableProcessors());
+		
 		long start = System.currentTimeMillis();
 
 		String tableSchema = context.getTableSchema();
@@ -54,11 +56,11 @@ public class ReadRecordLogThread {
 
 		final ReadChannel channel = context.getChannel();
 		
-		RecordLog rFirst = RecordLog.newRecordLog(8);
+		RecordLog rFirst = RecordLog.newFullRecordLog(8);
 
 		for (; channel.hasBufRemaining();) {
 
-			channelReader.read(channel, tableSchemaBytes, rFirst);
+			channelReader.read(null,channel, tableSchemaBytes, rFirst);
 
 			if (rFirst == null) {
 				continue;
@@ -90,7 +92,13 @@ public class ReadRecordLogThread {
 
 		int rSize = context.getRingBufferSize();
 		
-		Disruptor<RecordLogEvent> disruptor = new Disruptor<>(factory,rSize, threadFactory);
+		final Table table = context.getTable();
+		
+		Disruptor<RecordLogEvent> disruptor = new Disruptor<>(factory,
+				rSize, 
+				threadFactory, 
+				ProducerType.MULTI,
+				new BusySpinWaitStrategy());
 
 		EventHandler eventHandler = new EventHandler<RecordLogEvent>() {
 
@@ -107,7 +115,7 @@ public class ReadRecordLogThread {
 				
 				r.reset();
 
-				if (!channelReader.read(channel, tableSchemaBytes, r)) {
+				if (!channelReader.read(table,channel, tableSchemaBytes, r)) {
 					countDownLatch.countDown();
 					return;
 				}
@@ -126,7 +134,7 @@ public class ReadRecordLogThread {
 		
 		recordLogEventProducer = new RecordLogEventProducer(ringBuffer);
 		
-		int cols = context.getTable().getColumnSize();
+		int cols = table.getColumnSize();
 
 		dispatcher.dispatch(rFirst);
 		
