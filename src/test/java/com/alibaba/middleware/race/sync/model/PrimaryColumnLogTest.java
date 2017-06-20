@@ -21,7 +21,7 @@ public class PrimaryColumnLogTest {
 		c.setBeforeValue(1);
 		c.setValue(longByte, 0, longByte.length);
 		assertTrue(!c.isPkChange());
-		System.out.println(c.getValue().equals(one));
+		System.out.println(c.getValue() == one);
 
 	}
 }

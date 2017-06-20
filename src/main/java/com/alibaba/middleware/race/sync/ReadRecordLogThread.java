@@ -56,28 +56,7 @@ public class ReadRecordLogThread {
 
 		final ReadChannel channel = context.getChannel();
 		
-		RecordLog rFirst = RecordLog.newFullRecordLog(8);
-
-		for (; channel.hasBufRemaining();) {
-
-			channelReader.read(null,channel, tableSchemaBytes, rFirst);
-
-			if (rFirst == null) {
-				continue;
-			}
-
-			recordScan++;
-
-			if (rFirst.isPKUpdate()) {
-				pkUpdate++;
-			}
-
-			context.setTable(Table.newTable(rFirst));
-
-			dispatcher.start(rFirst);
-
-			break;
-		}
+		context.setTable(Table.newOnline());
 
 		RecordLogEventFactory factory = new RecordLogEventFactory();
 
@@ -93,6 +72,8 @@ public class ReadRecordLogThread {
 		int rSize = context.getRingBufferSize();
 		
 		final Table table = context.getTable();
+		
+		dispatcher.start();
 		
 		Disruptor<RecordLogEvent> disruptor = new Disruptor<>(factory,
 				rSize, 
@@ -136,8 +117,6 @@ public class ReadRecordLogThread {
 		
 		int cols = table.getColumnSize();
 
-		dispatcher.dispatch(rFirst);
-		
 		rSize = rSize / 2;
 		
 		for (int i = 0; i < rSize; i++) {

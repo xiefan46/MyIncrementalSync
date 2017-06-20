@@ -83,19 +83,5 @@ public class RecordLog {
 		r.newColumns(cols);
 		return r;
 	}
-	
-	public void newFullColumns(int cols) {
-		List<ColumnLog> columns = new ArrayList<>(cols);
-		for (int i = 0; i < cols; i++) {
-			columns.add(new FullColumnLog(i));
-		}
-		this.columns = columns;
-	}
-	
-	public static RecordLog newFullRecordLog(int cols){
-		RecordLog r = new RecordLog();
-		r.newFullColumns(cols);
-		return r;
-	}
 
 }

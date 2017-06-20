@@ -27,7 +27,7 @@ public class Dispatcher {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void start(RecordLog r) throws InterruptedException {
+	public void start() throws InterruptedException {
 		threadNum = context.getAvailableProcessors();
 		recordMaps = new Map[threadNum];
 		threads = new RecalculateThread[threadNum];
@@ -38,7 +38,7 @@ public class Dispatcher {
 			threads[i] = new RecalculateThread(context, table, recordMaps[i]);
 		}
 		for (int i = 0; i < threadNum; i++) {
-			threads[i].startup(i);
+			threads[i].startup(i,(int) (context.getRingBufferSize() / threadNum));
 		}
 	}
 

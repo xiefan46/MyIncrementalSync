@@ -5,27 +5,23 @@ package com.alibaba.middleware.race.sync.model;
  */
 public class Record {
 
-	private byte[][] columns;
+	private long [] columns;
 
 	public Record(int cols) {
-		this.columns = new byte[cols][];
+		this.columns = new long[cols];
 	}
 
-	public void setColum(int index, byte[] data) {
+	public void setColum(int index, long data) {
 		columns[index] = data;
 	}
 
-	public byte[][] getColumns() {
+	public long[] getColumns() {
 		return columns;
 	}
 
 	private byte	alterType;
 
 	private int	newId;
-
-	public void setColumns(byte[][] columns) {
-		this.columns = columns;
-	}
 
 	public byte getAlterType() {
 		return alterType;
@@ -43,7 +39,7 @@ public class Record {
 		this.newId = newId;
 	}
 
-	public void setColumn(int index, byte[] value) {
+	public void setColumn(int index, long value) {
 		columns[index] = value;
 	}
 }

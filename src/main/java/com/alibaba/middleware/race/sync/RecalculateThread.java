@@ -47,7 +47,7 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 		this.records = records;
 	}
 
-	public void startup(final int i) {
+	public void startup(final int i,int ringBufferSize) {
 
 		RecordLogEventFactory factory = new RecordLogEventFactory();
 
@@ -59,7 +59,7 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 		};
 
 		disruptor = new Disruptor<>(factory,
-				context.getRingBufferSize(), threadFactory, ProducerType.SINGLE,
+				ringBufferSize, threadFactory, ProducerType.SINGLE,
 				new BusySpinWaitStrategy());
 
 		disruptor.handleEventsWith(this);
@@ -253,7 +253,7 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 	private Record update(Table table, Record oldRecord, RecordLog recordLog) {
 		for (int i = 0; i < recordLog.getEdit(); i++) {
 			ColumnLog c = recordLog.getColumn(i);
-			if (c.getValue() == null) {
+			if (c.getValue() == 0) {
 				continue;
 			}
 			oldRecord.setColum(c.getName(), c.getValue());
@@ -264,10 +264,10 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 	private Record update2(Table table, Record oldRecord, RecordLog recordLog) {
 		for (int i = 0; i < recordLog.getEdit(); i++) {
 			ColumnLog c = recordLog.getColumn(i);
-			if (c.getValue() == null) {
+			if (c.getValue() == 0) {
 				continue;
 			}
-			if (oldRecord.getColumns()[c.getName()] == null) {
+			if (oldRecord.getColumns()[c.getName()] == 0) {
 				oldRecord.setColum(c.getName(), c.getValue()); //INSERT的优先级较低
 			}
 		}
@@ -291,7 +291,7 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 		recordLog.getPrimaryColumn().setLongValue(r.getNewId());
 		recordLog.getPrimaryColumn().setBeforeValue(r.getNewId());
 		recordLog.setAlterType(r.getAlterType());
-		byte[][] columns = r.getColumns();
+		long[] columns = r.getColumns();
 		for (int i = 0; i < columns.length; i++) {
 			ColumnLog columnLog = recordLog.getColumn();
 			columnLog.setName(i);

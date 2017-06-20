@@ -24,18 +24,26 @@ public class Table {
 		return columnIndexs.get(array);
 	}
 
-	public static Table newTable(RecordLog recordLog) {
+	public static Table newTable(String []cols) {
 		int index = 0;
 		Table t = new Table();
-		t.columnSize = recordLog.getEdit();
-		for (int i = 0; i < recordLog.getEdit(); i++) {
-			FullColumnLog c = (FullColumnLog) recordLog.getColumn(i);
-			byte [] name = c.getNameBytes();
+		t.columnSize = cols.length;
+		for (int i = 0; i < cols.length; i++) {
+			byte [] name = cols[i].getBytes();
 			t.columnIndexs.put(new ByteArray(name), index++);
-			
 		}
 		return t;
 	}
+	
+	public static Table newOffline(){
+		return newTable(new String[]{"first_name","last_name","sex","score"});
+	}
+	
+	public static Table newOnline(){
+		return newTable(new String[]{"first_name","last_name","sex","score","score2"});
+	}
+	
+	//first_name:2:0|NULL|彭|last_name:2:0|NULL|恬|sex:2:0|NULL|男|score:1:0|NULL|479|score2:1:0|NULL|159370|
 
 	public int getColumnSize() {
 		return columnSize;

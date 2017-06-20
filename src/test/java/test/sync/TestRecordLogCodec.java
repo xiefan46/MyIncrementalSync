@@ -33,25 +33,10 @@ public class TestRecordLogCodec {
 
 		long old = System.currentTimeMillis();
 
+		Table table = Table.newOffline();
+		
 		RecordLog r = new RecordLog();
 		r.newColumns(10);
-
-		Table table = null;
-
-		RecordLog rFirst = RecordLog.newFullRecordLog(8);
-
-		for (; channel.hasBufRemaining();) {
-
-			reader.read(null, channel, cs, rFirst);
-
-			if (rFirst == null) {
-				continue;
-			}
-
-			table = Table.newTable(rFirst);
-
-			break;
-		}
 
 		for (; channel.hasBufRemaining();) {
 			reader.read(table, channel, cs, r);

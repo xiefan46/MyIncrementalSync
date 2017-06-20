@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
+import com.alibaba.middleware.race.sync.model.ColumnLog;
 import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.other.bytes.ByteArrayBuffer;
 import com.generallycloud.baseio.common.CloseUtil;
@@ -34,7 +35,7 @@ public class RecordUtil {
 	private static final byte[]	NUM_MAPPING			= new byte[] { '0', '1', '2', '3', '4',
 			'5', '6', '7', '8', '9' };
 
-	public static void formatResultString(long id, byte[][] record, ByteBuffer buffer) {
+	public static void formatResultString(long id, long[] record, ByteBuffer buffer) {
 		buffer.clear();
 		byte[] idCache = ID_CACHE;
 		int off = valueOfLong(id, idCache);
@@ -42,10 +43,10 @@ public class RecordUtil {
 		buffer.put(FIELD_SEPERATOR_BYTE);
 		byte len = (byte) (record.length - 1);
 		for (byte i = 0; i < len; i++) {
-			buffer.put(record[i]);
+			buffer.put(ColumnLog.getByteValue(record[i]));
 			buffer.put(FIELD_SEPERATOR_BYTE);
 		}
-		buffer.put(record[len]);
+		buffer.put(ColumnLog.getByteValue(record[len]));
 		buffer.put(FIELD_N_BYTE);
 	}
 
