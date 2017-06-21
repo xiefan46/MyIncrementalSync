@@ -1,10 +1,14 @@
 package com.alibaba.middleware.race.sync;
 
-import com.alibaba.middleware.race.sync.codec.RecordLogCodec2;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
+import com.alibaba.middleware.race.sync.codec.RecordLogCodec2;
+import com.alibaba.middleware.race.sync.log.InsertLog;
+import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
 
@@ -24,6 +28,10 @@ public class ReadRecordLogThread implements Runnable {
 	private int	recordScan	= 0;
 
 	private int	recordDeal	= 0;
+
+	//private ByteBuffer	buffer		= ByteBuffer.allocate((int) (1024 * 1024 * 1024));
+
+	//private int		totalSize		= 0;
 
 	@Override
 	public void run() {
@@ -54,6 +62,10 @@ public class ReadRecordLogThread implements Runnable {
 
 		r.newColumns();
 
+		AllLog allLog = new AllLog();
+
+		long start = System.currentTimeMillis();
+
 		for (; channel.hasBufRemaining();) {
 
 			channelReader.read(channel, tableSchemaBytes, r);
@@ -68,9 +80,8 @@ public class ReadRecordLogThread implements Runnable {
 			Table table = RecordLogCodec2.get().getTable();
 			RecordLogCodec2.get().setTableInit(true);
 			context.setTable(table);
-
-			receiver.received(context, r);
-
+			InsertLog.setLen(table.getStrColSize(), table.getNumberColSize());
+			allLog.putRecord(r);
 			break;
 		}
 
@@ -87,10 +98,21 @@ public class ReadRecordLogThread implements Runnable {
 				logger.info("record deal : {}", recordDeal);
 
 			}
-			receiver.received(context, r);
+
+			allLog.putRecord(r);
+
 		}
 
-		logger.info("diff value size :  " + context.getTable().getColValueToId().size());
+		logger.info("加载所有记录到内存. cost time : {}. Record count : {}. Buffer size : {}. ",
+				System.currentTimeMillis() - start, recordDeal, allLog.getBuffer().position());
+
+		start = System.currentTimeMillis();
+
+		Map<Integer, Record> result = allLog.reverseDeal(context.getStartId(), context.getEndId(),
+				context.getTable());
+		context.setRecords(result);
+		logger.info("倒序处理所有记录. cost time {}.Reverse scan count : {}",
+				System.currentTimeMillis() - start, allLog.getScanCount());
 
 	}
 

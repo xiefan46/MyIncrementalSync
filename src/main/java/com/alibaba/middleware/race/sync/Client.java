@@ -112,9 +112,9 @@ public class Client {
 	}
 
 	private void printResult(ByteBuf buf) {
-		//String str = new String(buf.array(), 0, buf.limit());
-		//logger.info("r:");
-		//logger.info(str);
+		String str = new String(buf.array(), 0, buf.limit());
+		logger.info("r:");
+		logger.info(str);
 		//generate md5
 		String md5 = MD5Token.getInstance().getLongToken(buf.array(), 0, buf.limit());
 		logger.info("Result file md5 : " + md5);

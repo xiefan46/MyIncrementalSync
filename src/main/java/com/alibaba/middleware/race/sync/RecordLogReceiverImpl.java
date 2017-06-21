@@ -3,7 +3,6 @@ package com.alibaba.middleware.race.sync;
 import java.util.Map;
 
 import com.alibaba.middleware.race.sync.model.ColumnLog;
-import com.alibaba.middleware.race.sync.model.Constants;
 import com.alibaba.middleware.race.sync.model.NumberColumnLog;
 import com.alibaba.middleware.race.sync.model.PrimaryColumnLog;
 import com.alibaba.middleware.race.sync.model.Record;

@@ -46,7 +46,7 @@ public class RecordUtil {
 		buffer.put(idCache, off + 1, LONG_LEN - off);
 		buffer.put(FIELD_SEPERATOR_BYTE);
 
-		short[] strCols = record.getStrCols();
+		Short[] strCols = record.getStrCols();
 		/*if (!p) {
 			p = true;
 			for (Map.Entry<ByteArray2, Short> entry : table.getColValueToId().entrySet()) {
@@ -66,7 +66,7 @@ public class RecordUtil {
 			buffer.put(FIELD_SEPERATOR_BYTE);
 		}
 
-		int[] numCols = record.getNumberCols();
+		Integer[] numCols = record.getNumberCols();
 		byte len = (byte) (numCols.length - 1);
 		for (byte i = 0; i < len; i++) {
 			byte[] bytes = (numCols[i] + "").getBytes();

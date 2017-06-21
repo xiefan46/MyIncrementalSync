@@ -92,4 +92,20 @@ public class Table {
 		this.colValueToId = colValueToId;
 	}
 
+
+	public byte getNumberColSize() {
+		return numberColSize;
+	}
+
+	public void setNumberColSize(byte numberColSize) {
+		this.numberColSize = numberColSize;
+	}
+
+	public byte getStrColSize() {
+		return strColSize;
+	}
+
+	public void setStrColSize(byte strColSize) {
+		this.strColSize = strColSize;
+	}
 }

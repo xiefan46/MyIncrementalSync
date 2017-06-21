@@ -39,7 +39,10 @@ public class ChannelReader2 {
 				if (buf.remaining() > 1) {
 					int off = codec.decode(readBuffer, tableSchema, offset, r);
 					buf.position(off + 1);
-					//logger.info("record : {}", new String(readBuffer, offset, off - offset));
+					/*
+					 * if (print(r)) logger.info("record : {}", new
+					 * String(readBuffer, offset, off - offset));
+					 */
 					return r;
 				}
 				return null;
@@ -49,9 +52,19 @@ public class ChannelReader2 {
 			return read(channel, tableSchema, r);
 		}
 		int off = codec.decode(readBuffer, tableSchema, offset, r);
-		//logger.info("record : {}", new String(readBuffer, offset, off - offset));
+		/*
+		 * if (print(r)) logger.info("record : {}", new String(readBuffer,
+		 * offset, off - offset));
+		 */
 		buf.position(off + 1);
 		return r;
+	}
+
+	private boolean print(RecordLog recordLog) {
+		if (recordLog.getPrimaryColumn().getBeforeValue() == 601
+				|| recordLog.getPrimaryColumn().getLongValue() == 601)
+			return true;
+		return false;
 	}
 
 }

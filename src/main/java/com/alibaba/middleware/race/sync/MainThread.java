@@ -29,7 +29,7 @@ public class MainThread {
 	}
 
 	private void execute1(Context context) throws Exception {
-		
+
 		long startTime = System.currentTimeMillis();
 
 		ReadChannel channels = initChannels2();
