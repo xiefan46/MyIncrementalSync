@@ -245,10 +245,12 @@ public class AllLog implements Constants {
 	}
 
 	public Map<Integer, Record> initMiddleMap(int startId, int endId, Table table) {
+		long start = System.currentTimeMillis();
 		Map<Integer, Record> middleMap = new HashMap<>();
 		for (int i = startId + 1; i < endId; i++) {
 			middleMap.put(i, table.newRecord());
 		}
+		logger.info("init middleware map cost time : {}", System.currentTimeMillis() - start);
 		return middleMap;
 	}
 
