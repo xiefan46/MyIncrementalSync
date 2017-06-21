@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
 import com.alibaba.middleware.race.sync.model.ColumnLog;
-import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.other.bytes.ByteArrayBuffer;
 import com.generallycloud.baseio.common.CloseUtil;
 
@@ -79,7 +78,7 @@ public class RecordUtil {
 		int all = 0;
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
 		for (int i = startId + 1; i < endId; i++) {
-			Record r = context.getRecord(i);
+			long [] r = context.getRecord(i);
 			if (r == null) {
 				continue;
 			}
@@ -88,7 +87,7 @@ public class RecordUtil {
 //						"Error alter type in result. Type : " + (char) r.getAlterType());
 //			}
 			all++;
-			RecordUtil.formatResultString(i, r.getColumns(), array);
+			RecordUtil.formatResultString(i, r, array);
 			buffer.write(array.array(), 0, array.position());
 		}
 		logger.info("result size:{}", all);

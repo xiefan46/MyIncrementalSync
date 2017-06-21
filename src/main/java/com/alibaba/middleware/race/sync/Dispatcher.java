@@ -3,7 +3,6 @@ package com.alibaba.middleware.race.sync;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
 
@@ -16,9 +15,11 @@ public class Dispatcher {
 
 	private int					threadNum;
 
-	private Map<Integer, Record>[]	recordMaps;
+	private Map<Integer, long []>[]	recordMaps;
 
 	private RecalculateThread[]		threads;
+	
+	private Map<Integer, Byte>		redirectMap	= new HashMap<>(1024 * 512);
 	
 	private Context context;
 
@@ -32,7 +33,7 @@ public class Dispatcher {
 		recordMaps = new Map[threadNum];
 		threads = new RecalculateThread[threadNum];
 		for (int i = 0; i < threadNum; i++) {
-			recordMaps[i] = new HashMap<>((int)(1024 * 1024 * ((8f / threadNum))));
+			recordMaps[i] = new HashMap<>((int)(1024 * 1024 * ((32f / threadNum))));
 		}
 		for (int i = 0; i < threadNum; i++) {
 			threads[i] = new RecalculateThread(context, table, recordMaps[i]);
@@ -42,22 +43,22 @@ public class Dispatcher {
 		}
 	}
 
-	public void dispatch(RecordLog recordLog) throws InterruptedException {
+	public void dispatch(RecordLog recordLog) {
 		int id = recordLog.getPrimaryColumn().getLongValue();
 		int oldId = recordLog.getPrimaryColumn().getBeforeValue();
-		if (id < 0) {
-			context.getReadRecordLogThread().getRecordLogEventProducer().publish(recordLog);
-			return;
-		}
 		if (recordLog.isPKUpdate()) {
-			threads[hashFun(oldId)].submit(recordLog);
+			Byte oldDirect = redirectMap.remove(oldId);
+			if (oldDirect == null) {
+				oldDirect = hashFun(oldId);
+			}
+			redirectMap.put(id, oldDirect);
+			threads[oldDirect].submit(recordLog);
 		} else {
-			threads[hashFun(id)].submit(recordLog);
+			Byte threadId = redirectMap.get(id);
+			if (threadId == null)
+				threadId = hashFun(id);
+			threads[threadId].submit(recordLog);
 		}
-	}
-
-	public void dispatch(int index, RecordLog recordLog) throws InterruptedException {
-		threads[index].submit(recordLog);
 	}
 
 	public void readRecordOver() {
@@ -66,16 +67,28 @@ public class Dispatcher {
 		}
 	}
 
-	public Record getRecord(int id) {
-		return recordMaps[hashFun(id)].get(id);
-
+	public long [] getRecord(int id) {
+		Byte b = redirectMap.get(id);
+		if (b == null) {
+			return recordMaps[hashFun(id)].get(id);
+		}
+		return recordMaps[b].get(id);
 	}
 
-	public int hashFun(int id) {
-		return id % threadNum;
+	public byte hashFun(int id) {
+		return (byte) (id % threadNum);
 	}
 
 	public void setTable(Table table) {
 		this.table = table;
 	}
+
+	public Map<Integer, long[]>[] getRecordMaps() {
+		return recordMaps;
+	}
+
+	public Map<Integer, Byte> getRedirectMap() {
+		return redirectMap;
+	}
+	
 }

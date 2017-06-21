@@ -7,7 +7,7 @@ import com.alibaba.middleware.race.sync.dis.RecordLogEvent;
 import com.alibaba.middleware.race.sync.dis.RecordLogEventFactory;
 import com.alibaba.middleware.race.sync.dis.RecordLogEventProducer;
 import com.alibaba.middleware.race.sync.model.ColumnLog;
-import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.model.PrimaryColumnLog;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
 import com.lmax.disruptor.BusySpinWaitStrategy;
@@ -21,27 +21,20 @@ import com.lmax.disruptor.dsl.ProducerType;
  */
 public class RecalculateThread implements Constants, EventHandler<RecordLogEvent> {
 
-	private Map<Integer, Record>		records;
+	private Map<Integer, long []>		records;
 
 	private Table					table;
-
-	private Context				context;
-
-	private Dispatcher				dispatcher;
 
 	private ReadRecordLogThread		readRecordLogThread;
 
 	private RecordLogEventProducer	eventProducer;
 	
 	private Disruptor<RecordLogEvent> disruptor;
+	
+	private Context				context;
 
-	private static final String		CAN_NOT_HANDLE	= "Can not handle this alter type";
-
-	private static final String		TYPE_NOT_EXIST	= "Type not exist";
-
-	public RecalculateThread(Context context, Table table, Map<Integer, Record> records) {
+	public RecalculateThread(Context context, Table table, Map<Integer, long []> records) {
 		this.context = context;
-		this.dispatcher = context.getDispatcher();
 		this.readRecordLogThread = context.getReadRecordLogThread();
 		this.table = table;
 		this.records = records;
@@ -79,10 +72,7 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 			Table table = this.table;
 			//			long startTime = System.currentTimeMillis();
 			RecordLog r = event.getRecordLog();
-			boolean res = received(table, r);
-			if (!res) {
-				return;
-			}
+			received(table, r);
 			readRecordLogThread.getRecordLogEventProducer().publish(r);
 			//			logger.info("线程 {} 重放完成, 耗时 : {}, 重放记录数 {}", Thread.currentThread().getId(),
 			//					System.currentTimeMillis() - startTime, count);
@@ -91,215 +81,45 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 		}
 	}
 
-	public void submit(RecordLog recordLog) throws InterruptedException {
+	public void submit(RecordLog recordLog) {
 		eventProducer.publish(recordLog);
 	}
 
-	public Map<Integer, Record> getRecords() {
+	public Map<Integer, long []> getRecords() {
 		return records;
 	}
 
-	public boolean received(Table table, RecordLog recordLog) throws Exception {
-		//logger.info("receive log.pk : {}", recordLog.getPrimaryColumn().getLongValue());
+	public void received(Table table, RecordLog recordLog) throws Exception {
+		Map<Integer, long[]> records = this.records;
+		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
+		Integer pk = pcl.getLongValue();
 		switch (recordLog.getAlterType()) {
-		case INSERT:
-			return handleInsert(table, recordLog);
-		case UPDATE:
-			return handleUpdate(recordLog);
-		case DELETE:
-			return handleDelete(recordLog);
-		case PK_UPDATE:
-			return handlePkUpdate(table, recordLog);
+		case Constants.UPDATE:
+			update(records.get(pk), recordLog);
+			break;
+		case Constants.PK_UPDATE:
+			Integer beforeValue = pcl.getBeforeValue();
+			long[] oldRecord = records.remove(beforeValue);
+			update(oldRecord, recordLog);
+			records.put(pk, oldRecord);
+			break;
+		case Constants.DELETE:
+			records.remove(pk);
+			break;
+		case Constants.INSERT:
+			records.put(pk, update(table.newRecord(), recordLog));
+			break;
 		default:
-			throw createTypeNotExistException(recordLog.getAlterType());
+			break;
 		}
 	}
 
-	private boolean handleInsert(Table table, RecordLog recordLog) throws Exception {
-		int pk = recordLog.getPrimaryColumn().getLongValue();
-		Record record = records.get(pk);
-		if (record == null) {
-			record = table.newRecord();
-			update(table, record, recordLog);
-			record.setAlterType(INSERT);
-			records.put(pk, record);
-			return true;
-		} else {
-			switch (record.getAlterType()) {
-			case INSERT:
-				throw createCanNotHandleException(recordLog, record);
-			case UPDATE:
-				update2(table, record, recordLog);
-				record.setAlterType(INSERT);
-				return true;
-			case DELETE:
-				records.remove(pk);
-				return true;
-			case PK_UPDATE:
-				update2(table, record, recordLog);
-				record.setAlterType(INSERT);
-				records.remove(pk);
-				return redirect(table, pk, record,recordLog);
-			default:
-				throw createTypeNotExistException(record.getAlterType());
-			}
-		}
-	}
-
-	private boolean handleUpdate(RecordLog recordLog) {
-		int pk = recordLog.getPrimaryColumn().getLongValue();
-		Record record = records.get(pk);
-		if (record == null) {
-			//throw new RuntimeException("Update not exist record." + "pk : " + pk);
-			record = table.newRecord();
-			update(table, record, recordLog);
-			record.setAlterType(UPDATE);
-			records.put(pk, record);
-			return true;
-		} else {
-			switch (record.getAlterType()) {
-			case INSERT:
-				update(table, record, recordLog);
-				return true;
-			case DELETE:
-				throw createCanNotHandleException(recordLog, record);
-			case PK_UPDATE:
-				throw createCanNotHandleException(recordLog, record);
-			case UPDATE:
-				update(table, record, recordLog);
-				return true;
-			default:
-				throw createTypeNotExistException(record.getAlterType());
-
-			}
-		}
-	}
-
-	private boolean handleDelete(RecordLog recordLog) {
-		int pk = recordLog.getPrimaryColumn().getLongValue();
-		Record record = records.get(pk);
-		if (record == null) {
-			record = table.newRecord();
-			record.setAlterType(DELETE);
-			records.put(pk, record);
-			return true;
-		} else {
-			switch (record.getAlterType()) {
-			case INSERT:
-				records.remove(pk); //有insert证明已经完成,可以删除
-				return true;
-			case UPDATE:
-				record.setAlterType(DELETE); //等待insert到来才能删除
-				return true;
-			case DELETE:
-				throw createCanNotHandleException(recordLog, record);
-			case PK_UPDATE:
-				throw createCanNotHandleException(recordLog, record);
-			default:
-				throw createTypeNotExistException(record.getAlterType());
-			}
-		}
-	}
-
-	private boolean handlePkUpdate(Table table, RecordLog recordLog) throws Exception {
-		int pkOld = recordLog.getPrimaryColumn().getBeforeValue();
-		Record recordOld = records.get(pkOld);
-		/*
-		 * if (ChannelReader2.print(recordLog)) {
-		 * logger.info("Record old null ? {}", recordOld == null); }
-		 */
-		if (recordOld == null) {
-			recordOld = table.newRecord();
-			recordOld.setAlterType(PK_UPDATE);
-			update(table, recordOld, recordLog);
-			recordOld.setNewId(recordLog.getPrimaryColumn().getLongValue());
-			records.put(pkOld, recordOld);
-			return true;
-		} else {
-			switch (recordOld.getAlterType()) {
-			case INSERT:
-				update(table, recordOld, recordLog);
-				recordOld.setAlterType(INSERT);
-				records.remove(pkOld);
-				recordOld.setNewId(recordLog.getPrimaryColumn().getLongValue());
-				return redirect(table, pkOld, recordOld,recordLog);
-			case UPDATE:
-				update(table, recordOld, recordLog);
-				recordOld.setAlterType(PK_UPDATE);
-				recordOld.setNewId(recordLog.getPrimaryColumn().getLongValue());
-				return true;
-			case DELETE:
-				throw createCanNotHandleException(recordLog, recordOld);
-			case PK_UPDATE:
-				throw createCanNotHandleException(recordLog, recordOld);
-			default:
-				throw createTypeNotExistException(recordOld.getAlterType());
-			}
-		}
-	}
-
-	private RuntimeException createTypeNotExistException(byte alterType) {
-		return new RuntimeException(TYPE_NOT_EXIST + " Type : " + (char) alterType);
-	}
-
-	private RuntimeException createCanNotHandleException(RecordLog recordLog, Record record) {
-		String errorMsg = CAN_NOT_HANDLE + " record type : " + (char) record.getAlterType()
-				+ " record log type : " + (char) recordLog.getAlterType()
-				+ " recordLog old pk : " + recordLog.getPrimaryColumn().getBeforeValue()
-				+ " recordLog new pk : " + recordLog.getPrimaryColumn().getLongValue()
-				+ " record new pk : " + record.getNewId();
-		return new RuntimeException(errorMsg);
-	}
-
-	private Record update(Table table, Record oldRecord, RecordLog recordLog) {
+	private long[] update(long[] oldRecord, RecordLog recordLog) {
 		for (int i = 0; i < recordLog.getEdit(); i++) {
 			ColumnLog c = recordLog.getColumn(i);
-			if (c.getValue() == 0) {
-				continue;
-			}
-			oldRecord.setColum(c.getName(), c.getValue());
+			oldRecord[c.getName()] = c.getValue();
 		}
 		return oldRecord;
-	}
-
-	private Record update2(Table table, Record oldRecord, RecordLog recordLog) {
-		for (int i = 0; i < recordLog.getEdit(); i++) {
-			ColumnLog c = recordLog.getColumn(i);
-			if (c.getValue() == 0) {
-				continue;
-			}
-			if (oldRecord.getColumns()[c.getName()] == 0) {
-				oldRecord.setColum(c.getName(), c.getValue()); //INSERT的优先级较低
-			}
-		}
-		return oldRecord;
-	}
-
-	private boolean redirect(Table table, int oldId, Record r, RecordLog recordLog) throws Exception {
-		if (r.getAlterType() != INSERT)
-			throw new RuntimeException(CAN_NOT_HANDLE);
-		int oldHash = dispatcher.hashFun(oldId);
-		int newHash = dispatcher.hashFun(r.getNewId());
-		if (oldHash != newHash) {
-			dispatcher.dispatch(newHash, createRecordLog(table, r, recordLog));
-			return false;
-		} else {
-			return received(table, createRecordLog(table, r, recordLog));
-		}
-	}
-
-	private RecordLog createRecordLog(Table table, Record r, RecordLog recordLog) {
-		recordLog.reset();
-		recordLog.getPrimaryColumn().setLongValue(r.getNewId());
-		recordLog.getPrimaryColumn().setBeforeValue(r.getNewId());
-		recordLog.setAlterType(r.getAlterType());
-		long[] columns = r.getColumns();
-		for (int i = 0; i < columns.length; i++) {
-			ColumnLog columnLog = recordLog.getColumn();
-			columnLog.setName(i);
-			columnLog.setValue(columns[i]);
-		}
-		return recordLog;
 	}
 
 }

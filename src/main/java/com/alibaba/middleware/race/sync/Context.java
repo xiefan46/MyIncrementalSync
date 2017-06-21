@@ -1,7 +1,6 @@
 package com.alibaba.middleware.race.sync;
 
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
-import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.Table;
 
 /**
@@ -26,7 +25,7 @@ public class Context {
 
 	private Dispatcher			dispatcher		= new Dispatcher(this);
 	
-	private int 				ringBufferSize		= (int) (1024 * 1024 * 1);
+	private int 				ringBufferSize		= (int) (1024 * 1024 * 4);
 
 	public Context(long endId, long startId, String tableSchema) {
 		this.endId = endId;
@@ -83,7 +82,7 @@ public class Context {
 		this.channel = channel;
 	}
 
-	public Record getRecord(int id) {
+	public long [] getRecord(int id) {
 		return dispatcher.getRecord(id);
 	}
 

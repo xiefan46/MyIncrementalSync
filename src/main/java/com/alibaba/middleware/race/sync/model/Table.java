@@ -16,8 +16,8 @@ public class Table {
 
 	private int					columnSize;
 
-	public Record newRecord() {
-		return new Record(columnSize);
+	public long [] newRecord() {
+		return new long [columnSize];
 	}
 
 	public int getIndex(ByteArray2 array) {
