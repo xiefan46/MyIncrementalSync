@@ -37,4 +37,14 @@ public interface Constants {
 
 	boolean	COLLECT_STAT		= true;
 
+	byte		DELETE	= 'D';
+
+	byte		UPDATE	= 'U';
+
+	byte		INSERT	= 'I';
+	/**
+	 * 变更信息中不同列之间的分隔符
+	 */
+	String	SEP		= "|";
+
 }

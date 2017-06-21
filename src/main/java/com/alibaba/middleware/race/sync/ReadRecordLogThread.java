@@ -21,9 +21,11 @@ public class ReadRecordLogThread implements Runnable {
 		this.context = context;
 	}
 
-	private int	recordScan	= 0;
+	private int		recordScan	= 0;
 
-	private int	recordDeal	= 0;
+	private int		recordDeal	= 0;
+
+	private Dispatcher	dispatcher	= new Dispatcher(1);
 
 	@Override
 	public void run() {
@@ -53,7 +55,7 @@ public class ReadRecordLogThread implements Runnable {
 		RecordLog r = new RecordLog();
 
 		r.newColumns();
-
+		long start = System.currentTimeMillis();
 		for (; channel.hasBufRemaining();) {
 
 			channelReader.read(channel, tableSchemaBytes, r);
@@ -68,8 +70,11 @@ public class ReadRecordLogThread implements Runnable {
 			Table table = RecordLogCodec2.get().getTable();
 			RecordLogCodec2.get().setTableInit(true);
 			context.setTable(table);
-
-			receiver.received(context, r);
+			dispatcher.start(context.getTable());
+			dispatcher.dispatch(r);
+			r = new RecordLog();
+			r.newColumns();
+			//receiver.received(context, r);
 
 			break;
 		}
@@ -87,8 +92,16 @@ public class ReadRecordLogThread implements Runnable {
 				logger.info("record deal : {}", recordDeal);
 
 			}
-			receiver.received(context, r);
+			dispatcher.dispatch(r);
+			r = new RecordLog();
+			r.newColumns();
+			//receiver.received(context, r);
 		}
+
+		logger.info("读取并分发所有记录耗时 : {} ",System.currentTimeMillis() - start );
+
+		dispatcher.readRecordOver();
+		dispatcher.waitForOk(context);
 
 		logger.info("diff value size :  " + context.getTable().getColValueToId().size());
 

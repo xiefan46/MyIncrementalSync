@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.sync.model;
 
+import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
