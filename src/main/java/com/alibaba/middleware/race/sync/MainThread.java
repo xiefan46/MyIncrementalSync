@@ -46,7 +46,7 @@ public class MainThread {
 
 	private ReadChannel initChannels2() throws IOException {
 		File root = new File(Constants.DATA_HOME);
-		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 9,
+		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 10,
 				1024 * 256);
 	}
 
