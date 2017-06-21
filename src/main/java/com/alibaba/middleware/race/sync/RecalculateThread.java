@@ -1,91 +1,73 @@
 package com.alibaba.middleware.race.sync;
 
 import java.util.Map;
-import java.util.concurrent.ThreadFactory;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.alibaba.middleware.race.sync.dis.RecordLogEvent;
-import com.alibaba.middleware.race.sync.dis.RecordLogEventFactory;
-import com.alibaba.middleware.race.sync.dis.RecordLogEventProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.middleware.race.sync.model.ColumnLog;
 import com.alibaba.middleware.race.sync.model.PrimaryColumnLog;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
-import com.lmax.disruptor.BusySpinWaitStrategy;
-import com.lmax.disruptor.EventHandler;
-import com.lmax.disruptor.RingBuffer;
-import com.lmax.disruptor.dsl.Disruptor;
-import com.lmax.disruptor.dsl.ProducerType;
 
 /**
  * Created by xiefan on 6/16/17.
  */
-public class RecalculateThread implements Constants, EventHandler<RecordLogEvent> {
+public class RecalculateThread extends Thread implements Constants {
 
-	private Map<Integer, long []>		records;
+	private Map<Integer, long[]>	records;
 
-	private Table					table;
+	private Table				table;
 
-	private ReadRecordLogThread		readRecordLogThread;
+	private volatile boolean		running	= true;
 
-	private RecordLogEventProducer	eventProducer;
-	
-	private Disruptor<RecordLogEvent> disruptor;
-	
-	private Context				context;
+	private Queue<RecordLog>		logs		= new ConcurrentLinkedQueue<>();
 
-	public RecalculateThread(Context context, Table table, Map<Integer, long []> records) {
+	private Context			context;
+
+	private static Logger		logger	= LoggerFactory.getLogger(RecalculateThread.class);
+
+	public RecalculateThread(Context context, Table table, Map<Integer, long[]> records,int i) {
+		super("recal-"+i);
 		this.context = context;
-		this.readRecordLogThread = context.getReadRecordLogThread();
 		this.table = table;
 		this.records = records;
 	}
 
-	public void startup(final int i,int ringBufferSize) {
-
-		RecordLogEventFactory factory = new RecordLogEventFactory();
-
-		ThreadFactory threadFactory = new ThreadFactory() {
-			@Override
-			public Thread newThread(Runnable r) {
-				return new Thread(r, "recalculate" + i);
-			}
-		};
-
-		disruptor = new Disruptor<>(factory,
-				ringBufferSize, threadFactory, ProducerType.SINGLE,
-				new BusySpinWaitStrategy());
-
-		disruptor.handleEventsWith(this);
-
-		RingBuffer<RecordLogEvent> ringBuffer = disruptor.start();
-
-		eventProducer = new RecordLogEventProducer(ringBuffer);
-	}
-	
-	public void stop(){
-		disruptor.shutdown();
+	public void stopThread() {
+		running = false;
 	}
 
 	@Override
-	public void onEvent(RecordLogEvent event, long sequence, boolean endOfBatch) throws Exception {
+	public void run() {
 		try {
 			Table table = this.table;
-			//			long startTime = System.currentTimeMillis();
-			RecordLog r = event.getRecordLog();
-			received(table, r);
-			readRecordLogThread.getRecordLogEventProducer().publish(r);
-			//			logger.info("线程 {} 重放完成, 耗时 : {}, 重放记录数 {}", Thread.currentThread().getId(),
-			//					System.currentTimeMillis() - startTime, count);
+			long startTime = System.currentTimeMillis();
+			Queue<RecordLog> logs = this.logs;
+			for (;;) {
+				RecordLog r = logs.poll();
+				if (r == null) {
+					if (!running) {
+						break;
+					}
+					continue;
+				}
+				received(table, r);
+			}
+			logger.info("线程 {} 重放完成, 耗时 : {}, 重放记录数 {}", Thread.currentThread().getId(),
+					System.currentTimeMillis() - startTime);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	public void submit(RecordLog recordLog) {
-		eventProducer.publish(recordLog);
+		logs.offer(recordLog);
 	}
 
-	public Map<Integer, long []> getRecords() {
+	public Map<Integer, long[]> getRecords() {
 		return records;
 	}
 

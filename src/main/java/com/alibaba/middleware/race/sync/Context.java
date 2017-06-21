@@ -31,6 +31,7 @@ public class Context {
 		this.endId = endId;
 		this.startId = startId;
 		this.tableSchema = tableSchema;
+		setTable(Table.newOnline());
 	}
 
 	public String getTableSchema() {

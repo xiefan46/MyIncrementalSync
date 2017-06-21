@@ -36,10 +36,10 @@ public class Dispatcher {
 			recordMaps[i] = new HashMap<>((int)(1024 * 1024 * ((32f / threadNum))));
 		}
 		for (int i = 0; i < threadNum; i++) {
-			threads[i] = new RecalculateThread(context, table, recordMaps[i]);
+			threads[i] = new RecalculateThread(context, table, recordMaps[i],i);
 		}
 		for (int i = 0; i < threadNum; i++) {
-			threads[i].startup(i,(int) (context.getRingBufferSize() / threadNum));
+			threads[i].start();
 		}
 	}
 
@@ -63,7 +63,7 @@ public class Dispatcher {
 
 	public void readRecordOver() {
 		for (RecalculateThread thread : threads) {
-			thread.stop();
+			thread.stopThread();
 		}
 	}
 
