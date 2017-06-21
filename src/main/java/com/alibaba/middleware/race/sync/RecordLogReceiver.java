@@ -8,6 +8,6 @@ import com.alibaba.middleware.race.sync.model.RecordLog;
  */
 public interface RecordLogReceiver {
 
-	void received(RecalculateContext context, RecordLog record) throws Exception;
+	void received(Context context, RecordLog record) throws Exception;
 
 }

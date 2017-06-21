@@ -4,8 +4,11 @@ import java.util.Map;
 
 import com.alibaba.middleware.race.sync.model.ColumnLog;
 import com.alibaba.middleware.race.sync.model.Constants;
+import com.alibaba.middleware.race.sync.model.NumberColumnLog;
 import com.alibaba.middleware.race.sync.model.PrimaryColumnLog;
+import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.RecordLog;
+import com.alibaba.middleware.race.sync.model.StringColumnLog;
 import com.alibaba.middleware.race.sync.model.Table;
 
 /**
@@ -14,16 +17,16 @@ import com.alibaba.middleware.race.sync.model.Table;
 public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	@Override
-	public void received(RecalculateContext context, RecordLog recordLog) throws Exception {
-		Map<Long, short[]> records = context.getRecords();
+	public void received(Context context, RecordLog recordLog) throws Exception {
+		Map<Integer, Record> records = context.getRecords();
 		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
 		Table table = context.getTable();
-		Long pk = pcl.getLongValue();
+		Integer pk = pcl.getLongValue();
 		switch (recordLog.getAlterType()) {
 		case Constants.UPDATE:
 			if (pcl.isPkChange()) {
-				Long beforeValue = pcl.getBeforeValue();
-				short[] oldRecord = records.remove(beforeValue);
+				Integer beforeValue = pcl.getBeforeValue();
+				Record oldRecord = records.remove(beforeValue);
 				update(table, oldRecord, recordLog);
 				records.put(pk, oldRecord);
 				break;
@@ -41,9 +44,17 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 		}
 	}
 
-	private short[] update(Table table, short[] oldRecord, RecordLog recordLog) {
+	private Record update(Table table, Record oldRecord, RecordLog recordLog) {
 		for (ColumnLog c : recordLog.getColumns()) {
-			oldRecord[c.getNameIndex()] = c.getValue();
+			if (c.isNumberCol()) {
+				NumberColumnLog numberColumnLog = (NumberColumnLog) c;
+				oldRecord.getNumberCols()[numberColumnLog.getNameIndex()] = numberColumnLog
+						.getValue();
+			} else {
+				StringColumnLog stringColumnLog = (StringColumnLog) c;
+				oldRecord.getStrCols()[stringColumnLog.getNameIndex()] = stringColumnLog
+						.getId();
+			}
 
 		}
 		return oldRecord;

@@ -5,18 +5,28 @@ package com.alibaba.middleware.race.sync.model;
  */
 public class Record {
 
-	private byte[][] columns;
+	private short[] strCols;
 
-	public Record(int cols) {
-		this.columns = new byte[cols][];
+	private int[] numberCols;
+
+	public Record(int strCol,int numberCol) {
+		this.strCols = new short[strCol];
+		this.numberCols = new int[numberCol];
 	}
 
-	public void setColum(int index, byte[] data) {
-		columns[index] = data;
+	public short[] getStrCols() {
+		return strCols;
 	}
 
-	public byte[][] getColumns() {
-		return columns;
+	public void setStrCols(short[] strCols) {
+		this.strCols = strCols;
 	}
 
+	public int[] getNumberCols() {
+		return numberCols;
+	}
+
+	public void setNumberCols(int[] numberCols) {
+		this.numberCols = numberCols;
+	}
 }

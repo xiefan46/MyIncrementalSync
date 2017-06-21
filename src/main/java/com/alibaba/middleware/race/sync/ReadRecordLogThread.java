@@ -42,8 +42,6 @@ public class ReadRecordLogThread implements Runnable {
 
 		RecordLogReceiver receiver = context.getReceiver();
 
-		RecalculateContext recalculateContext = context.getRecalculateContext();
-
 		String tableSchema = context.getTableSchema();
 
 		byte[] tableSchemaBytes = tableSchema.getBytes();
@@ -71,7 +69,7 @@ public class ReadRecordLogThread implements Runnable {
 			RecordLogCodec2.get().setTableInit(true);
 			context.setTable(table);
 
-			receiver.received(recalculateContext, r);
+			receiver.received(context, r);
 
 			break;
 		}
@@ -89,12 +87,10 @@ public class ReadRecordLogThread implements Runnable {
 				logger.info("record deal : {}", recordDeal);
 
 			}
-			receiver.received(recalculateContext, r);
+			receiver.received(context, r);
 		}
 
-		logger.info("table diff col name : {} . diff col value {} ",
-				context.getTable().getColNameToId().size(),
-				context.getTable().getColValueToId().size());
+		logger.info("diff value size :  " + context.getTable().getColValueToId().size());
 
 	}
 

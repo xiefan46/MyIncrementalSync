@@ -6,12 +6,9 @@ package com.alibaba.middleware.race.sync.model;
  */
 public class ColumnLog {
 
+	private boolean isNumberCol;
 
 	private byte nameIndex;
-
-	private short value;
-
-
 
 	public byte getNameIndex() {
 		return nameIndex;
@@ -21,11 +18,11 @@ public class ColumnLog {
 		this.nameIndex = nameIndex;
 	}
 
-	public short getValue() {
-		return value;
+	public boolean isNumberCol() {
+		return isNumberCol;
 	}
 
-	public void setValue(short value) {
-		this.value = value;
+	public void setNumberCol(boolean numberCol) {
+		isNumberCol = numberCol;
 	}
 }

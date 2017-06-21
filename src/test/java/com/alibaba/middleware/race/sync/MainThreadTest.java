@@ -35,15 +35,14 @@ public class MainThreadTest {
 		String table = "student";
 		long startId = 600;
 		long endId = 700;
-		Context context = new Context(endId, recordLogReceiver, startId, (schema + "|" + table));
-		context.initialize();
+		Context context = new Context((int) endId, recordLogReceiver, (int) startId,
+				(schema + "|" + table));
 		MainThread mainThread = new MainThread();
 		mainThread.execute(context);
 
 		RecordUtil.writeResultToLocalFile(context,
 				Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME);
 	}
-
 
 	@After
 	public void after() throws Exception {

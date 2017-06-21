@@ -1,6 +1,10 @@
 package com.alibaba.middleware.race.sync;
 
+import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.Table;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author wangkai
@@ -8,17 +12,24 @@ import com.alibaba.middleware.race.sync.model.Table;
  */
 public class Context {
 
-	private long					endId;
+	private int					endId;
+
 	private RecordLogReceiver		receiver;
-	private long					startId;
+
+	private int					startId;
+
 	private String					tableSchema;
+
 	private boolean				executeByCoreProcesses	= false;
-	private RecalculateContext		recalculateContext;
+
 	private Table					table;
+
 	private int					availableProcessors		= Runtime.getRuntime()
 			.availableProcessors() - 2;
 
-	public Context(long endId, RecordLogReceiver receiver, long startId, String tableSchema) {
+	private Map<Integer, Record> records = new HashMap<>((int)(1024 * 256 * 1.5));
+
+	public Context(int endId, RecordLogReceiver receiver, int startId, String tableSchema) {
 		this.endId = endId;
 		this.receiver = receiver;
 		this.startId = startId;
@@ -33,9 +44,6 @@ public class Context {
 		return tableSchema;
 	}
 
-	public void initialize() {
-		recalculateContext = new RecalculateContext(this, getReceiver());
-	}
 
 	public void setReceiver(RecordLogReceiver receiver) {
 		this.receiver = receiver;
@@ -45,25 +53,22 @@ public class Context {
 		this.tableSchema = tableSchema;
 	}
 
-	public long getEndId() {
+	public int getEndId() {
 		return endId;
 	}
 
-	public void setEndId(long endId) {
+	public void setEndId(int endId) {
 		this.endId = endId;
 	}
 
-	public long getStartId() {
+	public int getStartId() {
 		return startId;
 	}
 
-	public void setStartId(long startId) {
+	public void setStartId(int startId) {
 		this.startId = startId;
 	}
 
-	public RecalculateContext getRecalculateContext() {
-		return recalculateContext;
-	}
 
 	public boolean isExecuteByCoreProcesses() {
 		return executeByCoreProcesses;
@@ -79,7 +84,13 @@ public class Context {
 
 	public void setTable(Table table) {
 		this.table = table;
-		this.recalculateContext.setTable(table);
 	}
-	
+
+	public Map<Integer, Record> getRecords() {
+		return records;
+	}
+
+	public void setRecords(Map<Integer, Record> records) {
+		this.records = records;
+	}
 }

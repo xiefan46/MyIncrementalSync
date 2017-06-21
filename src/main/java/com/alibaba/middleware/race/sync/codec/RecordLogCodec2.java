@@ -4,8 +4,10 @@ import java.util.List;
 
 import com.alibaba.middleware.race.sync.model.ColumnLog;
 import com.alibaba.middleware.race.sync.model.Constants;
+import com.alibaba.middleware.race.sync.model.NumberColumnLog;
 import com.alibaba.middleware.race.sync.model.PrimaryColumnLog;
 import com.alibaba.middleware.race.sync.model.RecordLog;
+import com.alibaba.middleware.race.sync.model.StringColumnLog;
 import com.alibaba.middleware.race.sync.model.Table;
 
 /**
@@ -72,10 +74,10 @@ public class RecordLogCodec2 {
 					//					c.setName(data, off, end - off);
 					off = end + U_D_SKIP;
 					end = findNextChar(data, off, '|');
-					c.setBeforeValue(parseLong(data, off, end));
+					c.setBeforeValue(parseInt(data, off, end));
 					off = end + 1;
 					end = findNextChar(data, off, '|');
-					c.setLongValue(parseLong(data, off, end));
+					c.setLongValue(parseInt(data, off, end));
 					//					c.setValue(data,off,end-off);
 					off = end + 1;
 					if (data[off] == '\n') {
@@ -83,15 +85,30 @@ public class RecordLogCodec2 {
 					}
 					continue;
 				}
-				ColumnLog c = new ColumnLog();
-
-				//c.setName(data, off, end - off);
-				c.setNameIndex(table.getColNameId(data, off, end - off));
-				off = end + U_D_SKIP;
-				end = findNextChar(data, off, '|');
-				off = end + 1;
-				end = findNextChar(data, off, '|');
-				c.setValue(table.getColValueId(data, off, end - off));
+				ColumnLog c;
+				if (data[end + 1] == '1') { //number col
+					NumberColumnLog numberColumnLog = new NumberColumnLog();
+					numberColumnLog
+							.setNameIndex(table.getColNameId(data, off, end - off, true));
+					numberColumnLog.setNumberCol(true);
+					off = end + U_D_SKIP;
+					end = findNextChar(data, off, '|');
+					off = end + 1;
+					end = findNextChar(data, off, '|');
+					numberColumnLog.setValue(parseInt(data, off, end));
+					c = numberColumnLog;
+				} else {
+					StringColumnLog stringColumnLog = new StringColumnLog();
+					stringColumnLog
+							.setNameIndex(table.getColNameId(data, off, end - off, false));
+					stringColumnLog.setNumberCol(false);
+					off = end + U_D_SKIP;
+					end = findNextChar(data, off, '|');
+					off = end + 1;
+					end = findNextChar(data, off, '|');
+					stringColumnLog.setId(table.getStrColValueId(data, off, end - off));
+					c = stringColumnLog;
+				}
 				columns.add(c);
 				off = end + 1;
 				if (data[off] == '\n') {
@@ -106,7 +123,7 @@ public class RecordLogCodec2 {
 			//			c.setName(data, off, end - off);
 			off = end + U_D_SKIP;
 			end = findNextChar(data, off, '|');
-			c.setLongValue(parseLong(data, off, end));
+			c.setLongValue(parseInt(data, off, end));
 			//			c.setValue(data,off,end-off);
 			return findNextChar(data, end, '\n');
 		}
@@ -119,20 +136,38 @@ public class RecordLogCodec2 {
 					//					c.setName(data, off, end - off);
 					off = end + I_SKIP;
 					end = findNextChar(data, off, '|');
-					c.setLongValue(parseLong(data, off, end));
+					c.setLongValue(parseInt(data, off, end));
 					//					c.setValue(data,off,end-off);
 					off = end + 1;
 					continue;
 				}
-				ColumnLog c = new ColumnLog();
-				if (!tableInit) {
-					table.addCol(data, off, end - off);
-				}
-				c.setNameIndex(table.getColNameId(data, off, end - off));
 
-				off = end + I_SKIP;
-				end = findNextChar(data, off, '|');
-				c.setValue(table.getColValueId(data, off, end - off));
+				ColumnLog c;
+				if (data[end + 1] == '1') { //number col
+					if (!tableInit) {
+						table.addCol(data, off, end - off, true);
+					}
+					NumberColumnLog numberColumnLog = new NumberColumnLog();
+					numberColumnLog
+							.setNameIndex(table.getColNameId(data, off, end - off, true));
+					numberColumnLog.setNumberCol(true);
+					off = end + I_SKIP;
+					end = findNextChar(data, off, '|');
+					numberColumnLog.setValue(parseInt(data, off, end));
+					c = numberColumnLog;
+				} else {
+					if (!tableInit) {
+						table.addCol(data, off, end - off, false);
+					}
+					StringColumnLog stringColumnLog = new StringColumnLog();
+					stringColumnLog
+							.setNameIndex(table.getColNameId(data, off, end - off, false));
+					stringColumnLog.setNumberCol(false);
+					off = end + I_SKIP;
+					end = findNextChar(data, off, '|');
+					stringColumnLog.setId(table.getStrColValueId(data, off, end - off));
+					c = stringColumnLog;
+				}
 				columns.add(c);
 				off = end + 1;
 				if (data[off] == '\n') {
@@ -154,6 +189,14 @@ public class RecordLogCodec2 {
 
 	private long parseLong(byte[] data, int offset, int end) {
 		long all = 0;
+		for (int i = offset; i < end; i++) {
+			all = all * 10 + (data[i] - 48);
+		}
+		return all;
+	}
+
+	private int parseInt(byte[] data, int offset, int end) {
+		int all = 0;
 		for (int i = offset; i < end; i++) {
 			all = all * 10 + (data[i] - 48);
 		}

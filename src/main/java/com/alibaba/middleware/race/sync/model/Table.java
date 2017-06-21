@@ -1,7 +1,9 @@
 package com.alibaba.middleware.race.sync.model;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.alibaba.middleware.race.sync.codec.ByteArray2;
 
@@ -11,45 +13,56 @@ import com.alibaba.middleware.race.sync.codec.ByteArray2;
  */
 public class Table {
 
-	private final ThreadLocal<ByteArray2>	arrayLocal	= new ThreadLocal<ByteArray2>() {
-													@Override
-													protected ByteArray2 initialValue() {
-														return new ByteArray2(null, 0,
-																0);
-													}
-												};
+	private final ThreadLocal<ByteArray2>	arrayLocal		= new ThreadLocal<ByteArray2>() {
+														@Override
+														protected ByteArray2 initialValue() {
+															return new ByteArray2(
+																	null, 0, 0);
+														}
+													};
 
-	private Map<ByteArray2, Byte>			colNameToId	= new HashMap<>();
+	private Map<ByteArray2, Byte>			strColNameIndex	= new HashMap<>();
 
-	private static short				globalId		= 0;
+	private Map<ByteArray2, Byte>			numberColNameIndex	= new HashMap<>();
 
-	private Map<ByteArray2, Short>		colValueToId	= new HashMap<>();
+	private static short				globalId			= 0;
 
-	private Map<Short, ByteArray2>		idToColValue	= new HashMap<>();
+	private Map<ByteArray2, Short>		colValueToId		= new HashMap<>();
 
-	private byte						colSize		= 0;
+	private Map<Short, ByteArray2>		idToColValue		= new HashMap<>();
+
+	private byte						colSize			= 0;
+
+	private byte						numberColSize		= 0;
+
+	private byte						strColSize		= 0;
 
 	public Table() {
 
 	}
 
-	public void addCol(byte[] buffer, int offset, int length) {
+	public void addCol(byte[] buffer, int offset, int length, boolean isNumber) {
 		byte[] bytes = new byte[length];
 		System.arraycopy(buffer, offset, bytes, 0, length);
 		ByteArray2 array = new ByteArray2(bytes, 0, bytes.length);
-		colNameToId.put(array, colSize++);
+		if (isNumber) {
+			numberColNameIndex.put(array, numberColSize++);
+		} else {
+			strColNameIndex.put(array, strColSize++);
+		}
 	}
 
-	public byte getColNameId(byte[] array, int offset, int length) {
+	public byte getColNameId(byte[] array, int offset, int length,boolean isNumber) {
 		ByteArray2 array2 = arrayLocal.get().reset(array, offset, length);
-		Byte id = colNameToId.get(array2);
+		Map<ByteArray2,Byte> map = isNumber ? numberColNameIndex : strColNameIndex;
+		Byte id = map.get(array2);
 		if (id == null) {
 			throw new RuntimeException("Fail to encode col name");
 		}
 		return id;
 	}
 
-	public short getColValueId(byte[] array, int offset, int length) {
+	public short getStrColValueId(byte[] array, int offset, int length) {
 		ByteArray2 array2 = arrayLocal.get().reset(array, offset, length);
 		Short id = colValueToId.get(array2);
 		if (id == null) {
@@ -62,24 +75,13 @@ public class Table {
 		return id;
 	}
 
-	public byte getColSize() {
-		return colSize;
-	}
 
 	public ByteArray2 getColArrayById(short id) {
 		return idToColValue.get(id);
 	}
 
-	public short[] newRecord() {
-		return new short[colSize];
-	}
-
-	public Map<ByteArray2, Byte> getColNameToId() {
-		return colNameToId;
-	}
-
-	public void setColNameToId(Map<ByteArray2, Byte> colNameToId) {
-		this.colNameToId = colNameToId;
+	public Record newRecord() {
+		return new Record(strColSize,numberColSize);
 	}
 
 	public Map<ByteArray2, Short> getColValueToId() {
@@ -89,4 +91,5 @@ public class Table {
 	public void setColValueToId(Map<ByteArray2, Short> colValueToId) {
 		this.colValueToId = colValueToId;
 	}
+
 }

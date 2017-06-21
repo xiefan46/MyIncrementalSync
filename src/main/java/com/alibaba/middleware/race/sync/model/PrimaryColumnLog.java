@@ -5,15 +5,15 @@ package com.alibaba.middleware.race.sync.model;
  */
 public class PrimaryColumnLog extends ColumnLog {
 
-	private long beforeValue;
+	private int beforeValue;
 	
-	private long value;
+	private int value;
 
-	public long getBeforeValue() {
+	public int getBeforeValue() {
 		return beforeValue;
 	}
 
-	public void setBeforeValue(long beforeValue) {
+	public void setBeforeValue(int beforeValue) {
 		this.beforeValue = beforeValue;
 	}
 
@@ -21,11 +21,11 @@ public class PrimaryColumnLog extends ColumnLog {
 		return getLongValue() != getBeforeValue();
 	}
 
-	public long getLongValue() {
+	public int getLongValue() {
 		return value;
 	}
 
-	public void setLongValue(long value) {
+	public void setLongValue(int value) {
 		this.value = value;
 	}
 
