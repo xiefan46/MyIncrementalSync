@@ -8,33 +8,68 @@ import com.alibaba.middleware.race.sync.codec.ByteArray2;
  */
 public class ColumnLog {
 
-	private ByteArray2		name = new ByteArray2(null, 0, 0);
+//	static ByteArrayCache byteArrayCache = ByteArrayCache.get();
+	
+	static ByteArray2 byteArray2 = new ByteArray2(null, 0, 0);
+	
+	private int	name;
 
-	private byte[]		value;
+	private long	value;
 
-	public void setName(byte[] bytes, int off, int len) {
-		this.name.reset(bytes, off, len);
+	public void setName(Table table,byte[] bytes, int off, int len) {
+		this.name = table.getIndex(byteArray2.reset(bytes, off, len));
+	}
+
+	public void setName(int name) {
+		this.name = name;
 	}
 
 	public void setValue(byte[] bytes, int off, int len) {
-		byte[] array = new byte[len];
-		System.arraycopy(bytes, off, array, 0, len);
-		this.value = array;
+		if (len > 7) {
+			throw new RuntimeException("len");
+		}
+		int end = off + len;
+		long res = 0;
+		for (int i = off; i < end; i++) {
+			res = (res << 8) | (bytes[i] & 0xff);
+		}
+		this.value = res|((len * 1l) << (8 * 7));
 	}
 
-	public ByteArray2 getName() {
+	public void setValue(long value) {
+		this.value = value;
+	}
+
+	public int getName() {
 		return name;
 	}
-
-	public byte[] getValue() {
+	
+	public long getValue() {
 		return value;
 	}
+
+	public static byte[] getByteValue(long value) {
+		long v = value;
+		int len = (int) (v >> (8 * 7));
+		byte [] res = new byte [len];
+		for (int i = len - 1; i >= 0; i--) {
+			res[i] = (byte) v;
+			v = v >> 8;
+		}
+		return res;
+	}
 	
-	public byte[] getNameByte(){
-		ByteArray2 name = this.name;
-		byte [] array = new byte[name.getLen()];
-		System.arraycopy(name.getArray(), name.getOff(), array, 0, name.getLen());
-		return array;
+	public static void main(String[] args) {
+		
+		
+		ColumnLog c = new ColumnLog();
+		
+		c.setValue("test".getBytes(), 0, 4);
+		
+		byte [] bb = getByteValue(c.getValue());
+		
+		System.out.println(new String(bb));
+		
 	}
 
 }

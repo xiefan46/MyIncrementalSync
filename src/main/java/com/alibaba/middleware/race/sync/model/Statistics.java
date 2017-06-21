@@ -1,11 +1,13 @@
 package com.alibaba.middleware.race.sync.model;
 
-import com.alibaba.middleware.race.sync.Server;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.alibaba.middleware.race.sync.Constants;
+import com.alibaba.middleware.race.sync.Server;
 
 /**
  * Created by xiefan on 6/7/17.

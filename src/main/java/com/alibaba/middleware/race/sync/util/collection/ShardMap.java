@@ -20,7 +20,7 @@ public class ShardMap<K,V> implements Map<K,V>{
         mapCapacity=capacity;
         mapList=new ArrayList<>();
         for(int i=0;i<shards;i++)
-            mapList.add(new HashMap<>(mapCapacity));
+            mapList.add(new MyHashMap<>(mapCapacity));
     }
 
     @Override

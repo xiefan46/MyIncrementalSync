@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.sync;
 
+import com.alibaba.middleware.race.sync.channel.ReadChannel;
 import com.alibaba.middleware.race.sync.model.Table;
 
 /**
@@ -12,6 +13,7 @@ public class Context {
 	private RecordLogReceiver		receiver;
 	private long					startId;
 	private String					tableSchema;
+	private ReadChannel				readChannel;
 	private boolean				executeByCoreProcesses	= false;
 	private RecalculateContext		recalculateContext;
 	private Table					table;
@@ -35,6 +37,7 @@ public class Context {
 
 	public void initialize() {
 		recalculateContext = new RecalculateContext(this, getReceiver());
+		setTable(Table.newOnline());
 	}
 
 	public void setReceiver(RecordLogReceiver receiver) {
@@ -76,10 +79,24 @@ public class Context {
 	public Table getTable() {
 		return table;
 	}
+	
+	public long [] getRecord(int id) {
+		return recalculateContext.getRecord(id);
+	}
 
 	public void setTable(Table table) {
 		this.table = table;
 		this.recalculateContext.setTable(table);
 	}
+
+	public ReadChannel getReadChannel() {
+		return readChannel;
+	}
+
+	public void setReadChannel(ReadChannel readChannel) {
+		this.readChannel = readChannel;
+	}
+	
+	
 	
 }

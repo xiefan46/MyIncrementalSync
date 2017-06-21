@@ -1,11 +1,10 @@
 package com.alibaba.middleware.race.sync.codec;
 
-import java.util.List;
-
+import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.model.ColumnLog;
-import com.alibaba.middleware.race.sync.model.Constants;
 import com.alibaba.middleware.race.sync.model.PrimaryColumnLog;
 import com.alibaba.middleware.race.sync.model.RecordLog;
+import com.alibaba.middleware.race.sync.model.Table;
 
 /**
  * @author wangkai
@@ -37,26 +36,17 @@ public class RecordLogCodec2 {
 		return true;
 	}
 
-	private ColumnLog getColumnLog(List<ColumnLog> cols,int index){
-		if (index >= cols.size()) {
-			cols.add(new ColumnLog());
-		}
-		return cols.get(index);
-	}
-	
-	public int decode(byte[] data,byte [] tableSchema, int offset,RecordLog r) {
+	public int decode(Table table,byte[] data,byte [] tableSchema, int offset,RecordLog r) {
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
 		off += TIME_SKIP;
 //		if (!compare(data, off + 1, tableSchema)) {
-//			return null;
+//			return findNextChar(data, offset + tableSchema.length, '\n');
 //		}
 		int end;
 		off = off + tableSchema.length + 2;
 		byte alterType = data[off];
 		r.setAlterType(alterType);
 		off += 2;
-		int cIndex = 0;
-		List<ColumnLog> columns = r.getColumns();
 		if (Constants.UPDATE == alterType) {
 			for (;;) {
 				end = findNextChar(data, off, ':');
@@ -71,14 +61,18 @@ public class RecordLogCodec2 {
 					c.setLongValue(parseLong(data, off, end));
 //					c.setValue(data,off,end-off);
 					off = end + 1;
+					if (c.isPkChange()) {
+						r.setAlterType(Constants.PK_UPDATE);
+					}
 					if (data[off] == '\n') {
 						return off;
 					}
 					continue;
 				}
-				ColumnLog c = getColumnLog(columns, cIndex++);
-				r.increamentEdit();
-				c.setName(data, off, end - off);
+				ColumnLog c = r.getColumn();
+//				r.increamentEdit();
+				c.setName(table,data, off, end - off);
+//				System.out.println(new String(c.getNameByte()));
 				off = end + U_D_SKIP;
 				end = findNextChar(data, off, '|');
 				off = end + 1;
@@ -115,9 +109,10 @@ public class RecordLogCodec2 {
 					off = end + 1;
 					continue;
 				}
-				ColumnLog c = getColumnLog(columns, cIndex++);
-				c.setName(data, off, end - off);
-				r.increamentEdit();
+				ColumnLog c = r.getColumn();
+				c.setName(table,data, off, end - off);
+//				System.out.println(new String(c.getNameByte()));
+//				r.increamentEdit();
 				off = end + I_SKIP;
 				end = findNextChar(data, off, '|');
 				c.setValue(data, off, end - off);

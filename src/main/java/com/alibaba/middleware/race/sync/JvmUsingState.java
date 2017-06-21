@@ -11,14 +11,16 @@ import com.generallycloud.baseio.common.ThreadUtil;
  */
 public class JvmUsingState implements Runnable {
 
-	private static final long		M		= 1024 * 1024;
+	private static final long	M		= 1024 * 1024;
 
-	private static Logger	logger	= LoggerFactory.getLogger(JvmUsingState.class);
+	private static Logger		logger	= LoggerFactory.getLogger(JvmUsingState.class);
 
 	@Override
 	public void run() {
-		ThreadUtil.sleep(15000);
-		print();
+		for (;;) {
+			ThreadUtil.sleep(4000);
+			print();
+		}
 	}
 
 	public static void print() {

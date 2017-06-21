@@ -32,11 +32,11 @@ public class MainThread {
 		
 		long startTime = System.currentTimeMillis();
 
-		ReadChannel channels = initChannels2();
+		ReadChannel channel = initChannels2();
+		
+		context.setReadChannel(channel);
 
-		ReadRecordLogContext readRecordLogContext = new ReadRecordLogContext(channels, context);
-
-		ReadRecordLogThread readRecordLogThread = new ReadRecordLogThread(readRecordLogContext);
+		ReadRecordLogThread readRecordLogThread = new ReadRecordLogThread(context);
 
 		readRecordLogThread.run();
 
@@ -46,7 +46,7 @@ public class MainThread {
 
 	private ReadChannel initChannels2() throws IOException {
 		File root = new File(Constants.DATA_HOME);
-		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 10,
+		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 9,
 				1024 * 256);
 	}
 

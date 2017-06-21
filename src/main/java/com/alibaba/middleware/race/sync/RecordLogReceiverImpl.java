@@ -1,10 +1,8 @@
 package com.alibaba.middleware.race.sync;
 
-import java.util.List;
 import java.util.Map;
 
 import com.alibaba.middleware.race.sync.model.ColumnLog;
-import com.alibaba.middleware.race.sync.model.Constants;
 import com.alibaba.middleware.race.sync.model.PrimaryColumnLog;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
@@ -16,20 +14,19 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	@Override
 	public void received(RecalculateContext context, RecordLog recordLog) throws Exception {
-		Map<Integer, byte[][]> records = context.getRecords();
+		Map<Integer, long[]> records = context.getRecords();
 		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
 		Table table = context.getTable();
 		Integer pk = pcl.getLongValue();
 		switch (recordLog.getAlterType()) {
 		case Constants.UPDATE:
-			if (pcl.isPkChange()) {
-				Integer beforeValue = pcl.getBeforeValue();
-				byte[][] oldRecord = records.remove(beforeValue);
-				update(table, oldRecord, recordLog);
-				records.put(pk, oldRecord);
-				break;
-			} 
 			update(table, records.get(pk), recordLog);
+			break;
+		case Constants.PK_UPDATE:
+			Integer beforeValue = pcl.getBeforeValue();
+			long[] oldRecord = records.remove(beforeValue);
+			update(table, oldRecord, recordLog);
+			records.put(pk, oldRecord);
 			break;
 		case Constants.DELETE:
 			records.remove(pk);
@@ -42,13 +39,11 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 		}
 	}
 
-	private byte[][] update(Table table, byte[][] oldRecord, RecordLog recordLog) {
-		List<ColumnLog> columnLogs = recordLog.getColumns();
+	private long[] update(Table table, long[] oldRecord, RecordLog recordLog) {
 		for (int i = 0; i < recordLog.getEdit(); i++) {
-			ColumnLog c = columnLogs.get(i);
-			oldRecord[table.getIndex1(c.getName())] = c.getValue();
+			ColumnLog c = recordLog.getColumn(i);
+			oldRecord[c.getName()] = c.getValue();
 		}
-		recordLog.resetEdit();
 		return oldRecord;
 	}
 

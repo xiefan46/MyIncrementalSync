@@ -36,7 +36,18 @@ public interface Constants {
 	String	RESULT_FILE_NAME	= "Result.rs";
 
 	boolean	COLLECT_STAT		= true;
-	
+
+	byte		DELETE			= 'D';
+
+	byte		UPDATE			= 'U';
+
+	byte		INSERT			= 'I';
+
+	byte		PK_UPDATE		= 'P';
+	/**
+	 * 变更信息中不同列之间的分隔符
+	 */
+	String	SEP				= "|";
 	boolean	ENABLE_COMPRESS	= false;
 	
 	int		RESULT_LENGTH		= 38334025;
