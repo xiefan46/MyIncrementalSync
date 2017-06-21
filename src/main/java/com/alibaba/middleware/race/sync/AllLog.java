@@ -30,7 +30,7 @@ public class AllLog implements Constants {
 	private int				scanCount	= 0;
 
 	public AllLog() {
-		this.buffer = ByteBuffer.allocate((int) (1.5 * 1024 * 1024 * 1024));
+		this.buffer = ByteBuffer.allocate(1024 * 1024 * 1024);
 	}
 
 	public void putRecord(RecordLog r) {
