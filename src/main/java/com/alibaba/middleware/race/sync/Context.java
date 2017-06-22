@@ -14,7 +14,6 @@ public class Context {
 
 	private int					endId;
 
-	private RecordLogReceiver		receiver;
 
 	private int					startId;
 
@@ -31,9 +30,8 @@ public class Context {
 	
 	private AllLog				allLog = new AllLog();
 
-	public Context(int endId, RecordLogReceiver receiver, int startId, String tableSchema) {
+	public Context(int endId,int startId, String tableSchema) {
 		this.endId = endId;
-		this.receiver = receiver;
 		this.startId = startId;
 		this.tableSchema = tableSchema;
 	}
@@ -43,17 +41,12 @@ public class Context {
 		allLog.init(table);
 	}
 
-	public RecordLogReceiver getReceiver() {
-		return receiver;
-	}
+
 
 	public String getTableSchema() {
 		return tableSchema;
 	}
 
-	public void setReceiver(RecordLogReceiver receiver) {
-		this.receiver = receiver;
-	}
 
 	public void setTableSchema(String tableSchema) {
 		this.tableSchema = tableSchema;

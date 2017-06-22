@@ -18,22 +18,23 @@ import com.generallycloud.baseio.common.LoggerFactory;
 public class AllLog {
 
 	private static final Logger	logger	= LoggerFactory.getLogger(AllLog.class);
-	
-	public static final byte INSERT = (byte) 0b00000000;
-	public static final byte UPDATE = (byte) 0b01000000;
-	public static final byte DELETE = (byte) 0b10000000;
-	public static final byte PK_UPDATE = (byte) 0b11000000;
 
-	ByteBuf buf;									//TODO off-heap
-	
-	private byte		INSERT_HEADER;
+	public static final byte		INSERT	= (byte) 0b00000000;
+	public static final byte		UPDATE	= (byte) 0b01000000;
+	public static final byte		DELETE	= (byte) 0b10000000;
+	public static final byte		PK_UPDATE	= (byte) 0b11000000;
 
-	private int		scanCount	= 0;
-	
-	public void init(Table table){
+	ByteBuf					buf;										//TODO off-heap
+
+	private byte				INSERT_HEADER;
+
+	private int				scanCount	= 0;
+
+	public void init(Table table) {
 		long old = System.currentTimeMillis();
-		this.buf = UnpooledByteBufAllocator.getHeapInstance().allocate((int) (1024 * 1024 * 1024 * 1.2));
-		logger.info("申请1G内存耗时:{}",(System.currentTimeMillis() - old));
+		this.buf = UnpooledByteBufAllocator.getHeapInstance()
+				.allocate((int) (1.1 * 1024 * 1024 * 1024));
+		logger.info("申请1G内存耗时:{}", (System.currentTimeMillis() - old));
 		INSERT_HEADER = (byte) (4 + table.getColumnSize());
 	}
 
@@ -96,7 +97,7 @@ public class AllLog {
 		while (end != 0) {
 			scanCount++;
 			byte h = buf.getByte(--end);
-			byte alterType = (byte) (h & 0b11000000); 
+			byte alterType = (byte) (h & 0b11000000);
 			int len = (h & 0b00111111);
 			int pk;
 			int off;
@@ -116,7 +117,7 @@ public class AllLog {
 					}
 					for (int i = 0; i < cols; i++) {
 						byte l = buf.getByte();
-						if(r.getColumn(i) == 0){
+						if (r.getColumn(i) == 0) {
 							r.setColumn(buf.position(), l, i);
 							r.countDown();
 						}
@@ -129,7 +130,7 @@ public class AllLog {
 					} else {
 						resultMap.put(pk, r);
 					}
-					
+
 				}
 				break;
 			case UPDATE:
@@ -155,11 +156,16 @@ public class AllLog {
 					if (r.isDelete()) {
 						middleMap.remove(pk);
 						middleMap.put(oldPk, r);
-					}else{
-						middleMap.remove(oldPk);
+					} else {
+						//middleMap.remove(oldPk);
+						if (r.getFinalPk() == null) {
+							r.setFinalPk(pk);
+						}
+						middleMap.remove(pk);
+						middleMap.put(oldPk, r);
 						update(buf, r, middleMap, resultMap, pk);
 					}
-				}else{
+				} else {
 					middleMap.remove(oldPk);
 				}
 				break;
@@ -184,15 +190,15 @@ public class AllLog {
 		}
 		return resultMap;
 	}
-	
-	private void update(ByteBuf buf,Record r,Map<Integer, Record> middleMap
-			,Map<Integer, Record> resultMap,Integer pk){
-		
-		for (;buf.hasRemaining(); ) {
+
+	private void update(ByteBuf buf, Record r, Map<Integer, Record> middleMap,
+			Map<Integer, Record> resultMap, Integer pk) {
+
+		for (; buf.hasRemaining();) {
 			byte ch = buf.getByte();
 			byte name = (byte) ((ch & 0xff) >> 4);
 			byte l = (byte) (ch & 0b00001111);
-			if(r.getColumn(name) == 0){
+			if (r.getColumn(name) == 0) {
 				r.setColumn(buf.position(), l, name);
 				r.countDown();
 			}
@@ -206,12 +212,11 @@ public class AllLog {
 				resultMap.put(pk, r);
 			}
 			/*
-			 * if (resultCount == 0) {
-			 * logger.info("reverse 提前结束. 扫描条目 : " +
+			 * if (resultCount == 0) { logger.info("reverse 提前结束. 扫描条目 : " +
 			 * scanCount); return resultMap; }
 			 */
 		}
-		
+
 	}
 
 	public Map<Integer, Record> initMiddleMap(int startId, int endId, Table table) {

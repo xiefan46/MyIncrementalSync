@@ -87,7 +87,7 @@ public class Client {
 
 		context.setProtocolFactory(new FixedLengthProtocolFactory());
 
-		Thread.currentThread().sleep(5000);
+		Thread.currentThread().sleep(3000);
 
 		connector.connect();
 	}

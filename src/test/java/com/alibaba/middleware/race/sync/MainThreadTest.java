@@ -30,13 +30,11 @@ public class MainThreadTest {
 	@Test
 	public void testBasic() throws Exception {
 		//		ThreadUtil.execute(new PageCacheHelper());
-		RecordLogReceiver recordLogReceiver = new RecordLogReceiverImpl();
 		String schema = "middleware3";
 		String table = "student";
 		long startId = 600;
 		long endId = 700;
-		Context context = new Context((int) endId, recordLogReceiver, (int) startId,
-				(schema + "|" + table));
+		Context context = new Context((int) endId, (int) startId, (schema + "|" + table));
 		MainThread mainThread = new MainThread();
 		mainThread.execute(context);
 
