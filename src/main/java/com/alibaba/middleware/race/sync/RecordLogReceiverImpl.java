@@ -8,6 +8,7 @@ import com.alibaba.middleware.race.sync.model.Constants;
 import com.alibaba.middleware.race.sync.model.PrimaryColumnLog;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
 /**
  * Created by xiefan on 6/4/17.
@@ -16,7 +17,8 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	@Override
 	public void received(RecalculateContext context, RecordLog recordLog) throws Exception {
-		Map<Integer, byte[][]> records = context.getRecords();
+		//Map<Integer, byte[][]> records = context.getRecords();
+		Int2ObjectMap<byte[][]> records =context.getFastRecords();
 		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
 		Table table = context.getTable();
 		Integer pk = pcl.getLongValue();

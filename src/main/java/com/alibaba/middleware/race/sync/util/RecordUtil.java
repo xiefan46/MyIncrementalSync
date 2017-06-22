@@ -71,7 +71,8 @@ public class RecordUtil {
 		RecalculateContext rContext = context.getRecalculateContext();
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
 		for (int i = startId + 1; i < endId; i++) {
-			byte [][] r = rContext.getRecords().get(i);
+			//byte [][] r = rContext.getRecords().get(i);
+			byte [][] r = rContext.getFastRecords().get(i);
 			if (r == null) {
 				continue;
 			}
