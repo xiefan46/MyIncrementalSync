@@ -129,7 +129,7 @@ public class Server {
 
 	private void execute(long endId, RecordLogReceiver receiver, long startId, String tableSchema) throws Exception {
 
-		Context context = new Context(endId, receiver, startId, tableSchema);
+		Context context = new Context( receiver,endId, startId);
 
 		context.initialize();
 

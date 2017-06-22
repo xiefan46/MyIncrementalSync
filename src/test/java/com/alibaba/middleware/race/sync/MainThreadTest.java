@@ -38,7 +38,7 @@ public class MainThreadTest {
 		long startId = 600;
 		long endId = 700;
 		ThreadUtil.execute(new JvmUsingState());
-		Context context = new Context(endId, recordLogReceiver , startId, (schema + "|" + table));
+		Context context = new Context( recordLogReceiver ,endId, startId);
 		context.initialize();
 		MainThread mainThread = new MainThread();
 		mainThread.execute(context);

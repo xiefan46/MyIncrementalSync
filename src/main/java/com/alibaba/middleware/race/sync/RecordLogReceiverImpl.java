@@ -13,10 +13,8 @@ import com.alibaba.middleware.race.sync.model.Table;
 public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	@Override
-	public void received(RecalculateContext context, RecordLog recordLog) throws Exception {
-		Map<Integer, long[]> records = context.getRecords();
+	public void received(Table table,Map<Integer, long[]> records, RecordLog recordLog) throws Exception {
 		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
-		Table table = context.getTable();
 		Integer pk = pcl.getLongValue();
 		switch (recordLog.getAlterType()) {
 		case Constants.UPDATE:
@@ -37,6 +35,12 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 		default:
 			break;
 		}
+	}
+	
+	@Override
+	public void receivedFinal(Table table, Map<Integer, long[]> records,
+			Map<Integer, long[]> records2) throws Exception {
+		throw new UnsupportedOperationException();
 	}
 
 	private long[] update(Table table, long[] oldRecord, RecordLog recordLog) {

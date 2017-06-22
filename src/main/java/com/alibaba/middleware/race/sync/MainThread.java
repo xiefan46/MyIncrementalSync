@@ -7,6 +7,7 @@ import java.io.RandomAccessFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
 import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
 import com.alibaba.middleware.race.sync.channel.RAFInputStream;
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
@@ -32,11 +33,11 @@ public class MainThread {
 		
 		long startTime = System.currentTimeMillis();
 
-		ReadChannel channel = initChannels2();
-		
-		context.setReadChannel(channel);
+		context.setReadChannel(initChannels2());
 
-		ReadRecordLogThread readRecordLogThread = new ReadRecordLogThread(context);
+		ReaderThread readRecordLogThread = new ReaderThread(context);
+		
+		readRecordLogThread.init();
 
 		readRecordLogThread.run();
 
@@ -44,9 +45,9 @@ public class MainThread {
 		JvmUsingState.print();
 	}
 
-	private ReadChannel initChannels2() throws IOException {
+	private MuiltFileInputStream initChannels2() throws IOException {
 		File root = new File(Constants.DATA_HOME);
-		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 10,
+		return MuiltFileReadChannelSplitor.newInputStream(root.getAbsolutePath() + "/", 1, 10,
 				1024 * 256);
 	}
 

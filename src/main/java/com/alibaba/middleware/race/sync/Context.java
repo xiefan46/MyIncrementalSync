@@ -1,6 +1,6 @@
 package com.alibaba.middleware.race.sync;
 
-import com.alibaba.middleware.race.sync.channel.ReadChannel;
+import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
 import com.alibaba.middleware.race.sync.model.Table;
 
 /**
@@ -9,43 +9,31 @@ import com.alibaba.middleware.race.sync.model.Table;
  */
 public class Context {
 
-	private long					endId;
-	private RecordLogReceiver		receiver;
-	private long					startId;
-	private String					tableSchema;
-	private ReadChannel				readChannel;
-	private boolean				executeByCoreProcesses	= false;
-	private RecalculateContext		recalculateContext;
-	private Table					table;
-	private int					availableProcessors		= Runtime.getRuntime()
-			.availableProcessors() - 2;
+	private long				endId;
+	private RecordLogReceiver	receiver;
+	private long				startId;
+	private MuiltFileInputStream	readChannel;
+	private Table				table;
+	private ReaderThread		readerThread	= new ReaderThread(this);
+	private int				threadNum		= 2;
+	private int				blockSize		= 1024 * 1024 * 256;
 
-	public Context(long endId, RecordLogReceiver receiver, long startId, String tableSchema) {
+	public Context(RecordLogReceiver receiver, long endId, long startId) {
 		this.endId = endId;
 		this.receiver = receiver;
 		this.startId = startId;
-		this.tableSchema = tableSchema;
 	}
 
 	public RecordLogReceiver getReceiver() {
 		return receiver;
 	}
 
-	public String getTableSchema() {
-		return tableSchema;
-	}
-
 	public void initialize() {
-		recalculateContext = new RecalculateContext(this, getReceiver());
 		setTable(Table.newOnline());
 	}
 
 	public void setReceiver(RecordLogReceiver receiver) {
 		this.receiver = receiver;
-	}
-
-	public void setTableSchema(String tableSchema) {
-		this.tableSchema = tableSchema;
 	}
 
 	public long getEndId() {
@@ -64,39 +52,32 @@ public class Context {
 		this.startId = startId;
 	}
 
-	public RecalculateContext getRecalculateContext() {
-		return recalculateContext;
-	}
-
-	public boolean isExecuteByCoreProcesses() {
-		return executeByCoreProcesses;
-	}
-	
-	public int getAvailableProcessors() {
-		return availableProcessors;
-	}
-
 	public Table getTable() {
 		return table;
 	}
-	
-	public long [] getRecord(int id) {
-		return recalculateContext.getRecord(id);
+
+	public long[] getRecord(int id) {
+		return readerThread.getRecord(id);
 	}
 
 	public void setTable(Table table) {
 		this.table = table;
-		this.recalculateContext.setTable(table);
 	}
 
-	public ReadChannel getReadChannel() {
+	public MuiltFileInputStream getReadChannel() {
 		return readChannel;
 	}
 
-	public void setReadChannel(ReadChannel readChannel) {
+	public void setReadChannel(MuiltFileInputStream readChannel) {
 		this.readChannel = readChannel;
 	}
-	
-	
-	
+
+	public int getThreadNum() {
+		return threadNum;
+	}
+
+	public int getBlockSize() {
+		return blockSize;
+	}
+
 }

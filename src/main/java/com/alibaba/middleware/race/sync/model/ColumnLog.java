@@ -10,7 +10,7 @@ public class ColumnLog {
 
 //	static ByteArrayCache byteArrayCache = ByteArrayCache.get();
 	
-	static ByteArray2 byteArray2 = new ByteArray2(null, 0, 0);
+	private ByteArray2 byteArray2 = new ByteArray2(null, 0, 0);
 	
 	private int	name;
 
