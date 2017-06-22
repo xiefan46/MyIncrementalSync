@@ -14,6 +14,9 @@ public class KolobokeMapTest {
     @Test
     public void mapTest(){
 
+        Map<String, String> tickers = MyMap.withExpectedSize(10);
+        tickers.put("AAPL", "Apple, Inc.");
         //Int2ByteArrayMap
+        System.out.println("end");
     }
 }

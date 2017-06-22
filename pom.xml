@@ -50,6 +50,37 @@
             <artifactId>fastutil</artifactId>
             <version>6.5.15</version>
         </dependency>
+
+        <!-- HPPC -->
+        <dependency>
+            <groupId>com.carrotsearch</groupId>
+            <artifactId>hppc</artifactId>
+            <version>0.6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.goldmansachs</groupId>
+            <artifactId>gs-collections</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2-mvstore</artifactId>
+            <version>1.4.190</version>
+        </dependency>
+        <dependency>
+            <groupId>com.koloboke</groupId>
+            <artifactId>koloboke-compile</artifactId>
+            <version>0.5.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.koloboke</groupId>
+            <!-- `jdk6-7` instead of `jdk8` if you use Java 6 or 7 -->
+            <artifactId>koloboke-impl-common-jdk6-7</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

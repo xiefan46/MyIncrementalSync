@@ -1,9 +1,13 @@
 package collection;
 
+import com.carrotsearch.hppc.IntObjectOpenHashMap;
+import com.gs.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStore;
 import org.junit.Test;
 import util.MockDataUtil;
 
@@ -27,8 +31,16 @@ public class FastutilMapTest {
     @Test
     public void fastUtilMapTest(){
         Random r=new Random();
-       //Int2ObjectMap<byte[][]> map=new Int2ObjectOpenHashMap();
-        Map<Integer,byte[][]> map=new HashMap();
+        //fastUtil
+       //Int2ObjectMap<byte[][]> map=new Int2ObjectOpenHashMap(delete*insertScale);
+        //hp pc
+        IntObjectOpenHashMap<byte[][]> map=new IntObjectOpenHashMap<>(delete*insertScale);
+        //gs map
+       // IntObjectHashMap<byte[][]> map=new IntObjectHashMap<>(delete*insertScale);
+        //kolokobe
+        //Map<Integer,byte[][]> map = MyMap.withExpectedSize(delete*insertScale);
+        //jdk hashMap
+        //Map<Integer,byte[][]> map=new HashMap();
         long t1=System.currentTimeMillis();
        for(int i=0;i<delete;i++){
           for(int j=0;j<insertScale;j++){
