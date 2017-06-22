@@ -1,69 +1,33 @@
 package com.alibaba.middleware.race.sync.model;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
+import com.generallycloud.baseio.buffer.ByteBuf;
 
 /**
- * Created by xiefan on 6/5/17.
+ * Created by xiefan on 6/23/17.
  */
 public class Block {
+    private int id;
 
-	int				fileOffset;
+    private ByteBuf data;
 
-	RandomAccessFile	raf;
+    public Block(int id, ByteBuf data) {
+        this.id = id;
+        this.data = data;
+    }
 
-	long				start;
+    public int getId() {
+        return id;
+    }
 
-	long				end;
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	public Block(int fileOffset, RandomAccessFile raf, long start, long end) {
-		this.fileOffset = fileOffset;
-		this.raf = raf;
-		this.start = start;
-		this.end = end;
-	}
+    public ByteBuf getData() {
+        return data;
+    }
 
-	public MappedByteBuffer getReadOnlyMbb() throws IOException {
-		MappedByteBuffer mbb;
-		return raf.getChannel().map(FileChannel.MapMode.READ_ONLY, start, end - start + 1);
-	}
-
-	@Override
-	public String toString() {
-		return "file offset : " + fileOffset + " start : " + start + " end : " + end;
-	}
-
-	public int getFileOffset() {
-		return fileOffset;
-	}
-
-	public void setFileOffset(int fileOffset) {
-		this.fileOffset = fileOffset;
-	}
-
-	public RandomAccessFile getRaf() {
-		return raf;
-	}
-
-	public void setRaf(RandomAccessFile raf) {
-		this.raf = raf;
-	}
-
-	public long getStart() {
-		return start;
-	}
-
-	public void setStart(long start) {
-		this.start = start;
-	}
-
-	public long getEnd() {
-		return end;
-	}
-
-	public void setEnd(long end) {
-		this.end = end;
-	}
+    public void setData(ByteBuf data) {
+        this.data = data;
+    }
 }

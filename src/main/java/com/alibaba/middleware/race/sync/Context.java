@@ -56,10 +56,6 @@ public class Context {
 		return table;
 	}
 
-	public long[] getRecord(int id) {
-		return readerThread.getRecord(id);
-	}
-
 	public void setTable(Table table) {
 		this.table = table;
 	}
@@ -80,4 +76,7 @@ public class Context {
 		return blockSize;
 	}
 
+	public long[] getRecord(int i) {
+		return null;
+	}
 }
