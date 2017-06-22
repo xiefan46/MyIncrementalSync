@@ -1,14 +1,13 @@
-package test.sync;
+package com.alibaba.middleware.race.sync;
 
 import java.io.File;
 import java.io.RandomAccessFile;
 
-import com.alibaba.middleware.race.sync.ChannelReader2;
-import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.channel.RAFInputStream;
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
 import com.alibaba.middleware.race.sync.channel.SimpleReadChannel;
 import com.alibaba.middleware.race.sync.model.RecordLog;
+import com.alibaba.middleware.race.sync.model.Table;
 
 /**
  * @author wangkai
@@ -33,18 +32,20 @@ public class TestRecordLogCodec {
 
 		int all = 0;
 		
+		Table table = Table.newOffline();
+		
 		long old = System.currentTimeMillis();
 		
 		RecordLog r = new RecordLog();
-		r.newColumns();
+		r.newColumns(8);
 		
 		for (; channel.hasBufRemaining();) {
-			
-			reader.read(channel, cs,r);
+			reader.read(table, channel, cs, r);
 			if (r == null) {
 //				System.out.println("------------------");
 				continue;
 			}
+			r.reset();
 			all++;
 //			System.out.println(JSONObject.toJSONString(r));
 		}

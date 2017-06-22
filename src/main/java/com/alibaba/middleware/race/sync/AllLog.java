@@ -1,80 +1,88 @@
 package com.alibaba.middleware.race.sync;
 
-import com.alibaba.middleware.race.sync.log.DeleteLog;
-import com.alibaba.middleware.race.sync.log.InsertLog;
-import com.alibaba.middleware.race.sync.log.NumberUpdate;
-import com.alibaba.middleware.race.sync.log.PKUpdate;
-import com.alibaba.middleware.race.sync.log.StringUpdate;
-import com.alibaba.middleware.race.sync.model.ColumnLog;
-import com.alibaba.middleware.race.sync.model.NumberColumnLog;
-import com.alibaba.middleware.race.sync.model.Record;
-import com.alibaba.middleware.race.sync.model.RecordLog;
-import com.alibaba.middleware.race.sync.model.StringColumnLog;
-import com.alibaba.middleware.race.sync.model.Table;
-import com.generallycloud.baseio.common.Logger;
-import com.generallycloud.baseio.common.LoggerFactory;
-
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.alibaba.middleware.race.sync.model.ColumnLog;
+import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.model.RecordLog;
+import com.alibaba.middleware.race.sync.model.Table;
+import com.generallycloud.baseio.buffer.ByteBuf;
+import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
+import com.generallycloud.baseio.common.Logger;
+import com.generallycloud.baseio.common.LoggerFactory;
 
 /**
  * Created by xiefan on 6/21/17.
  */
-public class AllLog implements Constants {
+public class AllLog {
 
 	private static final Logger	logger	= LoggerFactory.getLogger(AllLog.class);
+	
+	public static final byte INSERT = (byte) 0b00000000;
+	public static final byte UPDATE = (byte) 0b01000000;
+	public static final byte DELETE = (byte) 0b10000000;
+	public static final byte PK_UPDATE = (byte) 0b11000000;
 
-	ByteBuffer				buffer;									//todo off-heap
+	ByteBuf buf;									//TODO off-heap
+	
+	private byte		INSERT_HEADER;
 
-	private int				scanCount	= 0;
-
-	public AllLog() {
-		this.buffer = ByteBuffer.allocate(1024 * 1024 * 1024);
+	private int		scanCount	= 0;
+	
+	public void init(Table table){
+		long old = System.currentTimeMillis();
+		this.buf = UnpooledByteBufAllocator.getHeapInstance().allocate((int) (1024 * 1024 * 1024 * 1.2));
+		logger.info("申请1G内存耗时:{}",(System.currentTimeMillis() - old));
+		INSERT_HEADER = (byte) (4 + table.getColumnSize());
 	}
 
 	public void putRecord(RecordLog r) {
+		ByteBuf buf = this.buf;
+		byte len;
 		switch (r.getAlterType()) {
 		case Constants.INSERT:
-			buffer.putInt(r.getPrimaryColumn().getLongValue());
-			for (ColumnLog columnLog : r.getColumns()) {
-				if (columnLog.isNumberCol()) {
-					buffer.putInt(((NumberColumnLog) columnLog).getValue());
-
-				} else {
-					buffer.putShort(((StringColumnLog) columnLog).getId());
-
-				}
+			buf.putInt(r.getPrimaryColumn().getLongValue());
+			len = INSERT_HEADER;
+			for (int i = 0; i < r.getEdit(); i++) {
+				ColumnLog c = r.getColumn(i);
+				byte l = c.getValueLen();
+				len += l;
+				buf.putByte(l);
+				buf.put(c.getValue(), c.getValueOff(), l);
 			}
-			buffer.put(INSERT);
+			buf.putByte((byte) (INSERT | len));
 			break;
 		case Constants.UPDATE:
-			if (r.isPKUpdate()) {
-				buffer.putInt(r.getPrimaryColumn().getLongValue());
-				buffer.putInt(r.getPrimaryColumn().getBeforeValue());
-				buffer.put(Constants.PK_UPDATE);
-
+			buf.putInt(r.getPrimaryColumn().getLongValue());
+			len = 4;
+			for (int i = 0; i < r.getEdit(); i++) {
+				ColumnLog c = r.getColumn(i);
+				byte l = c.getValueLen();
+				byte h = (byte) ((c.getName() << 4) | l);
+				len = (byte) (len + 1 + l);
+				buf.putByte(h);
+				buf.put(c.getValue(), c.getValueOff(), l);
 			}
-			for (ColumnLog columnLog : r.getColumns()) {
-				if (columnLog.isNumberCol()) {
-					NumberColumnLog numberColumnLog = (NumberColumnLog) columnLog;
-					buffer.putInt(r.getPrimaryColumn().getLongValue());
-					buffer.put(numberColumnLog.getNameIndex());
-					buffer.putInt(numberColumnLog.getValue());
-					buffer.put(Constants.NUMBER_UPDATE);
-
-				} else {
-					StringColumnLog stringColumnLog = (StringColumnLog) columnLog;
-					buffer.putInt(r.getPrimaryColumn().getLongValue());
-					buffer.put(stringColumnLog.getNameIndex());
-					buffer.putShort(stringColumnLog.getId());
-					buffer.put(Constants.STR_UPDATE);
-				}
+			buf.putByte((byte) (UPDATE | len));
+			break;
+		case Constants.PK_UPDATE:
+			buf.putInt(r.getPrimaryColumn().getBeforeValue());
+			buf.putInt(r.getPrimaryColumn().getLongValue());
+			len = 8;
+			for (int i = 0; i < r.getEdit(); i++) {
+				ColumnLog c = r.getColumn(i);
+				byte l = c.getValueLen();
+				byte h = (byte) ((c.getName() << 4) | l);
+				len = (byte) (len + 1 + l);
+				buf.putByte(h);
+				buf.put(c.getValue(), c.getValueOff(), l);
 			}
+			buf.putByte((byte) (PK_UPDATE | len));
 			break;
 		case Constants.DELETE:
-			buffer.putInt(r.getPrimaryColumn().getLongValue());
-			buffer.put(Constants.DELETE);
+			buf.putInt(r.getPrimaryColumn().getLongValue());
+			buf.putByte((byte) (DELETE | 4));
 			break;
 		}
 	}
@@ -82,166 +90,128 @@ public class AllLog implements Constants {
 	public Map<Integer, Record> reverseDeal(int startId, int endId, Table table) {
 		Map<Integer, Record> resultMap = new HashMap<>();
 		Map<Integer, Record> middleMap = initMiddleMap(startId, endId, table);
-		int end = buffer.position();
-		int resultCount = middleMap.size();
+		ByteBuf buf = this.buf;
+		int end = buf.position();
+		int cols = table.getColumnSize();
 		while (end != 0) {
 			scanCount++;
-			//System.out.println("end : " + end);
-			buffer.position(end - 1);
-			byte alterType = buffer.get();
+			byte h = buf.getByte(--end);
+			byte alterType = (byte) (h & 0b11000000); 
+			int len = (h & 0b00111111);
 			int pk;
+			int off;
 			Record r;
 			switch (alterType) {
 			case INSERT:
-				buffer.position(end - InsertLog.LEN);
-				pk = buffer.getInt();
+				off = end - len;
+				buf.position(off);
+				buf.limit(end);
+				end = off;
+				pk = buf.getInt();
 				r = middleMap.get(pk);
 				if (r != null) {
-					if (r.getAlterType() == DELETE) {
+					if (r.isDelete()) {
 						middleMap.remove(pk);
+						break;
+					}
+					for (int i = 0; i < cols; i++) {
+						byte l = buf.getByte();
+						if(r.getColumn(i) == 0){
+							r.setColumn(buf.position(), l, i);
+							r.countDown();
+						}
+						buf.position(buf.position() + l);
+					}
+					//遇到insert表示一定结束
+					middleMap.remove(pk);
+					if (r.getFinalPk() != null) {
+						resultMap.put(r.getFinalPk(), r);
 					} else {
-						for (int i = 0; i < table.getStrColSize(); i++) {
-							Short value = r.getStrCols()[i];
-							Short oldValue = buffer.getShort();
-							if (value == null) {
-								r.getStrCols()[i] = oldValue;
-								r.countDown();
-							}
-
-						}
-						for (int i = 0; i < table.getNumberColSize(); i++) {
-							Integer value = r.getNumberCols()[i];
-							Integer oldValue = buffer.getInt();
-							if (value == null) {
-								r.getNumberCols()[i] = oldValue;
-								r.countDown();
-							}
-						}
-						//遇到insert表示一定结束
-						middleMap.remove(pk);
-						if (r.getFinalPk() != null) {
-							resultMap.put(r.getFinalPk(), r);
-						} else {
-							resultMap.put(pk, r);
-						}
-						resultCount--;
-						/*
-						 * if (resultCount == 0) {
-						 * logger.info("reverse 提前结束. 扫描条目 : " +
-						 * scanCount); return resultMap; }
-						 */
-
+						resultMap.put(pk, r);
 					}
-
+					
 				}
-				end -= InsertLog.LEN;
 				break;
-			case STR_UPDATE:
-				buffer.position(end - StringUpdate.LEN);
-				pk = buffer.getInt();
+			case UPDATE:
+				off = end - len;
+				buf.position(off);
+				buf.limit(end);
+				end = off;
+				pk = buf.getInt();
 				r = middleMap.get(pk);
-				if (r != null && r.getAlterType() != DELETE) {
-					byte index = buffer.get();
-					if (r.getStrCols()[index] == null) {
-						r.getStrCols()[index] = buffer.getShort();
-						r.countDown();
-						if (r.dealOver()) {
-							resultCount--;
-							middleMap.remove(pk);
-							if (r.getFinalPk() != null) {
-								resultMap.put(r.getFinalPk(), r);
-							} else {
-								resultMap.put(pk, r);
-							}
-							resultCount--;
-							/*
-							 * if (resultCount == 0) {
-							 * logger.info("reverse 提前结束. 扫描条目 : " +
-							 * scanCount); return resultMap; }
-							 */
-						}
-					}
+				if (r != null && !r.isDelete()) {
+					update(buf, r, middleMap, resultMap, pk);
 				}
-				end -= StringUpdate.LEN;
-				break;
-			case NUMBER_UPDATE:
-				buffer.position(end - NumberUpdate.LEN);
-				pk = buffer.getInt();
-				r = middleMap.get(pk);
-				if (r != null && r.getAlterType() != DELETE) {
-					int index = buffer.get();
-					if (r.getNumberCols()[index] == null) {
-						r.getNumberCols()[index] = buffer.getInt();
-						r.countDown();
-						if (r.dealOver()) {
-							middleMap.remove(pk);
-							if (r.getFinalPk() != null) {
-								resultMap.put(r.getFinalPk(), r);
-							} else {
-								resultMap.put(pk, r);
-							}
-							resultCount--;
-							/*
-							 * if (resultCount == 0) {
-							 * logger.info("reverse 提前结束. 扫描条目 : " +
-							 * scanCount); return resultMap; }
-							 */
-						}
-					}
-				}
-				end -= NumberUpdate.LEN;
 				break;
 			case PK_UPDATE:
-				buffer.position(end - PKUpdate.LEN);
-				pk = buffer.getInt();
-				int oldPk = buffer.getInt();
+				off = end - len;
+				buf.position(off);
+				buf.limit(end);
+				end = off;
+				int oldPk = buf.getInt();
+				pk = buf.getInt();
 				r = middleMap.get(pk);
-				Record r2 = middleMap.remove(oldPk);
-				/*
-				 * if(r != null && r2 != null){ throw new
-				 * RuntimeException("can not handle"); }else if (r != null)
-				 * { middleMap.remove(pk); middleMap.put(oldPk, r); if
-				 * (r.getFinalPk() == null && r.getAlterType() != DELETE) {
-				 * r.setFinalPk(pk); } }else if(r2 != null){
-				 * 
-				 * }
-				 */
 				if (r != null) {
-					middleMap.remove(pk);
-					middleMap.put(oldPk, r);
-					if (r.getFinalPk() == null && r.getAlterType() != DELETE) {
-						r.setFinalPk(pk);
+					if (r.isDelete()) {
+						middleMap.remove(pk);
+						middleMap.put(oldPk, r);
+					}else{
+						middleMap.remove(oldPk);
+						update(buf, r, middleMap, resultMap, pk);
 					}
+				}else{
+					middleMap.remove(oldPk);
 				}
-
-				end -= PKUpdate.LEN;
 				break;
 			case DELETE:
-				buffer.position(end - DeleteLog.LEN);
-				pk = buffer.getInt();
+				off = end - len;
+				buf.position(off);
+				buf.limit(end);
+				end = off;
+				pk = buf.getInt();
 				r = middleMap.get(pk);
 				if (r != null) {
-					if (r.getAlterType() == DELETE) {
+					if (r.isDelete()) {
 						throw new RuntimeException("wrong delete");
 					}
 					r.setAlterType(DELETE);
-					r.setNumberCols(null);
-					r.setStrCols(null);
-					/*
-					 * resultCount--; if (resultCount == 0) {
-					 * logger.info("reverse 提前结束. 扫描条目 : " + scanCount);
-					 * return resultMap; }
-					 */
+					r.setColumns(null);
 				}
-
-				end -= DeleteLog.LEN;
-
 				break;
 			default:
 				throw new RuntimeException("AlterType not found. type : " + (char) alterType);
 			}
 		}
 		return resultMap;
+	}
+	
+	private void update(ByteBuf buf,Record r,Map<Integer, Record> middleMap
+			,Map<Integer, Record> resultMap,Integer pk){
+		
+		for (;buf.hasRemaining(); ) {
+			byte ch = buf.getByte();
+			byte name = (byte) ((ch & 0xff) >> 4);
+			byte l = (byte) (ch & 0b00001111);
+			if(r.getColumn(name) == 0){
+				r.setColumn(buf.position(), l, name);
+				r.countDown();
+			}
+			buf.position(buf.position() + l + 1);
+		}
+		if (r.dealOver()) {
+			middleMap.remove(pk);
+			if (r.getFinalPk() != null) {
+				resultMap.put(r.getFinalPk(), r);
+			} else {
+				resultMap.put(pk, r);
+			}
+			/*
+			 * if (resultCount == 0) {
+			 * logger.info("reverse 提前结束. 扫描条目 : " +
+			 * scanCount); return resultMap; }
+			 */
+		}
+		
 	}
 
 	public Map<Integer, Record> initMiddleMap(int startId, int endId, Table table) {
@@ -254,16 +224,8 @@ public class AllLog implements Constants {
 		return middleMap;
 	}
 
-	private boolean in(int pk, int startId, int endId) {
-		return pk > startId && pk < endId;
-	}
-
-	public ByteBuffer getBuffer() {
-		return buffer;
-	}
-
-	public void setBuffer(ByteBuffer buffer) {
-		this.buffer = buffer;
+	public ByteBuf getBuffer() {
+		return buf;
 	}
 
 	public int getScanCount() {

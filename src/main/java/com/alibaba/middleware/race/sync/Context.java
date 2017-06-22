@@ -28,12 +28,19 @@ public class Context {
 			.availableProcessors() - 2;
 
 	private Map<Integer, Record> records = new HashMap<>((int)(1024 * 256 * 1.5));
+	
+	private AllLog				allLog = new AllLog();
 
 	public Context(int endId, RecordLogReceiver receiver, int startId, String tableSchema) {
 		this.endId = endId;
 		this.receiver = receiver;
 		this.startId = startId;
 		this.tableSchema = tableSchema;
+	}
+	
+	public void init(){
+		setTable(Table.newOffline());
+		allLog.init(table);
 	}
 
 	public RecordLogReceiver getReceiver() {
@@ -43,7 +50,6 @@ public class Context {
 	public String getTableSchema() {
 		return tableSchema;
 	}
-
 
 	public void setReceiver(RecordLogReceiver receiver) {
 		this.receiver = receiver;
@@ -69,7 +75,6 @@ public class Context {
 		this.startId = startId;
 	}
 
-
 	public boolean isExecuteByCoreProcesses() {
 		return executeByCoreProcesses;
 	}
@@ -93,4 +98,9 @@ public class Context {
 	public void setRecords(Map<Integer, Record> records) {
 		this.records = records;
 	}
+	
+	public AllLog getAllLog() {
+		return allLog;
+	}
+	
 }

@@ -4,16 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.util.Map;
 
-import com.alibaba.middleware.race.sync.codec.ByteArray2;
-import com.alibaba.middleware.race.sync.model.Record;
-import com.alibaba.middleware.race.sync.model.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.middleware.race.sync.AllLog;
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
+import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.other.bytes.ByteArrayBuffer;
 import com.generallycloud.baseio.common.CloseUtil;
 
@@ -37,43 +35,24 @@ public class RecordUtil {
 	private static final byte[]	NUM_MAPPING			= new byte[] { '0', '1', '2', '3', '4',
 			'5', '6', '7', '8', '9' };
 
-	private static boolean		p					= false;
-
-	public static void formatResultString(Table table, int id, Record record, ByteBuffer buffer) {
+	public static void formatResultString(byte[] data, int id, Record record, ByteBuffer buffer) {
 		buffer.clear();
 		byte[] idCache = ID_CACHE;
 		int off = valueOfLong(id, idCache);
 		buffer.put(idCache, off + 1, LONG_LEN - off);
 		buffer.put(FIELD_SEPERATOR_BYTE);
-
-		Short[] strCols = record.getStrCols();
-		/*if (!p) {
-			p = true;
-			for (Map.Entry<ByteArray2, Short> entry : table.getColValueToId().entrySet()) {
-				byte[] value = entry.getKey().copy();
-				System.out.println(
-						"id : " + entry.getValue() + " value : " + new String(value));
-			}
-		}*/
-		for (int i = 0; i < strCols.length; i++) {
-			byte[] value = table.getColArrayById(strCols[i]).copy();
-			/*
-			 * if (value == null) { System.out.println("null value"); } else
-			 * { System.out.println("id : " + strCols[i] + " value : " + new
-			 * String(value)); }
-			 */
-			buffer.put(value);
-			buffer.put(FIELD_SEPERATOR_BYTE);
-		}
-
-		Integer[] numCols = record.getNumberCols();
-		byte len = (byte) (numCols.length - 1);
+		
+		long [] cols = record.getColumns();
+		int len = cols.length - 1;
 		for (byte i = 0; i < len; i++) {
-			byte[] bytes = (numCols[i] + "").getBytes();
-			buffer.put(bytes);
+			int voff = (int) (cols[i] >> 32);
+			int vlen = (int) (cols[i] & 0xffffffff);
+			buffer.put(data,voff,vlen);
 			buffer.put(FIELD_SEPERATOR_BYTE);
 		}
-		buffer.put((numCols[len] + "").getBytes());
+		int voff = (int) (cols[len] >> 32);
+		int vlen = (int) (cols[len] & 0xffffffff);
+		buffer.put(data,voff,vlen);
 		buffer.put(FIELD_N_BYTE);
 	}
 
@@ -104,6 +83,8 @@ public class RecordUtil {
 		int startId = context.getStartId();
 		int endId = context.getEndId();
 		int all = 0;
+		AllLog allLog = context.getAllLog();
+		byte [] data = allLog.getBuffer().array();
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
 		for (int i = startId + 1; i < endId; i++) {
 			Record r = context.getRecords().get((int) i);
@@ -111,7 +92,7 @@ public class RecordUtil {
 				continue;
 			}
 			all++;
-			RecordUtil.formatResultString(context.getTable(), i, r, array);
+			RecordUtil.formatResultString(data, i, r, array);
 			buffer.write(array.array(), 0, array.position());
 		}
 		logger.info("result size:{}", all);

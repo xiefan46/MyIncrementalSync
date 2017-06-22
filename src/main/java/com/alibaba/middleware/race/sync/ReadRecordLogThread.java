@@ -6,8 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
-import com.alibaba.middleware.race.sync.codec.RecordLogCodec2;
-import com.alibaba.middleware.race.sync.log.InsertLog;
 import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
@@ -25,8 +23,6 @@ public class ReadRecordLogThread implements Runnable {
 		this.context = context;
 	}
 
-	private int	recordScan	= 0;
-
 	private int	recordDeal	= 0;
 
 	//private ByteBuffer	buffer		= ByteBuffer.allocate((int) (1024 * 1024 * 1024));
@@ -38,8 +34,8 @@ public class ReadRecordLogThread implements Runnable {
 		try {
 			long startTime = System.currentTimeMillis();
 			execute(context, context.getContext());
-			logger.info("线程 {} 执行耗时: {},总扫描记录数 {},需要重放的记录数 {}", Thread.currentThread().getId(),
-					System.currentTimeMillis() - startTime, recordScan, recordDeal);
+			logger.info("线程 {} 执行耗时: {},需要重放的记录数 {}", Thread.currentThread().getId(),
+					System.currentTimeMillis() - startTime, recordDeal);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -48,8 +44,6 @@ public class ReadRecordLogThread implements Runnable {
 	public void execute(ReadRecordLogContext readRecordLogContext, Context context)
 			throws Exception {
 
-		RecordLogReceiver receiver = context.getReceiver();
-
 		String tableSchema = context.getTableSchema();
 
 		byte[] tableSchemaBytes = tableSchema.getBytes();
@@ -57,41 +51,21 @@ public class ReadRecordLogThread implements Runnable {
 		ChannelReader2 channelReader = ChannelReader2.get();
 
 		ReadChannel channel = readRecordLogContext.getChannel();
+		
+		Table table = context.getTable();
 
-		RecordLog r = new RecordLog();
+		RecordLog r = RecordLog.newRecordLog(table.getColumnSize());
 
-		r.newColumns();
-
-		AllLog allLog = new AllLog();
+		AllLog allLog = context.getAllLog();
 
 		long start = System.currentTimeMillis();
 
 		for (; channel.hasBufRemaining();) {
-
-			channelReader.read(channel, tableSchemaBytes, r);
-
-			recordScan++;
-
-			if (r == null) {
+			
+			if (!channelReader.read(table,channel, tableSchemaBytes, r)) {
 				continue;
 			}
-
-			recordDeal++;
-			Table table = RecordLogCodec2.get().getTable();
-			RecordLogCodec2.get().setTableInit(true);
-			context.setTable(table);
-			InsertLog.setLen(table.getStrColSize(), table.getNumberColSize());
-			allLog.putRecord(r);
-			break;
-		}
-
-		for (; channel.hasBufRemaining();) {
-
-			r = channelReader.read(channel, tableSchemaBytes, r);
-			recordScan++;
-			if (r == null) {
-				continue;
-			}
+			
 			recordDeal++;
 
 			if (recordDeal % 5000000 == 0) {
@@ -100,7 +74,8 @@ public class ReadRecordLogThread implements Runnable {
 			}
 
 			allLog.putRecord(r);
-
+			
+			r.reset();
 		}
 
 		logger.info("加载所有记录到内存. cost time : {}. Record count : {}. Buffer size : {}. ",

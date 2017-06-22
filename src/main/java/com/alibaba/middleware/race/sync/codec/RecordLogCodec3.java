@@ -9,9 +9,9 @@ import com.alibaba.middleware.race.sync.model.Table;
 /**
  * @author wangkai
  */
-public class RecordLogCodec2 implements RecordLogCodec{
+public class RecordLogCodec3 implements RecordLogCodec {
 
-	private static RecordLogCodec2	recordLogCodec	= new RecordLogCodec2();
+	private static RecordLogCodec	recordLogCodec	= new RecordLogCodec3();
 	
 	private final int			U_D_SKIP		= "1:1|X".length();
 	
@@ -25,7 +25,7 @@ public class RecordLogCodec2 implements RecordLogCodec{
 		return recordLogCodec;
 	}
 	
-	private RecordLogCodec2(){}
+	private RecordLogCodec3(){}
 	
 	private boolean compare(byte[] data, int offset, byte[] tableSchema) {
 		for (int i = 0; i < tableSchema.length; i++) {
@@ -36,6 +36,7 @@ public class RecordLogCodec2 implements RecordLogCodec{
 		return true;
 	}
 
+	@Override
 	public int decode(Table table,byte[] data,byte [] tableSchema, int offset,RecordLog r) {
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
 		off += TIME_SKIP;
@@ -48,27 +49,27 @@ public class RecordLogCodec2 implements RecordLogCodec{
 		r.setAlterType(alterType);
 		off += 2;
 		if (Constants.UPDATE == alterType) {
+			end = findNextChar(data, off, ':');
+			if (data[end + 3] == '1') {
+				PrimaryColumnLog c = r.getPrimaryColumn();
+//				c.setName(data, off, end - off);
+				off = end + U_D_SKIP;
+				end = findNextChar(data, off, '|');
+				c.setBeforeValue(parseLong(data, off, end));
+				off = end + 1;
+				end = findNextChar(data, off, '|');
+				c.setLongValue(parseLong(data, off, end));
+//				c.setValue(data,off,end-off);
+				off = end + 1;
+				if (c.isPkChange()) {
+					r.setAlterType(Constants.PK_UPDATE);
+				}
+				if (data[off] == '\n') {
+					return off;
+				}
+			}
 			for (;;) {
 				end = findNextChar(data, off, ':');
-				if (data[end + 3] == '1') {
-					PrimaryColumnLog c = r.getPrimaryColumn();
-//					c.setName(data, off, end - off);
-					off = end + U_D_SKIP;
-					end = findNextChar(data, off, '|');
-					c.setBeforeValue(parseLong(data, off, end));
-					off = end + 1;
-					end = findNextChar(data, off, '|');
-					c.setLongValue(parseLong(data, off, end));
-//					c.setValue(data,off,end-off);
-					off = end + 1;
-					if (c.isPkChange()) {
-						r.setAlterType(Constants.PK_UPDATE);
-					}
-					if (data[off] == '\n') {
-						return off;
-					}
-					continue;
-				}
 				ColumnLog c = r.getColumn();
 //				r.increamentEdit();
 				c.setName(table,data, off, end - off);
@@ -97,23 +98,22 @@ public class RecordLogCodec2 implements RecordLogCodec{
 		}
 
 		if (Constants.INSERT == alterType) {
-			for (;;) {
-				end = findNextChar(data, off, ':');
-				if (data[end + 3] == '1') {
-					PrimaryColumnLog c = r.getPrimaryColumn();
-//					c.setName(data, off, end - off);
-					off = end + I_SKIP;
-					end = findNextChar(data, off, '|');
-					c.setLongValue(parseLong(data, off, end));
-//					c.setValue(data,off,end-off);
-					off = end + 1;
-					continue;
-				}
-				ColumnLog c = r.getColumn();
-				c.setName(table,data, off, end - off);
-//				System.out.println(new String(c.getNameByte()));
-//				r.increamentEdit();
+			int [] skips = table.getColumnSkip();
+			byte skipIndex = 0;
+			end = findNextChar(data, off, ':');
+			if (data[end + 3] == '1') {
+				PrimaryColumnLog c = r.getPrimaryColumn();
+//				c.setName(data, off, end - off);
 				off = end + I_SKIP;
+				end = findNextChar(data, off, '|');
+				c.setLongValue(parseLong(data, off, end));
+//				c.setValue(data,off,end-off);
+				off = end + 1;
+			}
+			for (;;) {
+				ColumnLog c = r.getColumn();
+				c.setName(skipIndex);
+				off = end + skips[skipIndex++];
 				end = findNextChar(data, off, '|');
 				c.setValue(data, off, end - off);
 				off = end + 1;
@@ -127,13 +127,11 @@ public class RecordLogCodec2 implements RecordLogCodec{
 	}
 
 	private int findNextChar(byte[] data, int offset, char c) {
-		for (;;) {
-			if (data[++offset] == c) {
-				return offset;
-			}
+		for (;data[++offset] != c;) {
 		}
+		return offset;
 	}
-
+	
 	private int parseLong(byte[] data, int offset, int end) {
 		int all = 0;
 		for (int i = offset; i < end; i++) {

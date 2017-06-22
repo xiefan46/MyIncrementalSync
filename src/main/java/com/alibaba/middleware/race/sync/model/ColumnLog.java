@@ -1,28 +1,65 @@
 package com.alibaba.middleware.race.sync.model;
 
+import com.alibaba.middleware.race.sync.codec.ByteArray2;
+
 /**
  * @author wangkai
  *
  */
 public class ColumnLog {
 
-	private boolean isNumberCol;
+	//	static ByteArrayCache byteArrayCache = ByteArrayCache.get();
 
-	private byte nameIndex;
+	static ByteArray2	byteArray2	= new ByteArray2(null, 0, 0);
 
-	public byte getNameIndex() {
-		return nameIndex;
+	private byte		name;
+
+	private byte[]		value;
+
+	private int		valueOff;
+
+	private byte		valueLen;
+
+	public void setName(Table table, byte[] bytes, int off, int len) {
+		this.name = table.getIndex(byteArray2.reset(bytes, off, len));
 	}
 
-	public void setNameIndex(byte nameIndex) {
-		this.nameIndex = nameIndex;
+	public void setName(byte name) {
+		this.name = name;
 	}
 
-	public boolean isNumberCol() {
-		return isNumberCol;
+	public void setValue(byte[] bytes, int off, int len) {
+		this.value = bytes;
+		this.valueOff = off;
+		this.valueLen = (byte)len;
 	}
 
-	public void setNumberCol(boolean numberCol) {
-		isNumberCol = numberCol;
+	public int getName() {
+		return name;
 	}
+
+	public byte[] getValue() {
+		return value;
+	}
+
+	public int getValueOff() {
+		return valueOff;
+	}
+
+	public byte getValueLen() {
+		return valueLen;
+	}
+
+	public void setValue(byte[] value) {
+		this.value = value;
+	}
+
+	public void setValueOff(int valueOff) {
+		this.valueOff = valueOff;
+	}
+
+	public void setValueLen(byte valueLen) {
+		this.valueLen = valueLen;
+	}
+
 }

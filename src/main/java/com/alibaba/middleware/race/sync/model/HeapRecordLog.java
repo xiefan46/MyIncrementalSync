@@ -5,13 +5,8 @@ import java.util.List;
 
 import com.alibaba.middleware.race.sync.Constants;
 
-/**
- * @author wangkai
- */
-//FIXME 考虑合并schema-table
-public class RecordLog {
-
-
+public class HeapRecordLog {
+	
 	// 一个唯一的字符串编号,例子:000001:106
 	//	private String			binaryId;
 	// 数据变更发生的时间戳,毫秒精度
@@ -25,7 +20,7 @@ public class RecordLog {
 	//  I(1)代表insert, U(2)代表update, D(0)代表delete
 	private byte			alterType;
 	// 该记录的列信息
-	private List<ColumnLog>	columns;
+	private List<HeapColumnLog>	columns;
 	// 该记录的主键
 	private PrimaryColumnLog	primaryColumn = new PrimaryColumnLog();
 
@@ -45,18 +40,18 @@ public class RecordLog {
 		this.alterType = alterType;
 	}
 
-	public ColumnLog getColumn() {
+	public HeapColumnLog getColumn() {
 		return columns.get(edit++);
 	}
 	
-	public ColumnLog getColumn(int index) {
+	public HeapColumnLog getColumn(int index) {
 		return columns.get(index);
 	}
 
 	public void newColumns(int cols) {
-		List<ColumnLog> columns = new ArrayList<>(cols);
+		List<HeapColumnLog> columns = new ArrayList<>(cols);
 		for (int i = 0; i < cols; i++) {
-			columns.add(new ColumnLog());
+			columns.add(new HeapColumnLog());
 		}
 		this.columns = columns;
 	}
@@ -81,14 +76,11 @@ public class RecordLog {
 		return alterType == Constants.PK_UPDATE;
 	}
 
-	public static RecordLog newRecordLog(int cols){
-		RecordLog r = new RecordLog();
+	public static HeapRecordLog newRecordLog(int cols){
+		HeapRecordLog r = new HeapRecordLog();
 		r.newColumns(cols);
 		return r;
 	}
 
-	public List<ColumnLog> getColumns() {
-		return columns;
-	}
 
 }
