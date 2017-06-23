@@ -40,7 +40,7 @@ public class ByteBufReader {
 		int off = codec.decode(table, readBuffer, tableSchema, offset, r);
 		buf.position(off + 1);
 		readCount.incrementAndGet();
-		if (readCount.get() % 100000 == 0) {
+		if (readCount.get() % 1000000 == 0) {
 			logger.info("扫描条目数 : {}", readCount.get());
 		}
 		return true;

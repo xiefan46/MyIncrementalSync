@@ -7,6 +7,7 @@ import com.alibaba.middleware.race.sync.model.Table;
 import com.generallycloud.baseio.buffer.ByteBuf;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -18,20 +19,20 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ParserPool {
 
-	private static final int	THREAD_NUM		= 4;
+	private static final int		THREAD_NUM		= 4;
 
-	private ExecutorService	executorService	= Executors.newFixedThreadPool(THREAD_NUM);
+	private ExecutorService		executorService	= Executors.newFixedThreadPool(THREAD_NUM);
 
-	private final Context	context;
+	private final Context		context;
 
-	private final MergeThread mergeThread;
+	private final MergeThread	mergeThread;
 
-	public ParserPool(Context context,MergeThread mergeThread) {
+	public ParserPool(Context context, MergeThread mergeThread) {
 		this.context = context;
-		this.mergeThread =  mergeThread;
+		this.mergeThread = mergeThread;
 	}
 
-	public void submit(final Block block, final AtomicInteger blockCount) {
+	public void submit(final Block block) {
 		this.executorService.submit(new Runnable() {
 			@Override
 			public void run() {
@@ -52,8 +53,7 @@ public class ParserPool {
 							r = RecordLog.newRecordLog(table.getColumnSize());
 						}
 					}
-					mergeThread.submit(logs);
-					blockCount.incrementAndGet();
+					//mergeThread.submit(logs);
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}

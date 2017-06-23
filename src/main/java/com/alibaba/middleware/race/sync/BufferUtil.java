@@ -11,7 +11,7 @@ public class BufferUtil {
 
 	public static final int			MAX_BLOCK_NUM	= 20;								//同时存在于内存的块数
 
-	public static final int			BLOCK_SIZE	= 5 * 1024 * 1024;
+	public static final int			BLOCK_SIZE	= 512 * 1024;
 
 	private static ByteBufAllocator	allocator		= UnpooledByteBufAllocator.getHeapInstance();
 
