@@ -7,8 +7,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
+import com.alibaba.middleware.race.sync.util.ObjectPool;
 import com.generallycloud.baseio.buffer.ByteBuf;
 
 public class RecalculateThread extends Thread {
@@ -28,24 +30,27 @@ public class RecalculateThread extends Thread {
 	private ReaderThread		readerThread;
 
 	private int				index;
+	
+	private ObjectPool<Record>   pool;
 
-	private Map<Integer, long[]>	records;
+	private Map<Integer, Record>	records;
 
-	public Map<Integer, long[]> getRecords() {
+	public Map<Integer, Record> getRecords() {
 		return records;
 	}
 
-	public long[] getRecord(int id) {
+	public Record getRecord(int id) {
 		return records.get(id);
 	}
 
-	public RecalculateThread(ReaderThread readerThread, ByteBuf buf, Map<Integer, long[]> records,
+	public RecalculateThread(ReaderThread readerThread, ByteBuf buf, Map<Integer, Record> records,
 			int index) {
 		super("recal-" + index);
 		this.buf = buf;
 		this.index = index;
 		this.readerThread = readerThread;
 		this.records = records;
+		this.pool = new ObjectPool<>(readerThread.getVFactory());
 	}
 
 	@Override
@@ -85,7 +90,8 @@ public class RecalculateThread extends Thread {
 	private void work(RecordLog r) throws Exception {
 		ReaderThread readerThread = this.readerThread;
 		ByteBuf buf = this.buf;
-		Map<Integer, long[]> records = this.records;
+		ObjectPool<Record> pool = this.pool;
+		Map<Integer, Record> records = this.records;
 		Context context = readerThread.getContext();
 		Table table = context.getTable();
 		RecordLogReceiver receiver = context.getReceiver();
@@ -96,7 +102,7 @@ public class RecalculateThread extends Thread {
 			if (!reader.read(table, buf, tableSchema, r)) {
 				continue;
 			}
-//			receiver.received(table, records, r);
+			receiver.received(pool, table, records, r);
 		}
 		work = false;
 		readerThread.done(index);
@@ -140,6 +146,10 @@ public class RecalculateThread extends Thread {
 		}finally{
 			lock.unlock();
 		}
+	}
+	
+	public ObjectPool<Record> getPool() {
+		return pool;
 	}
 
 }

@@ -15,8 +15,8 @@ public class Context {
 	private MuiltFileInputStream	readChannel;
 	private Table				table;
 	private ReaderThread		readerThread	= new ReaderThread(this);
-	private int				threadNum		= 2;
-	private int				blockSize		= 1024 * 1024 * 256;
+	private int				threadNum		= 4;
+	private int				blockSize		= 1024 * 1024 * 16;
 
 	public Context(RecordLogReceiver receiver, long endId, long startId) {
 		this.endId = endId;
@@ -79,5 +79,8 @@ public class Context {
 	public int getBlockSize() {
 		return blockSize;
 	}
-
+	
+	public ReaderThread getReaderThread() {
+		return readerThread;
+	}
 }

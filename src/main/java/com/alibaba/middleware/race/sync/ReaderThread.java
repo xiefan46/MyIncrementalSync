@@ -8,7 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
+import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.Table;
+import com.alibaba.middleware.race.sync.util.RecordFactory;
+import com.alibaba.middleware.race.sync.util.VFactory;
 import com.generallycloud.baseio.buffer.ByteBuf;
 import com.generallycloud.baseio.buffer.ByteBufAllocator;
 import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
@@ -22,11 +25,13 @@ public class ReaderThread extends Thread {
 
 	private Context			context;
 	
-	private Map<Integer, long[]> finalRecords;
+	private Map<Integer, Record> finalRecords;
 	
 	private RecalculateThread [] recalculateThreads;
 	
 	private CountDownLatch		countDownLatch;
+	
+	private VFactory<Record>		vFactory;
 	
 	public ReaderThread(Context context) {
 		this.context = context;
@@ -36,10 +41,11 @@ public class ReaderThread extends Thread {
 		int threadNum = context.getThreadNum();
 		int blockSize = context.getBlockSize();
 		recalculateThreads = new RecalculateThread[threadNum];
+		vFactory = new RecordFactory(context.getTable().getColumnSize());
 		ByteBufAllocator allocator = UnpooledByteBufAllocator.getHeapInstance();
 		for (int i = 0; i < threadNum; i++) {
 			ByteBuf buf = allocator.allocate(blockSize);
-			Map<Integer,long[]> records = new HashMap<>((int) (1024 * 1024 * (16f / threadNum)));
+			Map<Integer,Record> records = new HashMap<>((int) (1024 * 1024 * (16f / threadNum)));
 			recalculateThreads[i] = new RecalculateThread(this, buf, records, i);
 		}
 		
@@ -63,6 +69,7 @@ public class ReaderThread extends Thread {
 
 	public void execute(Context context,MuiltFileInputStream channel) throws Exception {
 		for(;channel.hasRemaining();){
+			long startTime = System.currentTimeMillis();
 			countDownLatch = new CountDownLatch(context.getThreadNum());
 			for(RecalculateThread t : recalculateThreads){
 				ByteBuf buf = t.getBuf();
@@ -70,23 +77,28 @@ public class ReaderThread extends Thread {
 				int len = channel.readFull(buf,buf.capacity() - 1024);
 				if (len == -1) {
 					buf.limit(0);
-					continue;
+				}else{
+					buf.flip();
 				}
-				buf.flip();
-			}
-			logger.info("读取完成");
-			for(RecalculateThread t : recalculateThreads){
 				t.setWork(true);
 				t.wakeup();
 			}
+			long time1 = System.currentTimeMillis() - startTime;
+			startTime = System.currentTimeMillis();
+			startTime = System.currentTimeMillis();
 			countDownLatch.await();
-			logger.info("处理完成");
+			long time2 = System.currentTimeMillis() - startTime;
+			startTime = System.currentTimeMillis();
 			Table table = context.getTable();
-			Map<Integer, long[]> finalRecords = this.finalRecords;
+			Map<Integer, Record> finalRecords = this.finalRecords;
+			startTime = System.currentTimeMillis();
 			for (int i = 1; i < recalculateThreads.length; i++) {
 				RecalculateThread t = recalculateThreads[i];
-//				context.getReceiver().receivedFinal(table, finalRecords, t.getRecords());
+				context.getReceiver().receivedFinal(t.getPool(), table, finalRecords, t.getRecords());
 			}
+			long time3 = System.currentTimeMillis() - startTime;
+			startTime = System.currentTimeMillis();
+			logger.info("读取完成:{}，处理完成:{},合并完成:{}",time1,time2,time3);
 		}
 		for(RecalculateThread t : recalculateThreads){
 			t.setRunning(false);
@@ -102,7 +114,11 @@ public class ReaderThread extends Thread {
 	}
 
 	public long[] getRecord(int id) {
-		return finalRecords.get(id);
+		return finalRecords.get(id).getColumns();
+	}
+	
+	public VFactory<Record> getVFactory() {
+		return vFactory;
 	}
 	
 }
