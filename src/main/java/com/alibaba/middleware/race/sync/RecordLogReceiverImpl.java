@@ -15,27 +15,24 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 	@Override
 	public void received(RecalculateContext context, RecordLog recordLog) throws Exception {
 		Map<Integer, long[]> records = context.getRecords();
+//		IntObjectHashMap<long[]> records = context.getRecords();
+//		ShardMap2<long[]> records = context.getRecords();
 		PrimaryColumnLog pcl = recordLog.getPrimaryColumn();
 		Table table = context.getTable();
-		Integer pk = pcl.getLongValue();
-		switch (recordLog.getAlterType()) {
-		case Constants.UPDATE:
+		int pk = pcl.getLongValue();
+		byte alterType = recordLog.getAlterType();
+		if (alterType == Constants.UPDATE) {
 			update(table, records.get(pk), recordLog);
-			break;
-		case Constants.PK_UPDATE:
-			Integer beforeValue = pcl.getBeforeValue();
+		}else if (alterType == Constants.PK_UPDATE) {
+			int beforeValue = pcl.getBeforeValue();
 			long[] oldRecord = records.remove(beforeValue);
 			update(table, oldRecord, recordLog);
 			records.put(pk, oldRecord);
-			break;
-		case Constants.DELETE:
+		}else if (alterType == Constants.INSERT) {
+			long [] record = update(table, table.newRecord(), recordLog);
+			records.put(pk, record);
+		}else if (alterType == Constants.DELETE) {
 			records.remove(pk);
-			break;
-		case Constants.INSERT:
-			records.put(pk, update(table, table.newRecord(), recordLog));
-			break;
-		default:
-			break;
 		}
 	}
 

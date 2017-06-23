@@ -22,12 +22,23 @@ public class RecalculateContext {
 		this.recordLogReceiver = recordLogReceiver;
 	}
 
-	 private Map<Integer, long[]> records = new HashMap<>(1024 * 1024 * 1);
+	
+//	private ShardMap2<long[]> records = new ShardMap2<>(4,1024 * 16);
+//	private IntObjectHashMap<long[]> records = new IntObjectHashMap<>(1024 * 1024 * 1);
+	 private final Map<Integer, long[]> records = new HashMap<>(1024 * 1024 * 1);
 //	 private Map<Integer, long[]> records = new ShardMap<>(2,1024 * 1024 * 8);
 
 	public RecordLogReceiver getRecordLogReceiver() {
 		return recordLogReceiver;
 	}
+
+//	public ShardMap2<long[]> getRecords() {
+//		return records;
+//	}
+	
+//	public IntObjectHashMap<long[]> getRecords() {
+//		return records;
+//	}
 
 	public Map<Integer, long[]> getRecords() {
 		return records;
