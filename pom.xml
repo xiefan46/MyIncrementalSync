@@ -85,10 +85,25 @@
             <artifactId>javolution</artifactId>
             <version>5.5.1</version>
         </dependency>
+        <!--<dependency>-->
+            <!--<groupId>net.openhft</groupId>-->
+            <!--<artifactId>chronicle-map</artifactId>-->
+            <!--<version>3.2.0-beta</version>-->
+        <!--</dependency>-->
+        <dependency>
+            <groupId>net.sf.trove4j</groupId>
+            <artifactId>trove4j</artifactId>
+            <version>3.0.3</version>
+        </dependency>
         <dependency>
             <groupId>net.openhft</groupId>
-            <artifactId>chronicle-map</artifactId>
-            <version>3.2.0-beta</version>
+            <artifactId>smoothie-map</artifactId>
+            <version>1.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.vlsi.compactmap</groupId>
+            <artifactId>compactmap</artifactId>
+            <version>1.2.1</version>
         </dependency>
     </dependencies>
 
