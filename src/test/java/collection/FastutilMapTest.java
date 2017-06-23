@@ -2,10 +2,16 @@ package collection;
 
 import com.carrotsearch.hppc.IntObjectOpenHashMap;
 import com.gs.collections.impl.map.mutable.primitive.IntObjectHashMap;
+import com.koloboke.collect.hash.HashConfig;
+import com.koloboke.collect.map.hash.HashIntObjMap;
+import com.koloboke.collect.map.hash.HashIntObjMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import javolution.util.FastMap;
+import net.openhft.chronicle.map.ChronicleMap;
+import net.openhft.chronicle.map.ChronicleMapBuilder;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.junit.Test;
@@ -22,7 +28,7 @@ import java.util.Random;
 public class FastutilMapTest {
   //insert500W，D500W，U9000W
     final int w=10000;
-    final int delete=500*w;
+    final int delete=10*w;
     final int D=0;
     final int insertScale=2;
     final int updateScale=18;
@@ -34,13 +40,22 @@ public class FastutilMapTest {
         //fastUtil
        //Int2ObjectMap<byte[][]> map=new Int2ObjectOpenHashMap(delete*insertScale);
         //hp pc
-        IntObjectOpenHashMap<byte[][]> map=new IntObjectOpenHashMap<>(delete*insertScale);
+       //IntObjectOpenHashMap<byte[][]> map=new IntObjectOpenHashMap<>(delete*insertScale);
         //gs map
-       // IntObjectHashMap<byte[][]> map=new IntObjectHashMap<>(delete*insertScale);
+        //IntObjectHashMap<byte[][]> map=new IntObjectHashMap<>(delete*insertScale);
         //kolokobe
         //Map<Integer,byte[][]> map = MyMap.withExpectedSize(delete*insertScale);
         //jdk hashMap
         //Map<Integer,byte[][]> map=new HashMap();
+        // Koloboke int-2-object map test
+        // fast map
+        //FastMap<Integer,byte[][]> map=new FastMap<>();
+        // chronic map
+
+
+        ChronicleMapBuilder<Integer, byte[][]> mapBuilder =
+                ChronicleMapBuilder.of(Integer.class, byte[][].class);
+        ChronicleMap<Integer,byte[][]> map=mapBuilder.create();
         long t1=System.currentTimeMillis();
        for(int i=0;i<delete;i++){
           for(int j=0;j<insertScale;j++){

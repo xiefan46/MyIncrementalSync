@@ -80,7 +80,16 @@
             <artifactId>koloboke-impl-common-jdk6-7</artifactId>
             <version>1.0.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>javolution</groupId>
+            <artifactId>javolution</artifactId>
+            <version>5.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>net.openhft</groupId>
+            <artifactId>chronicle-map</artifactId>
+            <version>3.2.0-beta</version>
+        </dependency>
     </dependencies>
 
     <build>
