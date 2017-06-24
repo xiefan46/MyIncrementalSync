@@ -223,7 +223,7 @@ public class Client {
 				fileWriter.close();
 				logger.info("write cost {} ms", writeCost);
 				logger.info("real cost {} ms", System.currentTimeMillis() - startTime);
-				Timer.sleep(30000, 0);
+				Timer.sleep(20000, 0);
 				logger.info("display cost {} ms", System.currentTimeMillis() - startTime);
 			} catch (IOException e) {
 				e.printStackTrace();
