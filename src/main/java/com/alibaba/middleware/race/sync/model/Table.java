@@ -15,6 +15,10 @@ public class Table {
 	private Map<ByteArray, Byte>	columnIndexs	= new HashMap<>();
 
 	private int					columnSize;
+	
+	private int []			columnNameSkip;
+	
+	private int				delSkip;
 
 	public byte [] newRecord() {
 		return new byte [columnSize * 8];
@@ -28,10 +32,14 @@ public class Table {
 		byte index = 0;
 		Table t = new Table();
 		t.columnSize = cols.length;
+		t.columnNameSkip = new int[cols.length];
 		for (int i = 0; i < cols.length; i++) {
 			byte [] name = cols[i].getBytes();
+			t.columnNameSkip[i] = name.length + 10;
 			t.columnIndexs.put(new ByteArray(name), index++);
+			t.delSkip = t.delSkip + t.columnNameSkip[i] + 2;
 		}
+		t.delSkip += 2;
 		return t;
 	}
 	
@@ -48,5 +56,12 @@ public class Table {
 	public int getColumnSize() {
 		return columnSize;
 	}
+	
+	public int[] getColumnNameSkip() {
+		return columnNameSkip;
+	}
 
+	public int getDelSkip() {
+		return delSkip;
+	}
 }

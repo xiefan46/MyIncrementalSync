@@ -15,11 +15,13 @@ public class RecordLogCodec2 {
 
 	private final int				U_D_SKIP		= "1:1|X".length();
 
-	private final int				I_SKIP		= "1:1|NULL|X".length();
+	private final int				I_ID_SKIP	= "I|id:1:1|NULL|".length();
 
-	private final int				HEAD_SKIP		= "|mysql-bin.".length() + 0;
+	private final int				HEAD_SKIP		= "|mysql-bin.".length() + 5;
 
 	private final int				TIME_SKIP		= "1496720884000".length() + 1;
+	
+	private final int				U_D_ID_SKIP		= "U|id:1:1|".length();
 
 	private final ByteArray2			byteArray2	= new ByteArray2(null, 0, 0);
 
@@ -51,35 +53,27 @@ public class RecordLogCodec2 {
 		int end;
 		off = off + tableSchema.length + 2;
 		byte alterType = data[off];
-		off += 2;
 		if (Constants.UPDATE == alterType) {
-			byte[] record = null;
-			end = findNextChar(data, off, ':');
-			if (data[end + 3] == '1') {
-				//				c.setName(data, off, end - off);
-				off = end + U_D_SKIP;
-				end = findNextChar(data, off, '|');
-				int beforePk = parseLong(data, off, end);
-				off = end + 1;
-				end = findNextChar(data, off, '|');
-				int pk = parseLong(data, off, end);
-				//				c.setValue(data,off,end-off);
-				off = end + 1;
-				if (beforePk != pk) {
-					record = records.remove(beforePk);
-					records.put(pk, record);
-				} else {
-					record = records.get(pk);
-				}
-				if (data[off] == '\n') {
-					return off;
-				}
+			byte[] record;
+			off += U_D_ID_SKIP;
+			end = findNextChar(data, off, '|');
+			int beforePk = parseLong(data, off, end);
+			off = end + 1;
+			end = findNextChar(data, off, '|');
+			int pk = parseLong(data, off, end);
+			off = end + 1;
+			if (beforePk != pk) {
+				record = records.remove(beforePk);
+				records.put(pk, record);
+			} else {
+				record = records.get(pk);
+			}
+			if (data[off] == '\n') {
+				return off;
 			}
 			for (;;) {
 				end = findNextChar(data, off, ':');
-				//				r.increamentEdit();
 				byte name = getName(table, data, off, end - off);
-				//				System.out.println(new String(c.getNameByte()));
 				off = end + U_D_SKIP;
 				end = findNextChar(data, off, '|');
 				off = end + 1;
@@ -93,32 +87,23 @@ public class RecordLogCodec2 {
 		}
 
 		if (Constants.DELETE == alterType) {
-			end = findNextChar(data, off, ':');
-			//			c.setName(data, off, end - off);
-			off = end + U_D_SKIP;
+			off += U_D_ID_SKIP;
 			end = findNextChar(data, off, '|');
 			records.remove(parseLong(data, off, end));
-			//			c.setValue(data,off,end-off);
+			off = end + table.getDelSkip();
 			return findNextChar(data, end, '\n');
 		}
 
 		if (Constants.INSERT == alterType) {
+			off += I_ID_SKIP;
 			byte[] record = table.newRecord();
-			end = findNextChar(data, off, ':');
-			if (data[end + 3] == '1') {
-				//				c.setName(data, off, end - off);
-				off = end + I_SKIP;
-				end = findNextChar(data, off, '|');
-				records.put(parseLong(data, off, end), record);
-				//				c.setValue(data,off,end-off);
-				off = end + 1;
-			}
+			end = findNextChar(data, off, '|');
+			records.put(parseLong(data, off, end), record);
+			int [] colsSkip = table.getColumnNameSkip();
+			off = end + 1;
 			byte cIndex = 0;
 			for (;;) {
-				end = findNextChar(data, off, ':');
-				//				System.out.println(new String(c.getNameByte()));
-				//				r.increamentEdit();
-				off = end + I_SKIP;
+				off += colsSkip[cIndex];
 				end = findNextChar(data, off, '|');
 				RecordLog.setColumn(record, cIndex++, data, off, end - off);
 				off = end + 1;
