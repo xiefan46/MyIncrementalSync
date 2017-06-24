@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race.sync;
 
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
+import com.alibaba.middleware.race.sync.map.ArrayHashMap;
 import com.alibaba.middleware.race.sync.model.Table;
 
 /**
@@ -9,16 +10,17 @@ import com.alibaba.middleware.race.sync.model.Table;
  */
 public class Context {
 
-	private long					endId;
-	private RecordLogReceiver		receiver;
-	private long					startId;
-	private String					tableSchema;
-	private ReadChannel				readChannel;
-	private boolean				executeByCoreProcesses	= false;
-	private RecalculateContext		recalculateContext;
-	private Table					table;
-	private int					availableProcessors		= Runtime.getRuntime()
+	private long				endId;
+	private RecordLogReceiver	receiver;
+	private long				startId;
+	private String				tableSchema;
+	private ReadChannel			readChannel;
+	private boolean			executeByCoreProcesses	= false;
+	private Table				table;
+	private int				availableProcessors		= Runtime.getRuntime()
 			.availableProcessors() - 2;
+
+	private ArrayHashMap		recordMap;
 
 	public Context(long endId, RecordLogReceiver receiver, long startId, String tableSchema) {
 		this.endId = endId;
@@ -36,8 +38,8 @@ public class Context {
 	}
 
 	public void initialize() {
-		recalculateContext = new RecalculateContext(this, getReceiver());
-		setTable(Table.newOnline());
+		this.table = Table.newOnline();
+		this.recordMap = new ArrayHashMap(table);
 	}
 
 	public void setReceiver(RecordLogReceiver receiver) {
@@ -64,14 +66,10 @@ public class Context {
 		this.startId = startId;
 	}
 
-	public RecalculateContext getRecalculateContext() {
-		return recalculateContext;
-	}
-
 	public boolean isExecuteByCoreProcesses() {
 		return executeByCoreProcesses;
 	}
-	
+
 	public int getAvailableProcessors() {
 		return availableProcessors;
 	}
@@ -79,14 +77,9 @@ public class Context {
 	public Table getTable() {
 		return table;
 	}
-	
-	public byte [] getRecord(int id) {
-		return recalculateContext.getRecord(id);
-	}
 
 	public void setTable(Table table) {
 		this.table = table;
-		this.recalculateContext.setTable(table);
 	}
 
 	public ReadChannel getReadChannel() {
@@ -96,7 +89,12 @@ public class Context {
 	public void setReadChannel(ReadChannel readChannel) {
 		this.readChannel = readChannel;
 	}
-	
-	
-	
+
+	public ArrayHashMap getRecordMap() {
+		return recordMap;
+	}
+
+	public void setRecordMap(ArrayHashMap recordMap) {
+		this.recordMap = recordMap;
+	}
 }

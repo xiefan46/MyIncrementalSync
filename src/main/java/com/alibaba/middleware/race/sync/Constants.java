@@ -26,7 +26,7 @@ public interface Constants {
 	//// 工作主目录
 	String	TESTER_HOME		= "/home/admin";
 	//// 赛题数据
-	String	DATA_HOME			= "/home/admin/canal_data";
+	String	DATA_HOME			= "/home/admin/canal_data_small";
 	//// 结果文件目录(client端会用到)
 	String	RESULT_HOME		= "/home/admin/sync_results/" + TEAMCODE;
 	//// 中间结果目录（client和server都会用到）
@@ -43,13 +43,13 @@ public interface Constants {
 
 	byte		INSERT			= 'I';
 
-	byte		PK_UPDATE		= 'P';
+	byte		PK_UPDATE			= 'P';
 	/**
 	 * 变更信息中不同列之间的分隔符
 	 */
 	String	SEP				= "|";
 	boolean	ENABLE_COMPRESS	= false;
-	
+
 	int		RESULT_LENGTH		= 38334025;
 
 }
