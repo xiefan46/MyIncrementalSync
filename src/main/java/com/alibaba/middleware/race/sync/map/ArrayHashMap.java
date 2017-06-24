@@ -22,7 +22,7 @@ public class ArrayHashMap {
 
 	private byte[][]			resultsArray;
 
-	public static final int		MAX_NUMBER	= 8000000;
+	public static final int		MAX_NUMBER	= 8000001;
 
 	private int				headerLength	= 1;
 
