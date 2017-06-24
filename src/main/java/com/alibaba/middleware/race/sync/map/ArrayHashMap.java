@@ -175,7 +175,7 @@ public class ArrayHashMap {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
 		for (int i = 0; i < allId.size(); i++) {
-			sb.append("i : " + allId.get(i).size() + " ");
+			sb.append("i : " + i + " num :" + allId.get(i).size() + " ");
 		}
 		sb.append("]");
 		return sb.toString();
