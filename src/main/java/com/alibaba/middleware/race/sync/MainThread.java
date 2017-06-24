@@ -33,12 +33,7 @@ public class MainThread {
 		long startTime = System.currentTimeMillis();
 
 		ReadChannel channel = initChannels2();
-		
-		context.setReadChannel(channel);
 
-		ReadRecordLogThread readRecordLogThread = new ReadRecordLogThread(context);
-
-		readRecordLogThread.run();
 
 		logger.info("等待所有线程完成总耗时 : {}", System.currentTimeMillis() - startTime);
 		JvmUsingState.print();

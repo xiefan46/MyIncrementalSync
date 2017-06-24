@@ -2,6 +2,7 @@ package com.alibaba.middleware.race.sync.codec;
 
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
+import com.alibaba.middleware.race.sync.common.OPCode;
 import com.alibaba.middleware.race.sync.map.ArrayHashMap;
 import com.alibaba.middleware.race.sync.model.Table;
 
@@ -44,9 +45,9 @@ public class RecordLogCodec2 {
 
 	public int decode(Context context, byte[] data, byte[] tableSchema, int offset) {
 		//print = false;
-		Table table = context.getTable();
+		Table table = null;
 		//		Map<Integer, byte[]> records = context.getRecords();
-		ArrayHashMap resultMap = context.getRecordMap();
+		ArrayHashMap resultMap = null;
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
 		off += TIME_SKIP;
 		//		if (!compare(data, off + 1, tableSchema)) {
@@ -55,15 +56,16 @@ public class RecordLogCodec2 {
 		int end;
 		off = off + tableSchema.length + 2;
 		byte alterType = data[off];
-		if (Constants.UPDATE == alterType) {
+		if (OPCode.UPDATE == alterType) {
 			off += U_D_ID_SKIP;
 			end = findNextChar(data, off, '|');
 			int beforePk = parseLong(data, off, end);
 			off = end + 1;
 			end = findNextChar(data, off, '|');
 			int pk = parseLong(data, off, end);
-			/*if (needPrint(pk) || needPrint(beforePk))
-				print = true;*/
+			/*
+			 * if (needPrint(pk) || needPrint(beforePk)) print = true;
+			 */
 			off = end + 1;
 			if (beforePk != pk) {
 				resultMap.move(beforePk, pk);
@@ -87,7 +89,7 @@ public class RecordLogCodec2 {
 			}
 		}
 
-		if (Constants.DELETE == alterType) {
+		if (OPCode.DELETE == alterType) {
 			off += U_D_ID_SKIP;
 			end = findNextChar(data, off, '|');
 			int pk = parseLong(data, off, end);
@@ -97,7 +99,7 @@ public class RecordLogCodec2 {
 			return findNextChar(data, end, '\n');
 		}
 
-		if (Constants.INSERT == alterType) {
+		if (OPCode.INSERT == alterType) {
 			off += I_ID_SKIP;
 			//byte[] record = table.newRecord();
 			end = findNextChar(data, off, '|');

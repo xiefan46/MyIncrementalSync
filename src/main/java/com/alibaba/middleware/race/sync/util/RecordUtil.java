@@ -6,13 +6,12 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
+import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.map.ArrayHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
-import com.alibaba.middleware.race.sync.model.ColumnLog;
 import com.alibaba.middleware.race.sync.other.bytes.ByteArrayBuffer;
 import com.generallycloud.baseio.common.CloseUtil;
 
@@ -80,12 +79,12 @@ public class RecordUtil {
 
 	public static void writeToByteArrayBuffer(Context context, OutputStream buffer)
 			throws IOException {
-		int startId = (int) context.getStartId();
-		int endId = (int) context.getEndId();
+		int startId = 0;
+		int endId = 0;
 		int all = 0;
-		int cols = context.getTable().getColumnSize();
+		int cols = 0;
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
-		ArrayHashMap resultMap = context.getRecordMap();
+		ArrayHashMap resultMap = null;
 		if (endId >= resultMap.MAX_NUMBER) {
 			throw new RuntimeException("数组太小");
 		}

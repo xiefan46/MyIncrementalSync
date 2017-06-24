@@ -1,100 +1,143 @@
 package com.alibaba.middleware.race.sync;
 
-import com.alibaba.middleware.race.sync.channel.ReadChannel;
-import com.alibaba.middleware.race.sync.map.ArrayHashMap;
-import com.alibaba.middleware.race.sync.model.Table;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.alibaba.middleware.race.sync.common.BufferPool;
+import com.alibaba.middleware.race.sync.common.HashPartitioner;
+import com.alibaba.middleware.race.sync.common.RangePartitioner;
+import com.alibaba.middleware.race.sync.common.SegmentPool;
+import com.alibaba.middleware.race.sync.database.Column;
 
 /**
- * @author wangkai
- *
+ * Created by xiefan on 6/24/17.
  */
 public class Context {
+    private static volatile Context INSTANCE = new Context();
+    public static Context getInstance() {
+        return INSTANCE;
+    }
 
-	private long				endId;
-	private RecordLogReceiver	receiver;
-	private long				startId;
-	private String				tableSchema;
-	private ReadChannel			readChannel;
-	private boolean			executeByCoreProcesses	= false;
-	private Table				table;
-	private int				availableProcessors		= Runtime.getRuntime()
-			.availableProcessors() - 2;
 
-	private ArrayHashMap		recordMap;
 
-	public Context(long endId, RecordLogReceiver receiver, long startId, String tableSchema) {
-		this.endId = endId;
-		this.receiver = receiver;
-		this.startId = startId;
-		this.tableSchema = tableSchema;
-	}
+    private long startTime = System.currentTimeMillis();
 
-	public RecordLogReceiver getReceiver() {
-		return receiver;
-	}
+    private String schema;
+    private String table;
+    private long startPk;
+    private long endPk;
 
-	public String getTableSchema() {
-		return tableSchema;
-	}
+    private RangePartitioner rangePartitioner;
+    private HashPartitioner hashPartitioner = new HashPartitioner(Config.OUTRANGE_REPLAYER_COUNT);
 
-	public void initialize() {
-		this.table = Table.newOnline();
-		this.recordMap = new ArrayHashMap(table);
-	}
+    // 内存池
+    private BufferPool readBufferPool = new BufferPool(Config.READ_BUFFER_POOL_SIZE, Config.READ_BUFFER_SIZE, true);
+    private SegmentPool segmentPool = null;//new SegmentPool();
 
-	public void setReceiver(RecordLogReceiver receiver) {
-		this.receiver = receiver;
-	}
+    private volatile Socket client;
 
-	public void setTableSchema(String tableSchema) {
-		this.tableSchema = tableSchema;
-	}
+    private Map<String, Column> columnMap = new HashMap<>();
+    private List<Column> columnList = new ArrayList<>();
+    private List<byte[]> columnByteList = new ArrayList<>();
 
-	public long getEndId() {
-		return endId;
-	}
+    public int RECORD_SIZE;
 
-	public void setEndId(long endId) {
-		this.endId = endId;
-	}
+    private Context() {
 
-	public long getStartId() {
-		return startId;
-	}
+        columnList.add(new Column(0, true));
+        columnList.add(new Column(1, false));
+        columnList.add(new Column(2, false));
+        columnList.add(new Column(3, false));
+        columnList.add(new Column(4, true));
+        if (!Config.LOCAL_TEST)
+        columnList.add(new Column(5, true));
 
-	public void setStartId(long startId) {
-		this.startId = startId;
-	}
+        columnMap.put("id", new Column(0, true));
+        columnMap.put("first_name", new Column(1, false));
+        columnMap.put("last_name", new Column(2, false));
+        columnMap.put("sex", new Column(3, false));
+        columnMap.put("score", new Column(4, true));
+        if (!Config.LOCAL_TEST)
+        columnMap.put("score2", new Column(5, true));
 
-	public boolean isExecuteByCoreProcesses() {
-		return executeByCoreProcesses;
-	}
 
-	public int getAvailableProcessors() {
-		return availableProcessors;
-	}
+        columnByteList.add("id".getBytes());
+        columnByteList.add("firse_name".getBytes());
+        columnByteList.add("last_name".getBytes());
+        columnByteList.add("sex".getBytes());
+        columnByteList.add("score".getBytes());
+        if (!Config.LOCAL_TEST)
+        columnByteList.add("score2".getBytes());
 
-	public Table getTable() {
-		return table;
-	}
 
-	public void setTable(Table table) {
-		this.table = table;
-	}
+        RECORD_SIZE = (columnList.size() - 1) * 8;
+    }
 
-	public ReadChannel getReadChannel() {
-		return readChannel;
-	}
+    public void initQuery(String schema, String table, long startPk, long endPk) {
+        this.startPk = startPk;
+        this.endPk = endPk;
+        this.schema = schema;
+        this.table = table;
+        rangePartitioner = new RangePartitioner(startPk, endPk, Config.INRANGE_REPLAYER_COUNT);
+    }
 
-	public void setReadChannel(ReadChannel readChannel) {
-		this.readChannel = readChannel;
-	}
+    public String getSchema() {
+        return schema;
+    }
 
-	public ArrayHashMap getRecordMap() {
-		return recordMap;
-	}
+    public String getTable() {
+        return table;
+    }
 
-	public void setRecordMap(ArrayHashMap recordMap) {
-		this.recordMap = recordMap;
-	}
+    public long getStartPk() {
+        return startPk;
+    }
+
+    public long getEndPk() {
+        return endPk;
+    }
+
+
+    public List<Column> getColumnList() {
+        return columnList;
+    }
+
+    public long getCostTime() {
+        return System.currentTimeMillis() - startTime;
+    }
+
+    public BufferPool getReadBufferPool() {
+        return readBufferPool;
+    }
+
+    public Map<String, Column> getColumnMap() {
+        return columnMap;
+    }
+
+    public Socket getClient() {
+        return client;
+    }
+
+    public void setClient(Socket client) {
+        this.client = client;
+    }
+
+    public SegmentPool getSegmentPool() {
+        return segmentPool;
+    }
+
+    public RangePartitioner getRangePartitioner() {
+        return rangePartitioner;
+    }
+
+    public HashPartitioner getHashPartitioner() {
+        return hashPartitioner;
+    }
+
+    public List<byte[]> getColumnByteList() {
+        return columnByteList;
+    }
 }
