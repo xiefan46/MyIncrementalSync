@@ -1,6 +1,5 @@
 package com.alibaba.middleware.race.sync;
 
-
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -14,97 +13,88 @@ import com.alibaba.middleware.race.sync.service.DataParseService;
 import com.alibaba.middleware.race.sync.service.DataReplayService;
 import com.alibaba.middleware.race.sync.service.DataSendService;
 
-
 public class Server {
 
-    // 保存channel
-    // 接收评测程序的三个参数
+	// 保存channel
+	// 接收评测程序的三个参数
 
-    private String schema;
-    private String table;
-    private int startPkId;
-    private int endPkId;
+	private String			schema;
+	private String			table;
+	private int			startPkId;
+	private int			endPkId;
 
-    private static Logger logger = LoggerFactory.getLogger(Server.class);
+	private static Logger	logger	= LoggerFactory.getLogger(Server.class);
 
-    private static Context context = Context.getInstance();
+	private static Context	context	= Context.getInstance();
 
+	private void getArgs(String[] args) {
+		schema = args[0];
+		table = args[1];
+		startPkId = Integer.valueOf(args[2]);
+		endPkId = Integer.valueOf(args[3]);
+	}
 
-    private void getArgs(String[] args) {
-        schema = args[0];
-        table = args[1];
-        startPkId = Integer.valueOf(args[2]);
-        endPkId = Integer.valueOf(args[3]);
-    }
+	public Server(String[] args) {
+		getArgs(args);
+	}
 
-    public Server(String[] args) {
-        getArgs(args);
-    }
+	public static void main(String[] args) throws InterruptedException, IOException {
+		logger.info("start " + System.currentTimeMillis());
+		initProperties();
+		printInput(args);
+		initContext(args);
 
+		Server server = new Server(args);
+		server.startServer(5527);
+	}
 
-    public static void main(String[] args) throws InterruptedException, IOException {
-        logger.info("start " + System.currentTimeMillis());
-        initProperties();
-        printInput(args);
-        initContext(args);
+	private static void initContext(String[] args) {
+		context.initQuery(args[0], args[1], Long.valueOf(args[2]), Long.valueOf(args[3]));
+	}
 
-        Server server = new Server(args);
-        server.startServer(5527);
-    }
+	/**
+	 * 打印赛题输入 赛题输入格式： schemaName tableName startPkId endPkId，例如输入： middleware
+	 * student 100 200
+	 * 上面表示，查询的schema为middleware，查询的表为student,主键的查询范围是(100,200)，注意是开区间
+	 * 对应DB的SQL为： select * from middleware.student where id>100 and id<200
+	 */
+	private static void printInput(String[] args) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Schema: ").append(args[0]).append("\n").append("Table: ").append(args[1])
+				.append("\n").append("start: ").append(args[2]).append("\n").append("end: ")
+				.append(args[3]);
+		logger.info("\n{}", sb.toString());
+	}
 
-    private static void initContext(String[] args) {
-        context.initQuery(args[0], args[1], Long.valueOf(args[2]), Long.valueOf(args[3]));
-    }
+	/**
+	 * 初始化系统属性
+	 */
+	private static void initProperties() {
+		System.setProperty("middleware.test.home", Constants.TESTER_HOME);
+		System.setProperty("middleware.teamcode", Constants.TEAMCODE);
+		System.setProperty("app.logging.level", Constants.LOG_LEVEL);
+	}
 
+	private void startServer(int port) throws InterruptedException, IOException {
 
-    /**
-     * 打印赛题输入 赛题输入格式： schemaName tableName startPkId endPkId，例如输入： middleware student 100 200
-     * 上面表示，查询的schema为middleware，查询的表为student,主键的查询范围是(100,200)，注意是开区间 对应DB的SQL为： select * from middleware.student where
-     * id>100 and id<200
-     */
-    private static void printInput(String[] args) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Schema: ").append(args[0]).append("\n")
-                .append("Table: ").append(args[1]).append("\n")
-                .append("start: ").append(args[2]).append("\n")
-                .append("end: ").append(args[3]);
-        logger.info("\n{}", sb.toString());
-    }
+		ConcurrentLinkedQueue<SendTask> sendTaskQueue = new ConcurrentLinkedQueue<>();
+		DataSendService sendService = new DataSendService(sendTaskQueue);
+		sendService.start();
 
-    /**
-     * 初始化系统属性
-     */
-    private static void initProperties() {
-        System.setProperty("middleware.test.home", Constants.TESTER_HOME);
-        System.setProperty("middleware.teamcode", Constants.TEAMCODE);
-        System.setProperty("app.logging.level", Constants.LOG_LEVEL);
-    }
+		ConcurrentLinkedQueue<ParseTask> parseTaskQueue = new ConcurrentLinkedQueue<>();
+		DataLoadService loadService = new DataLoadService(parseTaskQueue);
+		loadService.start();
 
+		DataReplayService inRangeReplayService = new DataReplayService(sendTaskQueue, true,
+				Config.INRANGE_REPLAYER_COUNT);
+		DataReplayService outRangeReplayService = new DataReplayService(sendTaskQueue, false,
+				Config.OUTRANGE_REPLAYER_COUNT);
+		inRangeReplayService.start();
+		outRangeReplayService.start();
 
-    private void startServer(int port) throws InterruptedException, IOException {
-        if (Config.solution == 0) {
-            ConcurrentLinkedQueue<SendTask> sendTaskQueue = new ConcurrentLinkedQueue<>();
-            DataSendService sendService = new DataSendService(sendTaskQueue);
-            sendService.start();
+		DataParseService parseService = new DataParseService(parseTaskQueue, inRangeReplayService,
+				outRangeReplayService);
+		parseService.start();
 
-            ConcurrentLinkedQueue<ParseTask> parseTaskQueue = new ConcurrentLinkedQueue<>();
-            DataLoadService loadService = new DataLoadService(parseTaskQueue);
-            loadService.start();
-
-
-            DataReplayService inRangeReplayService = new DataReplayService(sendTaskQueue, true, Config.INRANGE_REPLAYER_COUNT);
-            DataReplayService outRangeReplayService = new DataReplayService(sendTaskQueue, false, Config.OUTRANGE_REPLAYER_COUNT);
-            inRangeReplayService.start();
-            outRangeReplayService.start();
-
-            DataParseService parseService = new DataParseService(parseTaskQueue, inRangeReplayService, outRangeReplayService);
-            parseService.start();
-
-        }
-        else if (Config.solution == 1) {
-        }
-
-
-
-    }
+	}
 }

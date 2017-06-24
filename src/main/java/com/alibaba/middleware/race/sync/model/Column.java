@@ -1,18 +1,23 @@
 package com.alibaba.middleware.race.sync.model;
 
 /**
- * @author wangkai
- *
+ * Created by xiefan on 6/24/17.
  */
 public class Column {
+    private int id;
+    private boolean isInt;
 
-	private byte[]	value;
+    public Column(int id, boolean isInt) {
+        this.id = id;
+        this.isInt = isInt;
+    }
 
-	public void setValue(byte[] bytes) {
-		this.value = bytes;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public byte[] getValue() {
-		return value;
-	}
+    public boolean isInt() {
+        return isInt;
+    }
+
 }

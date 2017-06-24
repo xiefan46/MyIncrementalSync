@@ -1,17 +1,5 @@
 package com.alibaba.middleware.race.sync.codec;
 
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CoderResult;
-import java.util.Map;
-
-import com.alibaba.middleware.race.sync.model.Column;
-import com.alibaba.middleware.race.sync.model.Record;
-import com.generallycloud.baseio.common.MathUtil;
-
 /**
  * @author wangkai
  *

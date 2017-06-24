@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.sync.other.bytes;
+package com.alibaba.middleware.race.sync.util;
 
 import java.io.IOException;
 import java.io.InputStream;

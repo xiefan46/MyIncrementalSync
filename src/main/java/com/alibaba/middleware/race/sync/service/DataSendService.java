@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.common.ArrayMap;
+import com.alibaba.middleware.race.sync.map.ArrayMap;
 import com.alibaba.middleware.race.sync.entity.SendTask;
 import com.alibaba.middleware.race.sync.metrics.SendMetrics;
 import com.alibaba.middleware.race.sync.util.Timer;

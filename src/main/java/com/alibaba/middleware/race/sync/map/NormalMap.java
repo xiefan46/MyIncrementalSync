@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.sync.common;
+package com.alibaba.middleware.race.sync.map;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

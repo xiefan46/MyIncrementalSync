@@ -1,10 +1,12 @@
-package com.alibaba.middleware.race.sync.common;
+package com.alibaba.middleware.race.sync.map;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.alibaba.middleware.race.sync.Context;
+import com.alibaba.middleware.race.sync.common.Segment;
+import com.alibaba.middleware.race.sync.common.SegmentPool;
 
 /**
  * Created by wubincen on 2017/6/19.

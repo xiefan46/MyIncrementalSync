@@ -16,7 +16,7 @@
  * limitations under the License.
 */
 
-package com.alibaba.middleware.race.sync.other.bytes;
+package com.alibaba.middleware.race.sync.util;
 
 public interface BytesConverter<T> {
 

@@ -2,14 +2,13 @@ package com.alibaba.middleware.race.sync.codec;
 
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.common.OPCode;
 import com.alibaba.middleware.race.sync.map.ArrayHashMap;
 import com.alibaba.middleware.race.sync.model.Table;
 
 /**
  * @author wangkai
  */
-public class RecordLogCodec2 {
+public class RecordLogCodec2 implements Constants{
 
 	private static RecordLogCodec2	recordLogCodec	= new RecordLogCodec2();
 
@@ -56,7 +55,7 @@ public class RecordLogCodec2 {
 		int end;
 		off = off + tableSchema.length + 2;
 		byte alterType = data[off];
-		if (OPCode.UPDATE == alterType) {
+		if (Constants.UPDATE == alterType) {
 			off += U_D_ID_SKIP;
 			end = findNextChar(data, off, '|');
 			int beforePk = parseLong(data, off, end);
@@ -89,7 +88,7 @@ public class RecordLogCodec2 {
 			}
 		}
 
-		if (OPCode.DELETE == alterType) {
+		if (Constants.DELETE == alterType) {
 			off += U_D_ID_SKIP;
 			end = findNextChar(data, off, '|');
 			int pk = parseLong(data, off, end);
@@ -99,7 +98,7 @@ public class RecordLogCodec2 {
 			return findNextChar(data, end, '\n');
 		}
 
-		if (OPCode.INSERT == alterType) {
+		if (Constants.INSERT == alterType) {
 			off += I_ID_SKIP;
 			//byte[] record = table.newRecord();
 			end = findNextChar(data, off, '|');

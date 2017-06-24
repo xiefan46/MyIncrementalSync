@@ -1,7 +1,7 @@
 package com.alibaba.middleware.race.sync.metrics;
 
 /**
- * Created by xiefan on 6/24/17.
+ * Created by xiefan on 6/25/17.
  */
 public class ParseMetrics {
     public long totalSize = 0;

@@ -1,7 +1,6 @@
 package com.alibaba.middleware.race.sync;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +18,7 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.middleware.race.sync.database.Column;
+import com.alibaba.middleware.race.sync.model.Column;
 import com.alibaba.middleware.race.sync.entity.ParseTask;
 import com.alibaba.middleware.race.sync.entity.WriteTask;
 import com.alibaba.middleware.race.sync.util.Timer;
