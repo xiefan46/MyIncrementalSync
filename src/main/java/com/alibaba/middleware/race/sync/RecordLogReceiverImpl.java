@@ -1,9 +1,8 @@
 package com.alibaba.middleware.race.sync;
 
-import java.util.Map;
-
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
+import com.carrotsearch.hppc.IntObjectHashMap;
 
 /**
  * Created by xiefan on 6/4/17.
@@ -12,8 +11,8 @@ public class RecordLogReceiverImpl implements RecordLogReceiver {
 
 	@Override
 	public void received(RecalculateContext context, RecordLog recordLog) throws Exception {
-		Map<Integer, byte[]> records = context.getRecords();
-//		IntObjectHashMap<byte[]> records = context.getRecords();
+//		Map<Integer, byte[]> records = context.getRecords();
+		IntObjectHashMap<byte[]> records = context.getRecords();
 //		ShardMap2<byte[]> records = context.getRecords();
 		Table table = context.getTable();
 		int pk = recordLog.getPk();

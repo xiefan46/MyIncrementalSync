@@ -1,11 +1,10 @@
 package com.alibaba.middleware.race.sync.codec;
 
-import java.util.Map;
-
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.RecalculateContext;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
+import com.carrotsearch.hppc.IntObjectHashMap;
 
 /**
  * @author wangkai
@@ -42,7 +41,8 @@ public class RecordLogCodec2 {
 
 	public int decode(RecalculateContext context, byte[] data, byte[] tableSchema, int offset) {
 		Table table = context.getTable();
-		Map<Integer, byte[]> records = context.getRecords();
+//		Map<Integer, byte[]> records = context.getRecords();
+		IntObjectHashMap<byte[]> records = context.getRecords();
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
 		off += TIME_SKIP;
 		//		if (!compare(data, off + 1, tableSchema)) {
