@@ -28,7 +28,7 @@ public class RecordLogCodec2 {
 		return recordLogCodec;
 	}
 
-	public boolean print;
+	//public boolean print;
 
 	private RecordLogCodec2() {
 	}
@@ -43,7 +43,7 @@ public class RecordLogCodec2 {
 	}
 
 	public int decode(Context context, byte[] data, byte[] tableSchema, int offset) {
-		print = false;
+		//print = false;
 		Table table = context.getTable();
 		//		Map<Integer, byte[]> records = context.getRecords();
 		ArrayHashMap resultMap = context.getRecordMap();
@@ -62,8 +62,8 @@ public class RecordLogCodec2 {
 			off = end + 1;
 			end = findNextChar(data, off, '|');
 			int pk = parseLong(data, off, end);
-			if (needPrint(pk) || needPrint(beforePk))
-				print = true;
+			/*if (needPrint(pk) || needPrint(beforePk))
+				print = true;*/
 			off = end + 1;
 			if (beforePk != pk) {
 				resultMap.move(beforePk, pk);
@@ -91,7 +91,7 @@ public class RecordLogCodec2 {
 			off += U_D_ID_SKIP;
 			end = findNextChar(data, off, '|');
 			int pk = parseLong(data, off, end);
-			print = needPrint(pk);
+			//print = needPrint(pk);
 			resultMap.remove(pk);
 			off = end + table.getDelSkip();
 			return findNextChar(data, end, '\n');
@@ -102,7 +102,7 @@ public class RecordLogCodec2 {
 			//byte[] record = table.newRecord();
 			end = findNextChar(data, off, '|');
 			int id = parseLong(data, off, end);
-			print = needPrint(id);
+			//print = needPrint(id);
 			resultMap.newRecord(id);
 			//records.put(parseLong(data, off, end), record);
 			int[] colsSkip = table.getColumnNameSkip();

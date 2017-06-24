@@ -6,6 +6,7 @@ import com.generallycloud.baseio.common.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -15,15 +16,13 @@ import java.util.TreeSet;
  */
 public class ArrayHashMap {
 
-	private Set<Integer>		allId		= new TreeSet<>();
-
-	private Set<Integer>		idSmall800	= new TreeSet<>();
+	private List<Set<Integer>>	allId		= new ArrayList<>();
 
 	private Map<Integer, byte[]>	resultsMap	= new HashMap<>();
 
 	private byte[][]			resultsArray;
 
-	public static final int		MAX_NUMBER	= 8000001;
+	public static final int		MAX_NUMBER	= 15000000;
 
 	private int				headerLength	= 1;
 
@@ -42,6 +41,9 @@ public class ArrayHashMap {
 		this.recordLength = 8 * table.getColumnSize();
 		this.totalLength = this.recordLength + this.headerLength;
 		resultsArray = new byte[MAX_NUMBER][this.totalLength];
+		for (int i = 0; i < 10; i++) {
+			allId.add(new TreeSet<Integer>());
+		}
 	}
 
 	public void newRecord(int id) {
@@ -160,17 +162,22 @@ public class ArrayHashMap {
 		return resultsArray;
 	}
 
-	private void stat(int id) {
-		if (id >= MAX_NUMBER) {
-			allId.add(id);
+	private void stat(int id) { //统计1-5000W的id分布
+		if (id < 0)
+			return;
+		int num = id / 5000000;
+		if (num >= allId.size())
+			num = allId.size() - 1;
+		allId.get(num).add(id);
+	}
+
+	public String printIdStat() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		for (int i = 0; i < allId.size(); i++) {
+			sb.append("i : " + allId.get(i).size() + " ");
 		}
-	}
-
-	public Set<Integer> getAllId() {
-		return allId;
-	}
-
-	public void setAllId(Set<Integer> allId) {
-		this.allId = allId;
+		sb.append("]");
+		return sb.toString();
 	}
 }

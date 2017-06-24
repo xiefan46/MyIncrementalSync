@@ -139,9 +139,9 @@ public class Client {
 	}
 
 	private void printResult(byte[] array, int offset, int length) {
-		String str = new String(array, offset, length);
-		logger.info("r:");
-		logger.info(str);
+		//String str = new String(array, offset, length);
+		//logger.info("r:");
+		//logger.info(str);
 		//generate md5
 		String md5 = MD5Token.getInstance().getLongToken(array, offset, length);
 		logger.info("Result file md5 : " + md5);

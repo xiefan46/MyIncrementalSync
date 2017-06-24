@@ -2,6 +2,7 @@ package com.alibaba.middleware.race.sync;
 
 import java.util.Map;
 
+import com.alibaba.middleware.race.sync.map.ArrayHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +55,7 @@ public class ReadRecordLogThread implements Runnable {
 			}
 		}
 
-		logger.info("处理完成,大于800W的id个数: {}", context.getRecordMap().getAllId().size());
+		logger.info("处理完成,输出id统计信息 : {}", context.getRecordMap().printIdStat());
 
 	}
 

@@ -38,10 +38,10 @@ public class ChannelReader2 {
 				if (buf.remaining() > 1) {
 					int off = codec.decode(context, readBuffer, tableSchema, offset);
 					buf.position(off + 1);
-					if (codec.print) {
+					/*if (codec.print) {
 						logger.info("record : {}",
 								new String(readBuffer, offset, off - offset));
-					}
+					}*/
 					return true;
 				}
 				return false;
@@ -50,9 +50,9 @@ public class ChannelReader2 {
 			return read(context, channel, tableSchema);
 		}
 		int off = codec.decode(context, readBuffer, tableSchema, offset);
-		if (codec.print) {
+		/*if (codec.print) {
 			logger.info("record : {}", new String(readBuffer, offset, off - offset));
-		}
+		}*/
 		buf.position(off + 1);
 		return true;
 	}
