@@ -28,7 +28,7 @@ public class MergeThread implements Runnable {
 					if (data != null) {
 						data.setLogs(null);
 						count++;
-						System.out.println("deal block count : " + count);
+						//System.out.println("deal block count : " + count);
 					}
 				}
 				Thread.currentThread().sleep(100);
