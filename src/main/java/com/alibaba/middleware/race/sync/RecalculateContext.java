@@ -23,28 +23,28 @@ public class RecalculateContext {
 	}
 
 	
-//	private ShardMap2<long[]> records = new ShardMap2<>(4,1024 * 16);
-//	private IntObjectHashMap<long[]> records = new IntObjectHashMap<>(1024 * 1024 * 1);
-	 private final Map<Integer, long[]> records = new HashMap<>(1024 * 1024 * 1);
-//	 private Map<Integer, long[]> records = new ShardMap<>(2,1024 * 1024 * 8);
+//	private ShardMap2<byte[]> records = new ShardMap2<>(4,1024 * 16);
+//	private IntObjectHashMap<byte[]> records = new IntObjectHashMap<>(1024 * 1024 * 1);
+	 private final Map<Integer, byte[]> records = new HashMap<>(1024 * 1024 * 1);
+//	 private Map<Integer, byte[]> records = new ShardMap<>(2,1024 * 1024 * 8);
 
 	public RecordLogReceiver getRecordLogReceiver() {
 		return recordLogReceiver;
 	}
 
-//	public ShardMap2<long[]> getRecords() {
+//	public ShardMap2<byte[]> getRecords() {
 //		return records;
 //	}
 	
-//	public IntObjectHashMap<long[]> getRecords() {
+//	public IntObjectHashMap<byte[]> getRecords() {
 //		return records;
 //	}
 
-	public Map<Integer, long[]> getRecords() {
+	public Map<Integer, byte[]> getRecords() {
 		return records;
 	}
 	
-	public long [] getRecord(int id) {
+	public byte [] getRecord(int id) {
 		return records.get(id);
 	}
 

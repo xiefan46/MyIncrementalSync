@@ -12,20 +12,20 @@ import com.alibaba.middleware.race.sync.codec.ByteArray2;
  */
 public class Table {
 
-	private Map<ByteArray, Integer>	columnIndexs	= new HashMap<>();
+	private Map<ByteArray, Byte>	columnIndexs	= new HashMap<>();
 
 	private int					columnSize;
 
-	public long [] newRecord() {
-		return new long [columnSize];
+	public byte [] newRecord() {
+		return new byte [columnSize * 8];
 	}
 
-	public int getIndex(ByteArray2 array) {
+	public byte getIndex(ByteArray2 array) {
 		return columnIndexs.get(array);
 	}
 
 	public static Table newTable(String []cols) {
-		int index = 0;
+		byte index = 0;
 		Table t = new Table();
 		t.columnSize = cols.length;
 		for (int i = 0; i < cols.length; i++) {

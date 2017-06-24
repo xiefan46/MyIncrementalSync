@@ -1,6 +1,7 @@
 package com.alibaba.middleware.race.sync;
 
 import java.io.IOException;
+import java.util.Map;
 
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
 import com.alibaba.middleware.race.sync.codec.RecordLogCodec2;
@@ -26,7 +27,7 @@ public class ChannelReader2 {
 
 	private RecordLogCodec2 codec = RecordLogCodec2.get();
 
-	public boolean read(Table table, ReadChannel channel, byte[] tableSchema, RecordLog r)
+	public boolean read(RecalculateContext context, ReadChannel channel, byte[] tableSchema)
 			throws IOException {
 		ByteBuf buf = channel.getByteBuf();
 		byte[] readBuffer = buf.array();
@@ -34,28 +35,18 @@ public class ChannelReader2 {
 		if (buf.remaining() < MAX_RECORD_LEN) {
 			if (!channel.hasRemaining()) {
 				if (buf.remaining() > 1) {
-					int off = codec.decode(table, readBuffer, tableSchema, offset, r);
+					int off = codec.decode(context, readBuffer, tableSchema, offset);
 					buf.position(off + 1);
 					return true;
 				}
 				return false;
 			}
 			channel.read(buf);
-			return read(table, channel, tableSchema, r);
+			return read(context, channel, tableSchema);
 		}
-		int off = codec.decode(table, readBuffer, tableSchema, offset, r);
+		int off = codec.decode(context, readBuffer, tableSchema, offset);
 		buf.position(off + 1);
 		return true;
-	}
-
-	public static boolean print(RecordLog r) {
-		if (r.getPrimaryColumn().getLongValue() == 606
-				|| r.getPrimaryColumn().getBeforeValue() == 606
-				|| r.getPrimaryColumn().getLongValue() == 1000606
-				|| r.getPrimaryColumn().getBeforeValue() == 1000606) {
-			return true;
-		}
-		return false;
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race.sync;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,16 +45,8 @@ public class ReadRecordLogThread implements Runnable {
 
 		ChannelReader2 channelReader = ChannelReader2.get();
 		
-		RecordLog r = new RecordLog();
-
-		Table table = context.getTable();
-		r.newColumns(table.getColumnSize());
 		for (; channel.hasBufRemaining();) {
-			r.reset();
-			if (!channelReader.read(table,channel, tableSchemaBytes, r)) {
-				continue;
-			}
-			receiver.received(recalculateContext, r);
+			channelReader.read(recalculateContext,channel, tableSchemaBytes);
 		}
 
 	}

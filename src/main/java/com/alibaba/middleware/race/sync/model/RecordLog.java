@@ -1,8 +1,5 @@
 package com.alibaba.middleware.race.sync.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.alibaba.middleware.race.sync.Constants;
 
 /**
@@ -21,13 +18,15 @@ public class RecordLog {
 	//	// 数据变更对应的表名
 	//	private String			table;
 
-	private int edit;
+	private byte edit;
 	//  I(1)代表insert, U(2)代表update, D(0)代表delete
-	private byte			alterType;
+	private byte		alterType;
 	// 该记录的列信息
-	private List<ColumnLog>	columns;
+	private byte[]	columns;
 	// 该记录的主键
-	private PrimaryColumnLog	primaryColumn = new PrimaryColumnLog();
+	
+	private int beforePk;
+	private int pk;
 
 	//	public long getTimestamp() {
 	//		return timestamp;
@@ -45,30 +44,29 @@ public class RecordLog {
 		this.alterType = alterType;
 	}
 
-	public ColumnLog getColumn() {
-		return columns.get(edit++);
+	public byte getColumn() {
+		return edit++;
 	}
 	
-	public ColumnLog getColumn(int index) {
-		return columns.get(index);
+	public byte[] getColumns() {
+		return columns;
 	}
 
 	public void newColumns(int cols) {
-		List<ColumnLog> columns = new ArrayList<>(cols);
-		for (int i = 0; i < cols; i++) {
-			columns.add(new ColumnLog());
-		}
-		this.columns = columns;
-	}
-
-	public PrimaryColumnLog getPrimaryColumn() {
-		return primaryColumn;
-	}
-
-	public void setPrimaryColumn(PrimaryColumnLog primaryColumn) {
-		this.primaryColumn = primaryColumn;
+		this.columns = new byte[cols * 8];
 	}
 	
+	public void setColumn(byte index,byte[] bytes, int off, int len){
+		setColumn(columns, index, bytes, off, len);
+	}
+	
+	public static void setColumn(byte [] target,byte index,byte[] bytes, int off, int len){
+		int tOff = index * 8;
+		target[tOff++] = index;
+		target[tOff++] = (byte)len;
+		System.arraycopy(bytes, off, target, tOff, len);
+	}
+
 	public void reset(){
 		edit = 0;
 	}
@@ -77,14 +75,34 @@ public class RecordLog {
 		return edit;
 	}
 
-	public boolean isPKUpdate() {
+	public boolean isPkUpdate() {
 		return alterType == Constants.PK_UPDATE;
 	}
 
+	public boolean isPkUpdate4Codec() {
+		return beforePk != pk;
+	}
+	
 	public static RecordLog newRecordLog(int cols){
 		RecordLog r = new RecordLog();
 		r.newColumns(cols);
 		return r;
+	}
+
+	public int getBeforePk() {
+		return beforePk;
+	}
+
+	public int getPk() {
+		return pk;
+	}
+
+	public void setBeforePk(int beforePk) {
+		this.beforePk = beforePk;
+	}
+
+	public void setPk(int pk) {
+		this.pk = pk;
 	}
 
 }

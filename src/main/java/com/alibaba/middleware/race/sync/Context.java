@@ -80,7 +80,7 @@ public class Context {
 		return table;
 	}
 	
-	public long [] getRecord(int id) {
+	public byte [] getRecord(int id) {
 		return recalculateContext.getRecord(id);
 	}
 
