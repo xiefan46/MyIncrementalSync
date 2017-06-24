@@ -64,6 +64,17 @@ public class RecordLog {
 		int tOff = index * 8;
 		target[tOff++] = index;
 		target[tOff++] = (byte)len;
+		int end = off + len;
+		for (int i = off; i < end; i++) {
+			target[tOff++] = bytes[i];
+		}
+//		System.arraycopy(bytes, off, target, tOff, len);
+	}
+	
+	public static void setColumn1(byte [] target,byte index,byte[] bytes, int off, int len){
+		int tOff = index * 8;
+		target[tOff++] = index;
+		target[tOff++] = (byte)len;
 		System.arraycopy(bytes, off, target, tOff, len);
 	}
 
