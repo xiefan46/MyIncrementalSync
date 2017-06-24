@@ -16,13 +16,13 @@ import java.util.TreeSet;
  */
 public class ArrayHashMap {
 
-	private List<Set<Integer>>	allId		= new ArrayList<>();
+	//private List<Set<Integer>>	allId		= new ArrayList<>();
 
 	private Map<Integer, byte[]>	resultsMap	= new HashMap<>();
 
 	private byte[][]			resultsArray;
 
-	public static final int		MAX_NUMBER	= 15000000;
+	public static final int		MAX_NUMBER	= 8000000;
 
 	private int				headerLength	= 1;
 
@@ -41,13 +41,13 @@ public class ArrayHashMap {
 		this.recordLength = 8 * table.getColumnSize();
 		this.totalLength = this.recordLength + this.headerLength;
 		resultsArray = new byte[MAX_NUMBER][this.totalLength];
-		for (int i = 0; i < 10; i++) {
+		/*for (int i = 0; i < 10; i++) {
 			allId.add(new TreeSet<Integer>());
-		}
+		}*/
 	}
 
 	public void newRecord(int id) {
-		stat(id);
+		//stat(id);
 		if (id < 0) {
 			if (log) {
 				logger.info("id < 0. ignore");
@@ -63,7 +63,7 @@ public class ArrayHashMap {
 	}
 
 	public void remove(int id) {
-		stat(id);
+		//stat(id);
 		if (id < 0) {
 			if (log) {
 				logger.info("id < 0. ignore");
@@ -79,8 +79,8 @@ public class ArrayHashMap {
 	}
 
 	public void move(int oldId, int newId) {
-		stat(oldId);
-		stat(newId);
+		//stat(oldId);
+		//stat(newId);
 		if (oldId < 0 || newId < 0) {
 			oldId = Math.abs(oldId);
 			newId = Math.abs(newId);
@@ -162,7 +162,7 @@ public class ArrayHashMap {
 		return resultsArray;
 	}
 
-	private void stat(int id) { //统计1-5000W的id分布
+	/*private void stat(int id) { //统计1-5000W的id分布
 		if (id < 0)
 			return;
 		int num = id / 5000000;
@@ -179,5 +179,5 @@ public class ArrayHashMap {
 		}
 		sb.append("]");
 		return sb.toString();
-	}
+	}*/
 }

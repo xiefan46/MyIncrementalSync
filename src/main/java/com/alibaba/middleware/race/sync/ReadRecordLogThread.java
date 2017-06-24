@@ -1,14 +1,9 @@
 package com.alibaba.middleware.race.sync;
 
-import java.util.Map;
-
-import com.alibaba.middleware.race.sync.map.ArrayHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
-import com.alibaba.middleware.race.sync.model.RecordLog;
-import com.alibaba.middleware.race.sync.model.Table;
 
 /**
  * @author wangkai
@@ -55,7 +50,7 @@ public class ReadRecordLogThread implements Runnable {
 			}
 		}
 
-		logger.info("处理完成,输出id统计信息 : {}", context.getRecordMap().printIdStat());
+		//logger.info("处理完成,输出id统计信息 : {}", context.getRecordMap().printIdStat());
 
 	}
 
