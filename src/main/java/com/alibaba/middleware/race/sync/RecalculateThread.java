@@ -245,9 +245,9 @@ public class RecalculateThread implements Constants, EventHandler<RecordLogEvent
 	private RuntimeException createCanNotHandleException(RecordLog recordLog, Record record) {
 		String errorMsg = CAN_NOT_HANDLE + " record type : " + (char) record.getAlterType()
 				+ " record log type : " + (char) recordLog.getAlterType()
+				+ " record new pk : " + record.getNewId()
 				+ " recordLog old pk : " + recordLog.getPrimaryColumn().getBeforeValue()
-				+ " recordLog new pk : " + recordLog.getPrimaryColumn().getLongValue()
-				+ " record new pk : " + record.getNewId();
+				+ " recordLog new pk : " + recordLog.getPrimaryColumn().getLongValue();
 		return new RuntimeException(errorMsg);
 	}
 
