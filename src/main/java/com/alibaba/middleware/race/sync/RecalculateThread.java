@@ -40,6 +40,11 @@ public class RecalculateThread extends WorkThread implements Constants{
 		Node<RecordLog> cnr = task.rootNode.getNext();
 		int limit = task.limit;
 		for (int i = 0; i < limit; i++) {
+			RecordLog r = cnr.getValue();
+			if (r.getPk() < 0) {
+				cnr = cnr.getNext();
+				continue;
+			}
 			received(table, records, cnr.getValue());
 			cnr = cnr.getNext();
 		}

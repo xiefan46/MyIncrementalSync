@@ -14,8 +14,8 @@ public class Context {
 	private MuiltFileInputStream	readChannel;
 	private Table				table;
 	private ReaderThread		readerThread	= new ReaderThread(this);
-	private int				recalThreadNum	= 8;
-	private int				parseThreadNum	= 8;
+	private int				recalThreadNum	= 4;
+	private int				parseThreadNum	= 2;
 	private int				blockSize		= (int) (1024 * 1024 * 4);
 	private Dispatcher			dispatcher;
 

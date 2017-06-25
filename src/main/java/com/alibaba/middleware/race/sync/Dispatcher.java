@@ -2,7 +2,7 @@ package com.alibaba.middleware.race.sync;
 
 import com.alibaba.middleware.race.sync.model.Node;
 import com.alibaba.middleware.race.sync.model.RecordLog;
-import com.carrotsearch.hppc.IntByteHashMap;
+import com.alibaba.middleware.race.sync.util.collection.MyIntByteHashMap;
 import com.carrotsearch.hppc.IntObjectHashMap;
 
 /**
@@ -16,7 +16,7 @@ public class Dispatcher {
 
 	private RecalculateThread[]		threads;
 	
-	private IntByteHashMap			redirectMap	= new IntByteHashMap(1024 * 1024 * 4);
+	private MyIntByteHashMap			redirectMap	= new MyIntByteHashMap(1024 * 1024 * 4);
 	
 	private Task[]		rootTasks;
 	
@@ -101,7 +101,7 @@ public class Dispatcher {
 			currentRecordLogs[i] = rootTasks[i].rootNode;
 			rootTasks[i].limit = 0;
 		}
-		IntByteHashMap			redirectMap = this.redirectMap;
+		MyIntByteHashMap			redirectMap = this.redirectMap;
 		byte B = -1;
 		for (ParseThread p : parsers) {
 			Node<RecordLog> pnr = p.getRootRecord();
@@ -110,17 +110,29 @@ public class Dispatcher {
 				RecordLog r = pnr.getValue();
 				int id = r.getPk();
 				int oldId = r.getBeforePk();
+//				if (id == 454867168 || oldId == 454867168) {
+//					System.out.println(123);
+//				}
 				if (r.isPkUpdate()) {
-					byte oldDirect = redirectMap.getOrDefault(oldId,B);
-					if (oldDirect == -1) {
+					byte oldDirect = redirectMap.remove(oldId, B);
+					if (oldDirect == B) {
 						oldDirect = hashFun(oldId);
+						if (oldDirect != hashFun(id)) {
+							redirectMap.put(id, oldDirect);
+						}
+					}else{
+						redirectMap.put(id, oldDirect);
 					}
-					redirectMap.put(id, oldDirect);
 					currentRecordLogs[oldDirect] = getNext(currentRecordLogs[oldDirect], cols, oldDirect);
 					currentRecordLogs[oldDirect].setValue(r);
 				} else {
-					byte threadId = redirectMap.getOrDefault(id,B);
-					if (threadId == -1) {
+					byte threadId;
+					if (r.getAlterType() == Constants.DELETE) {
+						threadId = redirectMap.remove(id, B);
+					}else{
+						threadId = redirectMap.getOrDefault(id,B);
+					}
+					if (threadId == B) {
 						threadId = hashFun(id);
 					}
 					currentRecordLogs[threadId] = getNext(currentRecordLogs[threadId], cols, threadId);
@@ -140,6 +152,10 @@ public class Dispatcher {
 			return next;
 		}
 		return next;
+	}
+	
+	public MyIntByteHashMap getRedirectMap() {
+		return redirectMap;
 	}
 	
 	class Task{

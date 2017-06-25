@@ -34,8 +34,8 @@ public class MainThreadTest {
 //		ThreadUtil.execute(new PageCacheHelper());
 		String schema = "middleware3";
 		String table = "student";
-		long startId = 600;
-		long endId = 700;
+		long startId = 170000;
+		long endId = 170100;
 		ThreadUtil.execute(new JvmUsingState());
 		Context context = new Context(endId, startId);
 		context.initialize();
