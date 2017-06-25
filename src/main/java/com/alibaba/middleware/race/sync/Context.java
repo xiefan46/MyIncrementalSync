@@ -15,8 +15,8 @@ public class Context {
 	private Table				table;
 	private ReaderThread		readerThread	= new ReaderThread(this);
 	private int				recalThreadNum	= 8;
-	private int				parseThreadNum	= 2;
-	private int				blockSize		= (int) (1024 * 1024 * 16);
+	private int				parseThreadNum	= 8;
+	private int				blockSize		= (int) (1024 * 1024 * 4);
 	private Dispatcher			dispatcher;
 
 	public Context(long endId, long startId) {

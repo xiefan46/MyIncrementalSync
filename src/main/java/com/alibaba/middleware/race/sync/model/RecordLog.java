@@ -17,8 +17,6 @@ public class RecordLog {
 	private int beforePk;
 	private int pk;
 	
-	private RecordLog next;
-	
 	public byte getAlterType() {
 		return alterType;
 	}
@@ -96,14 +94,6 @@ public class RecordLog {
 
 	public void setPk(int pk) {
 		this.pk = pk;
-	}
-
-	public RecordLog getNext() {
-		return next;
-	}
-
-	public void setNext(RecordLog next) {
-		this.next = next;
 	}
 
 }

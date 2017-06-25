@@ -21,7 +21,9 @@ public class ReaderThread extends Thread {
 
 	private ParseThread[]	parseThreads;
 
-	private CountDownLatch	countDownLatch;
+	private CountDownLatch	parseCountDownLatch;
+	
+	private CountDownLatch	recalCountDownLatch;
 
 	private Dispatcher		dispatcher;
 
@@ -58,11 +60,16 @@ public class ReaderThread extends Thread {
 	}
 
 	public void execute(Context context, MuiltFileInputStream channel) throws Exception {
-		int tmp = 1024 * 1024 * 1024 / (context.getBlockSize() * context.getParseThreadNum());
-		int tmpCount = 0;
+//		int tmp = 1024 * 1024 * 1024 / (context.getBlockSize() * context.getParseThreadNum());
+//		int tmpCount = 0;
+		long time1 = 0;
+		long time2 = 0;
+		long time3 = 0;
+		long time4 = 0;
 		for (; channel.hasRemaining();) {
 			long startTime = System.currentTimeMillis();
-			countDownLatch = new CountDownLatch(context.getParseThreadNum());
+			parseCountDownLatch = new CountDownLatch(context.getParseThreadNum());
+			recalCountDownLatch = new CountDownLatch(context.getRecalThreadNum());
 			for (ParseThread t : parseThreads) {
 				ByteBuf buf = t.getBuf();
 				buf.clear();
@@ -72,34 +79,24 @@ public class ReaderThread extends Thread {
 				} else {
 					buf.flip();
 				}
-				t.setWork(true);
-				t.wakeup();
+				t.startWork();
 			}
-			long time1 = System.currentTimeMillis() - startTime;
+			time1 += (System.currentTimeMillis() - startTime);
 			startTime = System.currentTimeMillis();
-			countDownLatch.await();
-			long time2 = System.currentTimeMillis() - startTime;
+			parseCountDownLatch.await();
+			time2 += (System.currentTimeMillis() - startTime);
 			startTime = System.currentTimeMillis();
-			int count =0;
-			for (int i = 0; i < parseThreads.length; i++) {
-				ParseThread t = parseThreads[i];
-				count += t.getLimit();
-			}
-			dispatcher.newCountDownLatch(count);
-			for (int i = 0; i < parseThreads.length; i++) {
-				ParseThread t = parseThreads[i];
-				t.dispatch();
-			}
-			long time3 = System.currentTimeMillis() - startTime;
+			dispatcher.dispatch(parseThreads);
+			time3 += (System.currentTimeMillis() - startTime);
 			startTime = System.currentTimeMillis();
-			dispatcher.await();
-			long time4 = System.currentTimeMillis() - startTime;
-			if ((tmpCount++) % tmp == 0) {
-				logger.info("读取完成:{}，处理完成:{},分发完成:{}，合并完成:{}", time1, time2, time3,time4);
-			}
+			dispatcher.startWork();
+			recalCountDownLatch.await();
+			time4 += (System.currentTimeMillis() - startTime);
+				
 		}
+		logger.info("读取完成:{}，解析完成:{},分发完成:{}，合并完成:{}", time1, time2, time3,time4);
 		for (ParseThread t : parseThreads) {
-			t.setRunning(false);
+			t.shutdown();
 		}
 		context.getDispatcher().readRecordOver();
 	}
@@ -108,8 +105,12 @@ public class ReaderThread extends Thread {
 		return context;
 	}
 
-	public void done(int index) {
-		countDownLatch.countDown();
+	public void parseDone(int index) {
+		parseCountDownLatch.countDown();
+	}
+	
+	public void recalDone(int index) {
+		recalCountDownLatch.countDown();
 	}
 
 }

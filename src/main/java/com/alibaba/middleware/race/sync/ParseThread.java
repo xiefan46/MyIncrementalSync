@@ -1,62 +1,32 @@
 package com.alibaba.middleware.race.sync;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.alibaba.middleware.race.sync.model.Node;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
 import com.generallycloud.baseio.buffer.ByteBuf;
 
-public class ParseThread extends Thread {
-
-	private static Logger	logger	= LoggerFactory.getLogger(ParseThread.class);
+public class ParseThread extends WorkThread {
 
 	private ByteBuf		buf;
 
-	private Object			lock		= new Object();
+	private Node<RecordLog>	rootRecord;
 
-	private volatile boolean	isRunning	= true;
-
-	private boolean		work;
-
-	private RecordLog		root;
-	
 	private int			limit;
 
 	private ReaderThread	readerThread;
-	
-	private ByteBufReader	byteBufReader = new ByteBufReader();
-	
+
+	private ByteBufReader	byteBufReader	= new ByteBufReader();
+
 	private Dispatcher		dispatcher;
 
-	private int			index;
-
 	public ParseThread(ReaderThread readerThread, ByteBuf buf, int index) {
-		super("parse-" + index);
+		super("parse-", index);
 		this.buf = buf;
-		this.index = index;
 		this.readerThread = readerThread;
 		this.dispatcher = readerThread.getContext().getDispatcher();
 	}
 
-	@Override
-	public void run() {
-		for (;;) {
-			if (!work) {
-				wait4Work();
-			}
-			if (!isRunning) {
-				break;
-			}
-			try {
-				work();
-			} catch (Exception e) {
-				logger.error(e.getMessage(), e);
-			}
-		}
-	}
-
-	private void work() throws Exception {
+	protected void work() throws Exception {
 		ReaderThread readerThread = this.readerThread;
 		ByteBuf buf = this.buf;
 		Context context = readerThread.getContext();
@@ -67,60 +37,45 @@ public class ParseThread extends Thread {
 		if (!buf.hasRemaining()) {
 			return;
 		}
-		if (root == null) {
-			root = new RecordLog();
-			root.newColumns(cols);
+		if (rootRecord == null) {
+			rootRecord = new Node<>();
+			rootRecord.setValue(RecordLog.newRecordLog(cols));
 		}
 		limit = 1;
-		RecordLog cr = root;
-		cr.reset();
-		reader.read(table, buf, tableSchema, cr);
+		Node<RecordLog> cr = rootRecord;
+		RecordLog crv = cr.getValue();
+		crv.reset();
+		reader.read(table, buf, tableSchema, crv);
 		for (; buf.hasRemaining();) {
 			cr = getNext(cr, cols);
-			cr.reset();
-			reader.read(table, buf, tableSchema, cr);
+			crv = cr.getValue();
+			crv.reset();
+			reader.read(table, buf, tableSchema, crv);
 		}
-		work = false;
-		readerThread.done(index);
+		readerThread.parseDone(getIndex());
 	}
-	
-	private RecordLog getNext(RecordLog recordLog,int cols){
+
+	private Node<RecordLog> getNext(Node<RecordLog> node, int cols) {
 		limit++;
-		RecordLog next = recordLog.getNext();
+		Node<RecordLog> next = node.getNext();
 		if (next == null) {
-			next = new RecordLog();
-			next.newColumns(cols);
-			recordLog.setNext(next);
+			next = new Node<>();
+			next.setValue(RecordLog.newRecordLog(cols));
+			node.setNext(next);
 			return next;
 		}
 		return next;
 	}
-	
-	public void dispatch() throws InterruptedException{
-		int limit = this.limit;
-		Dispatcher dispatcher = this.dispatcher;
-		RecordLog r = this.root;
-		for (int i = 0; i < limit; i++) {
-			dispatcher.dispatch(r);
-			r = r.getNext();
-		}
-	}
 
-	public boolean isRunning() {
-		return isRunning;
-	}
-
-	public boolean isWork() {
-		return work;
-	}
-
-	public void setRunning(boolean isRunning) {
-		this.isRunning = isRunning;
-	}
-
-	public void setWork(boolean work) {
-		this.work = work;
-	}
+//	public void dispatch() throws InterruptedException {
+//		int limit = this.limit;
+//		Dispatcher dispatcher = this.dispatcher;
+//		Node<RecordLog> r = this.rootRecord;
+//		for (int i = 0; i < limit; i++) {
+//			dispatcher.dispatch(r.getValue());
+//			r = r.getNext();
+//		}
+//	}
 
 	public ByteBuf getBuf() {
 		return buf;
@@ -130,23 +85,15 @@ public class ParseThread extends Thread {
 		this.buf = buf;
 	}
 
-	public void wakeup() {
-		synchronized (lock) {
-			lock.notify();
-		}
-	}
-
-	private void wait4Work() {
-		synchronized (lock) {
-			try {
-				lock.wait();
-			} catch (Throwable e) {
-				logger.error(e.getMessage(), e);
-			}
-		}
-	}
-
 	public int getLimit() {
 		return limit;
 	}
+
+	/**
+	 * @return the rootRecord
+	 */
+	public Node<RecordLog> getRootRecord() {
+		return rootRecord;
+	}
+
 }
