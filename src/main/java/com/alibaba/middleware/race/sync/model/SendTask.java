@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.sync.entity;
+package com.alibaba.middleware.race.sync.model;
 
 import com.alibaba.middleware.race.sync.map.RecordMap;
 

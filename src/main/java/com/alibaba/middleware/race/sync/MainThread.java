@@ -4,10 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
 import com.alibaba.middleware.race.sync.channel.RAFInputStream;
 import com.alibaba.middleware.race.sync.channel.ReadChannel;
 import com.alibaba.middleware.race.sync.channel.SimpleReadChannel;
@@ -32,18 +32,13 @@ public class MainThread {
 		
 		long startTime = System.currentTimeMillis();
 
-		ReadChannel channel = initChannels2();
+		//ReadChannel channel = initChannels2();
 
 
 		logger.info("等待所有线程完成总耗时 : {}", System.currentTimeMillis() - startTime);
 		JvmUsingState.print();
 	}
 
-	private ReadChannel initChannels2() throws IOException {
-		File root = new File(Constants.DATA_HOME);
-		return MuiltFileReadChannelSplitor.newChannel(root.getAbsolutePath() + "/", 1, 10,
-				1024 * 256);
-	}
 
 	private ReadChannel initChannels3() throws IOException {
 		File root = new File(Constants.TESTER_HOME + "/canal.txt");

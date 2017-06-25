@@ -13,8 +13,8 @@ import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.common.BufferPool;
 import com.alibaba.middleware.race.sync.common.Partitioner;
-import com.alibaba.middleware.race.sync.entity.ParseTask;
-import com.alibaba.middleware.race.sync.entity.ReplayTask;
+import com.alibaba.middleware.race.sync.model.Block;
+import com.alibaba.middleware.race.sync.model.ReplayTask;
 import com.alibaba.middleware.race.sync.model.Column;
 import com.alibaba.middleware.race.sync.util.Timer;
 
@@ -32,13 +32,13 @@ public class DataParseService implements Constants {
 
 	private Context						context		= Context.getInstance();
 
-	private ConcurrentLinkedQueue<ParseTask>	input;
+	private ConcurrentLinkedQueue<Block>	input;
 
 	private List<byte[]>					columnByteList	= context.getColumnByteList();
 
 	private DataReplayService[]				replayServices	= new DataReplayService[2];
 
-	public DataParseService(ConcurrentLinkedQueue<ParseTask> input,
+	public DataParseService(ConcurrentLinkedQueue<Block> input,
 			DataReplayService inRangeReplayService, DataReplayService outRangeReplayService) {
 		this.input = input;
 		replayServices[0] = inRangeReplayService;
@@ -341,7 +341,7 @@ public class DataParseService implements Constants {
 					Config.OUTRANGE_PARTITION_BUFFER_SIZE);
 			ByteBuffer localBuffer = ByteBuffer.allocate(Config.READ_BUFFER_SIZE);
 			while (true) {
-				ParseTask task = input.poll();
+				Block task = input.poll();
 				if (task == null) {
 					Timer.sleep(1, 0);
 					continue;
@@ -355,8 +355,8 @@ public class DataParseService implements Constants {
 				localBuffer.put(buffer);
 				localBuffer.flip();
 				readBufferPool.freeBuffer(buffer);
-				debug = task.getEpoch();
-				parse(localBuffer, task.getEpoch());
+				debug = task.getBlockId();
+				parse(localBuffer, task.getBlockId());
 
 			}
 			latch.countDown();

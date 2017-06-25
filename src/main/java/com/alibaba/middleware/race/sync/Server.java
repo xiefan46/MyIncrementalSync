@@ -3,11 +3,12 @@ package com.alibaba.middleware.race.sync;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.alibaba.middleware.race.sync.service.ReaderThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.middleware.race.sync.entity.ParseTask;
-import com.alibaba.middleware.race.sync.entity.SendTask;
+import com.alibaba.middleware.race.sync.model.Block;
+import com.alibaba.middleware.race.sync.model.SendTask;
 import com.alibaba.middleware.race.sync.service.Reader;
 import com.alibaba.middleware.race.sync.service.DataParseService;
 import com.alibaba.middleware.race.sync.service.DataReplayService;
@@ -48,7 +49,7 @@ public class Server {
 		server.startServer(5527);
 	}
 
-	private static void initContext(String[] args) {
+	private static void initContext(String[] args) throws IOException {
 		context.initQuery(args[0], args[1], Long.valueOf(args[2]), Long.valueOf(args[3]));
 	}
 
@@ -81,8 +82,8 @@ public class Server {
 		DataSendService sendService = new DataSendService(sendTaskQueue);
 		sendService.start();
 
-		ConcurrentLinkedQueue<ParseTask> parseTaskQueue = new ConcurrentLinkedQueue<>();
-		Reader reader = new Reader(parseTaskQueue);
+		ConcurrentLinkedQueue<Block> parseTaskQueue = new ConcurrentLinkedQueue<>();
+		ReaderThread reader = new ReaderThread(Context.getInstance(), parseTaskQueue);
 		Thread readThread = new Thread(reader);
 		readThread.start();
 

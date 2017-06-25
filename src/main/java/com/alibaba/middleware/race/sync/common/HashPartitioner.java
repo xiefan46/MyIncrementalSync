@@ -1,8 +1,6 @@
 package com.alibaba.middleware.race.sync.common;
 
-/**
- * Created by wubincen on 2017/6/23.
- */
+
 public class HashPartitioner implements Partitioner{
     private int mask;
 

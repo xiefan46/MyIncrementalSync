@@ -16,7 +16,7 @@ import com.alibaba.middleware.race.sync.Config;
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.common.BufferPool;
-import com.alibaba.middleware.race.sync.entity.ParseTask;
+import com.alibaba.middleware.race.sync.model.Block;
 import com.alibaba.middleware.race.sync.util.Timer;
 
 /**
@@ -27,9 +27,9 @@ public class Reader implements Runnable {
 	private static Logger					logger	= LoggerFactory
 			.getLogger(Reader.class);
 
-	private ConcurrentLinkedQueue<ParseTask>	output;
+	private ConcurrentLinkedQueue<Block>	output;
 
-	public Reader(ConcurrentLinkedQueue<ParseTask> output) {
+	public Reader(ConcurrentLinkedQueue<Block> output) {
 		this.output = output;
 	}
 
@@ -72,7 +72,7 @@ public class Reader implements Runnable {
 					if (len <= 0) {
 						if (buffer.position() != 0) {
 							buffer.flip();
-							output.offer(new ParseTask(buffer, epoch++));
+							output.offer(new Block(buffer, epoch++));
 						}
 						break;
 					}
@@ -87,7 +87,7 @@ public class Reader implements Runnable {
 							break;
 						}
 					}
-					output.offer(new ParseTask(buffer, epoch++));
+					output.offer(new Block(buffer, epoch++));
 				}
 				inputStream.close();
 				logger.info("{}: {}", filename, size);
@@ -99,7 +99,7 @@ public class Reader implements Runnable {
 			}
 		}
 		logger.info("load total load size: " + totalSize);
-		output.offer(ParseTask.END_TASK);
+		output.offer(Block.END_TASK);
 	}
 
 }

@@ -19,8 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.model.Column;
-import com.alibaba.middleware.race.sync.entity.ParseTask;
-import com.alibaba.middleware.race.sync.entity.WriteTask;
+import com.alibaba.middleware.race.sync.model.Block;
+import com.alibaba.middleware.race.sync.model.WriteTask;
 import com.alibaba.middleware.race.sync.util.Timer;
 
 /**
@@ -115,7 +115,7 @@ public class Client {
 	private ClientContext					context		= new ClientContext();
 	List<Column>							columnList	= context.getColumnList();
 
-	private ConcurrentLinkedQueue<ParseTask>	parseTasks	= new ConcurrentLinkedQueue<>();
+	private ConcurrentLinkedQueue<Block>	parseTasks	= new ConcurrentLinkedQueue<>();
 
 	private ConcurrentLinkedQueue<WriteTask>	writeTasks	= new ConcurrentLinkedQueue<>();
 
@@ -128,7 +128,7 @@ public class Client {
 			inputStream.read(tmpBuffer.array());
 			int totalLen = tmpBuffer.getInt(0);
 			if (totalLen == -1) {
-				parseTasks.offer(ParseTask.END_TASK);
+				parseTasks.offer(Block.END_TASK);
 				break;
 			}
 			byte[] data = new byte[totalLen];
@@ -141,7 +141,7 @@ public class Client {
 				pos += len;
 			}
 			ByteBuffer buffer = ByteBuffer.wrap(data, 0, tmp);
-			parseTasks.offer(new ParseTask(buffer, 0));
+			parseTasks.offer(new Block(buffer, 0));
 		}
 
 		int totalCount = valSize / (columnList.size() * 8);
@@ -159,7 +159,7 @@ public class Client {
 		@Override
 		public void run() {
 			while (true) {
-				ParseTask task = parseTasks.poll();
+				Block task = parseTasks.poll();
 				if (task == null) {
 					Timer.sleep(1, 0);
 					continue;

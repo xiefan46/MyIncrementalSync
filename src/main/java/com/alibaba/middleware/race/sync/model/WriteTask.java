@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.sync.entity;
+package com.alibaba.middleware.race.sync.model;
 
 /**
  * Created by xiefan on 6/24/17.

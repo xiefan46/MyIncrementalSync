@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.sync.entity;
+package com.alibaba.middleware.race.sync.model;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

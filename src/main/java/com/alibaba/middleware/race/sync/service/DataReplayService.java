@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.entity.ReplayTask;
-import com.alibaba.middleware.race.sync.entity.SendTask;
+import com.alibaba.middleware.race.sync.model.ReplayTask;
+import com.alibaba.middleware.race.sync.model.SendTask;
 import com.alibaba.middleware.race.sync.map.ArrayRecordMap;
 import com.alibaba.middleware.race.sync.map.HashRecordMap;
 import com.alibaba.middleware.race.sync.map.RecordMap;

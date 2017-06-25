@@ -6,38 +6,40 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Created by wubincen on 2017/6/16.
- */
 public class BufferPool {
-    private static Logger stat = LoggerFactory.getLogger("stat");
-    private ConcurrentLinkedQueue<ByteBuffer> pool = new ConcurrentLinkedQueue<>();
 
-    public BufferPool(int poolSize, int bufferSize) {
-        for (int i = 0; i < poolSize; ++i) {
-            pool.offer(ByteBuffer.allocate(bufferSize));
-        }
-//        stat.info("buffer pool cost {} MB", (poolSize * (long)bufferSize) >> 20);
-    }
+	private static Logger					logger	= LoggerFactory
+			.getLogger(BufferPool.class);
 
-    public BufferPool(int poolSize, int bufferSize, boolean direct) {
-        for (int i = 0; i < poolSize; ++i) {
-            if (!direct)
-            pool.offer(ByteBuffer.allocate(bufferSize));
-            else pool.offer(ByteBuffer.allocateDirect(bufferSize));
-        }
-    }
+	private ConcurrentLinkedQueue<ByteBuffer>	pool		= new ConcurrentLinkedQueue<>();
 
-    public ByteBuffer getBuffer() {
-        return pool.poll();
-    }
+	public BufferPool(int poolSize, int bufferSize) {
+		for (int i = 0; i < poolSize; ++i) {
+			pool.offer(ByteBuffer.allocate(bufferSize));
+		}
+		logger.info("Buffer pool init");
+		//        stat.info("buffer pool cost {} MB", (poolSize * (long)bufferSize) >> 20);
+	}
 
-    public void freeBuffer(ByteBuffer buffer) {
-        buffer.clear();
-        pool.offer(buffer);
-    }
+	public BufferPool(int poolSize, int bufferSize, boolean direct) {
+		for (int i = 0; i < poolSize; ++i) {
+			if (!direct)
+				pool.offer(ByteBuffer.allocate(bufferSize));
+			else
+				pool.offer(ByteBuffer.allocateDirect(bufferSize));
+		}
+	}
 
-    public int getSize() {
-        return pool.size();
-    }
+	public ByteBuffer getBuffer() {
+		return pool.poll();
+	}
+
+	public void freeBuffer(ByteBuffer buffer) {
+		buffer.clear();
+		pool.offer(buffer);
+	}
+
+	public int getSize() {
+		return pool.size();
+	}
 }
