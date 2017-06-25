@@ -91,7 +91,6 @@ public class DataLoadService {
                         buffer.flip();
 
                         if (len <= 0) {
-//                            System.out.println("fuck");
                             if (buffer.position() != 0) {
                                 buffer.flip();
                                 output.offer(new ParseTask(buffer, epoch++));

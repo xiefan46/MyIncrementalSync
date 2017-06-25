@@ -5,18 +5,17 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 
-import com.alibaba.middleware.race.sync.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.Config;
+import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.common.BufferPool;
 import com.alibaba.middleware.race.sync.common.Partitioner;
-import com.alibaba.middleware.race.sync.model.Column;
 import com.alibaba.middleware.race.sync.entity.ParseTask;
 import com.alibaba.middleware.race.sync.entity.ReplayTask;
-import com.alibaba.middleware.race.sync.metrics.ParseMetrics;
+import com.alibaba.middleware.race.sync.model.Column;
 import com.alibaba.middleware.race.sync.util.Timer;
 
 /**
@@ -24,11 +23,17 @@ import com.alibaba.middleware.race.sync.util.Timer;
  */
 public class DataParseService implements Constants {
 
+	private static final Logger				logger		= LoggerFactory
+			.getLogger(DataParseService.class);
+
 	public static final int					PARSER_NUM	= 12;
 
 	private static Logger					stat			= LoggerFactory.getLogger("stat");
+
 	private Context						context		= Context.getInstance();
+
 	private ConcurrentLinkedQueue<ParseTask>	input;
+
 	private List<byte[]>					columnByteList	= context.getColumnByteList();
 
 	private DataReplayService[]				replayServices	= new DataReplayService[2];
@@ -59,11 +64,6 @@ public class DataParseService implements Constants {
 					for (int i = 0; i < Config.OUTRANGE_REPLAYER_COUNT; ++i)
 						replayServices[1].addTask(i, ReplayTask.END_TASK);
 					long end = System.currentTimeMillis();
-					ParseMetrics parseMetrics = new ParseMetrics();
-					for (int i = 0; i < parsers.length; ++i)
-						parseMetrics.merge(parsers[i].getParseMetrics());
-					stat.info("parse finish, cost {} ms, {}", end - start,
-							parseMetrics.desc());
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -72,7 +72,6 @@ public class DataParseService implements Constants {
 	}
 
 	class Parser implements Runnable {
-		private ParseMetrics	parseMetrics	= new ParseMetrics();
 		private CountDownLatch	latch;
 		private Context		context		= Context.getInstance();
 		private BufferPool		readBufferPool	= context.getReadBufferPool();
@@ -145,7 +144,6 @@ public class DataParseService implements Constants {
 		private void putColumnData(Column column, ByteBuffer partition) {
 			if (column.isInt()) {
 				partition.putLong(getLong());
-				parseMetrics.valSize += 8;
 			} else {
 				// 这里假设所有的字符串长度都不超过6byte
 				int tmp = pos;
@@ -154,7 +152,6 @@ public class DataParseService implements Constants {
 				partition.putShort((short) (pos - tmp));
 				partition.put(buf, tmp, pos - tmp);
 				pos++;
-				parseMetrics.valSize += pos - tmp;
 			}
 		}
 
@@ -291,7 +288,6 @@ public class DataParseService implements Constants {
 				if (op == 'I') {
 					insert();
 				} else if (op == 'U') {
-					parseMetrics.updateCount++;
 					walkThroughNextSeperator(); // 到达oldpk的开始
 
 					long oldPk = getLong();
@@ -306,7 +302,8 @@ public class DataParseService implements Constants {
 				} else if (op == 'D') {
 					delete();
 				} else {
-					System.out.println("fuck: " + new String(buf, tmp, pos - tmp - 1));
+					logger.info("encounter error when parsing record : "
+							+ new String(buf, tmp, pos - tmp - 1));
 					System.exit(1);
 				}
 			}
@@ -360,13 +357,10 @@ public class DataParseService implements Constants {
 				readBufferPool.freeBuffer(buffer);
 				debug = task.getEpoch();
 				parse(localBuffer, task.getEpoch());
-				parseMetrics.totalSize += buffer.limit();
+
 			}
 			latch.countDown();
 		}
 
-		public ParseMetrics getParseMetrics() {
-			return parseMetrics;
-		}
 	}
 }

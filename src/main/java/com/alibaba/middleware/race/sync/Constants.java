@@ -49,5 +49,5 @@ public interface Constants {
 
 	byte		END			= -1;
 
-	boolean	DEBUG		= false;
+	boolean	DEBUG		= true;
 }

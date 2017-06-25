@@ -8,18 +8,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 
-import com.alibaba.middleware.race.sync.Constants;
-import com.alibaba.middleware.race.sync.map.RecordMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.map.ArrayRecordMap;
-import com.alibaba.middleware.race.sync.map.HashRecordMap;
-import com.alibaba.middleware.race.sync.model.Column;
 import com.alibaba.middleware.race.sync.entity.ReplayTask;
 import com.alibaba.middleware.race.sync.entity.SendTask;
-import com.alibaba.middleware.race.sync.metrics.ReplayMetrics;
+import com.alibaba.middleware.race.sync.map.ArrayRecordMap;
+import com.alibaba.middleware.race.sync.map.HashRecordMap;
+import com.alibaba.middleware.race.sync.map.RecordMap;
+import com.alibaba.middleware.race.sync.model.Column;
 import com.alibaba.middleware.race.sync.util.Timer;
 
 /**
@@ -62,13 +61,8 @@ public class DataReplayService implements Constants {
 					latch.await();
 					long end = System.currentTimeMillis();
 
-					ReplayMetrics replayMetrics = new ReplayMetrics();
-					for (int i = 0; i < replayers.length; ++i)
-						replayMetrics.merge(replayers[i].getReplayMetrics());
 					if (inRange)
 						output.offer(SendTask.END_TASK);
-					stat.info("replay finish, cost {} ms, {}", end - start,
-							replayMetrics.desc());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -84,7 +78,6 @@ public class DataReplayService implements Constants {
 		private List<Column>					columnList	= context.getColumnList();
 		private Replayer[]						replayers;
 		private Map<Long, Long>					waitMap		= new ConcurrentHashMap<>();
-		private ReplayMetrics					replayMetrics	= new ReplayMetrics();
 
 		private boolean						inRange;
 		private RecordMap replayMap;
@@ -202,7 +195,6 @@ public class DataReplayService implements Constants {
 				taskMap.remove(now);
 				now++;
 				for (ByteBuffer buffer : task.getList()) {
-					replayMetrics.totalSize += buffer.limit();
 					if (inRange)
 						replayOp(buffer);
 					task.getPool().freeBuffer(buffer);
@@ -241,8 +233,5 @@ public class DataReplayService implements Constants {
 			latch.countDown();
 		}
 
-		public ReplayMetrics getReplayMetrics() {
-			return replayMetrics;
-		}
 	}
 }
