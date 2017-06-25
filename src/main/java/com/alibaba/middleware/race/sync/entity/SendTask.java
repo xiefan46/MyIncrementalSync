@@ -1,16 +1,16 @@
 package com.alibaba.middleware.race.sync.entity;
 
-import com.alibaba.middleware.race.sync.service.IReplayMap;
+import com.alibaba.middleware.race.sync.map.RecordMap;
 
 /**
  * Created by xiefan on 6/24/17.
  */
 public class SendTask {
-    private IReplayMap replayMap;
+    private RecordMap replayMap;
     private boolean end = false;
     private int partitionId;
 
-    public SendTask(IReplayMap replayMap, int partitionId) {
+    public SendTask(RecordMap replayMap, int partitionId) {
         this.replayMap = replayMap;
         this.partitionId = partitionId;
     }
@@ -23,7 +23,7 @@ public class SendTask {
         return end;
     }
 
-    public IReplayMap getReplayMap() {
+    public RecordMap getReplayMap() {
         return replayMap;
     }
 

@@ -1,9 +1,9 @@
-package com.alibaba.middleware.race.sync.service;
+package com.alibaba.middleware.race.sync.map;
 
 /**
  * Created by xiefan on 6/24/17.
  */
-public interface IReplayMap {
+public interface RecordMap {
     int addPk(long pk);
     void remove(long pk);
     void update(int offset, int index, long val);

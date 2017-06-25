@@ -9,7 +9,6 @@ import java.util.Map;
 import com.alibaba.middleware.race.sync.common.BufferPool;
 import com.alibaba.middleware.race.sync.common.HashPartitioner;
 import com.alibaba.middleware.race.sync.common.RangePartitioner;
-import com.alibaba.middleware.race.sync.common.SegmentPool;
 import com.alibaba.middleware.race.sync.model.Column;
 
 /**
@@ -39,7 +38,6 @@ public class Context {
 	// 内存池
 	private BufferPool			readBufferPool		= new BufferPool(READ_BUFFER_POOL_SIZE,
 			Config.READ_BUFFER_SIZE, true);
-	private SegmentPool			segmentPool		= null;							//new SegmentPool();
 
 	private volatile Socket		client;
 
@@ -126,9 +124,6 @@ public class Context {
 		this.client = client;
 	}
 
-	public SegmentPool getSegmentPool() {
-		return segmentPool;
-	}
 
 	public RangePartitioner getRangePartitioner() {
 		return rangePartitioner;

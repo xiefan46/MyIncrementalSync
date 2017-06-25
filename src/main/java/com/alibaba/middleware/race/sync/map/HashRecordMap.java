@@ -7,12 +7,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.service.IReplayMap;
 
 /**
  * Created by wubincen on 2017/6/24.
  */
-public class NormalMap implements IReplayMap {
+public class HashRecordMap implements RecordMap {
 
     private Map<Long, Integer> map = new HashMap<>();
     private List<ByteBuffer> bufferList = new ArrayList<>();
@@ -22,7 +21,7 @@ public class NormalMap implements IReplayMap {
     private int position = 0;
     private final int RECORD_SIZE = Context.getInstance().RECORD_SIZE;
 
-    public NormalMap() {
+    public HashRecordMap() {
         bufferList.add(currentBuffer);
     }
 

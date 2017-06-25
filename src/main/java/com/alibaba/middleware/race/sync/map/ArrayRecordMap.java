@@ -6,12 +6,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.service.IReplayMap;
 
 /**
  * Created by wubincen on 2017/6/24.
  */
-public class ArrayMap implements IReplayMap {
+public class ArrayRecordMap implements RecordMap {
 
     private int[] buckets;
     private List<ByteBuffer> bufList = new ArrayList<>();
@@ -24,7 +23,7 @@ public class ArrayMap implements IReplayMap {
     private int end;
     private int position = 0;
 
-    public ArrayMap(int start, int end) {
+    public ArrayRecordMap(int start, int end) {
         buckets = new int[end - start + 1];
         bufList.add(currentBuffer);
         this.start = start;

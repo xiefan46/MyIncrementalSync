@@ -9,12 +9,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.alibaba.middleware.race.sync.map.RecordMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.map.ArrayMap;
+import com.alibaba.middleware.race.sync.map.ArrayRecordMap;
 import com.alibaba.middleware.race.sync.entity.SendTask;
 import com.alibaba.middleware.race.sync.metrics.SendMetrics;
 import com.alibaba.middleware.race.sync.util.Timer;
@@ -101,10 +102,10 @@ public class DataSendService {
             return pk > startPkId && pk < endPkId;
         }
 
-        private void sendAns(IReplayMap replayMap, int partitionId) throws IOException {
+        private void sendAns(RecordMap replayMap, int partitionId) throws IOException {
             buffer.clear();
             buffer.putInt(0);
-            ArrayMap arrayMap = (ArrayMap) replayMap;
+            ArrayRecordMap arrayMap = (ArrayRecordMap) replayMap;
             buffer.putInt(partitionId);
             int[] buckets = arrayMap.getBuckets();
             int start = arrayMap.getStart();

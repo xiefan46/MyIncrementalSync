@@ -9,12 +9,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 
 import com.alibaba.middleware.race.sync.Constants;
+import com.alibaba.middleware.race.sync.map.RecordMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.map.ArrayMap;
-import com.alibaba.middleware.race.sync.map.NormalMap;
+import com.alibaba.middleware.race.sync.map.ArrayRecordMap;
+import com.alibaba.middleware.race.sync.map.HashRecordMap;
 import com.alibaba.middleware.race.sync.model.Column;
 import com.alibaba.middleware.race.sync.entity.ReplayTask;
 import com.alibaba.middleware.race.sync.entity.SendTask;
@@ -86,7 +87,7 @@ public class DataReplayService implements Constants {
 		private ReplayMetrics					replayMetrics	= new ReplayMetrics();
 
 		private boolean						inRange;
-		private IReplayMap						replayMap;
+		private RecordMap replayMap;
 		private int							partitionId;
 
 		public Replayer(CountDownLatch latch, Replayer[] replayers, boolean inRange,
@@ -98,9 +99,9 @@ public class DataReplayService implements Constants {
 			if (inRange) {
 				long start = context.getRangePartitioner().getStart(partitionId);
 				long end = context.getRangePartitioner().getEnd(partitionId);
-				replayMap = new ArrayMap((int) start, (int) end);
+				replayMap = new ArrayRecordMap((int) start, (int) end);
 			} else {
-				replayMap = new NormalMap();
+				replayMap = new HashRecordMap();
 			}
 		}
 
