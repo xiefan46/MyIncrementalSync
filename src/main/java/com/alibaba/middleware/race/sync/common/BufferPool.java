@@ -17,17 +17,8 @@ public class BufferPool {
 		for (int i = 0; i < poolSize; ++i) {
 			pool.offer(ByteBuffer.allocate(bufferSize));
 		}
-		logger.info("Buffer pool init");
+		//logger.info("Buffer pool init");
 		//        stat.info("buffer pool cost {} MB", (poolSize * (long)bufferSize) >> 20);
-	}
-
-	public BufferPool(int poolSize, int bufferSize, boolean direct) {
-		for (int i = 0; i < poolSize; ++i) {
-			if (!direct)
-				pool.offer(ByteBuffer.allocate(bufferSize));
-			else
-				pool.offer(ByteBuffer.allocateDirect(bufferSize));
-		}
 	}
 
 	public ByteBuffer getBuffer() {

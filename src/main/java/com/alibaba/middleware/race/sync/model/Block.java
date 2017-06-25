@@ -9,9 +9,9 @@ public class Block {
 
 	private ByteBuffer	buffer;
 
-	private long		blockId;
+	private int		blockId;
 
-	public Block(ByteBuffer buffer, long blockId) {
+	public Block(ByteBuffer buffer, int blockId) {
 		this.buffer = buffer;
 		this.blockId = blockId;
 	}
@@ -20,13 +20,17 @@ public class Block {
 		return buffer;
 	}
 
-	public long getBlockId() {
-		return blockId;
-	}
-
 	public boolean isEnd() {
 		return buffer == null;
 	}
 
 	public static final Block END_TASK = new Block(null, -1);
+
+	public int getBlockId() {
+		return blockId;
+	}
+
+	public void setBlockId(int blockId) {
+		this.blockId = blockId;
+	}
 }

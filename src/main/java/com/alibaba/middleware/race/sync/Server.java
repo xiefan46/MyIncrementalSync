@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.model.Block;
 import com.alibaba.middleware.race.sync.model.SendTask;
-import com.alibaba.middleware.race.sync.service.Reader;
 import com.alibaba.middleware.race.sync.service.DataParseService;
 import com.alibaba.middleware.race.sync.service.DataReplayService;
 import com.alibaba.middleware.race.sync.service.DataSendService;

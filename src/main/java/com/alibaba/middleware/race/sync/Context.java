@@ -41,7 +41,7 @@ public class Context {
 
 	// 内存池
 	private BufferPool			readBufferPool		= new BufferPool(READ_BUFFER_POOL_SIZE,
-			Config.READ_BUFFER_SIZE, true);
+			Config.READ_BUFFER_SIZE);
 
 	private volatile Socket		client;
 

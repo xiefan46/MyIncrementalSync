@@ -48,6 +48,7 @@ public class ReaderThread extends Thread {
 			throws Exception {
 		BufferPool bufferPool = context.getReadBufferPool();
 		MuiltFileInputStream muiltFileInputStream = context.getMuiltFileInputStream();
+		int blockId = 0;
 		for (; muiltFileInputStream.hasRemaining();) {
 			ByteBuffer buf = bufferPool.getBuffer();
 			if (buf == null) {
@@ -57,12 +58,18 @@ public class ReaderThread extends Thread {
 			buf.clear();
 			int len = muiltFileInputStream.readFull(buf, buf.capacity() - 1024);
 			if (len == -1) {
-				buf.limit(0);
+				blocksQueue.add(Block.END_TASK);
+				break;
 			} else {
 				buf.flip();
+				blocksQueue.add(new Block(buf, blockId++));
+				if (blockId % 2000 == 0) {
+					logger.info("block id : {}", blockId);
+				}
 			}
 
 		}
+
 	}
 
 	public Context getContext() {
