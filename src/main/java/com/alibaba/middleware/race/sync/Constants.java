@@ -37,13 +37,13 @@ public interface Constants {
 
 	String	RESULT_FILE	= "/home/admin/sync_results/" + TEAMCODE + "/Result.rs";
 
-	byte		INSERT		= 1;
+	byte		INSERT		= 'I';
 
-	byte		UPDATE		= 2;
+	byte		UPDATE		= 'U';
 
-	byte		UPDATE_PK		= 3;
+	byte		PK_UPDATE		= 'P';
 
-	byte		DELETE		= 4;
+	byte		DELETE		= 'D';
 
 	byte		WAIT			= 5;
 

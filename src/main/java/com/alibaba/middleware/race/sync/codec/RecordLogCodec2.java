@@ -1,16 +1,13 @@
 package com.alibaba.middleware.race.sync.codec;
 
 import com.alibaba.middleware.race.sync.Constants;
-import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.map.ArrayHashMap;
+import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
 
 /**
  * @author wangkai
  */
-public class RecordLogCodec2 implements Constants{
-
-	private static RecordLogCodec2	recordLogCodec	= new RecordLogCodec2();
+public class RecordLogCodec2 {
 
 	private final int				U_D_SKIP		= "1:1|X".length();
 
@@ -22,16 +19,7 @@ public class RecordLogCodec2 implements Constants{
 
 	private final int				U_D_ID_SKIP	= "U|id:1:1|".length();
 
-	private final ByteArray2			byteArray2	= new ByteArray2(null, 0, 0);
-
-	public static RecordLogCodec2 get() {
-		return recordLogCodec;
-	}
-
-	//public boolean print;
-
-	private RecordLogCodec2() {
-	}
+	private final ByteArray2 byteArray2	= new ByteArray2(null, 0, 0);
 
 	private boolean compare(byte[] data, int offset, byte[] tableSchema) {
 		for (int i = 0; i < tableSchema.length; i++) {
@@ -42,11 +30,7 @@ public class RecordLogCodec2 implements Constants{
 		return true;
 	}
 
-	public int decode(Context context, byte[] data, byte[] tableSchema, int offset) {
-		//print = false;
-		Table table = null;
-		//		Map<Integer, byte[]> records = context.getRecords();
-		ArrayHashMap resultMap = null;
+	public int decode(Table table, byte[] data, byte[] tableSchema, int offset, RecordLog r) {
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
 		off += TIME_SKIP;
 		//		if (!compare(data, off + 1, tableSchema)) {
@@ -55,32 +39,30 @@ public class RecordLogCodec2 implements Constants{
 		int end;
 		off = off + tableSchema.length + 2;
 		byte alterType = data[off];
+		r.setAlterType(alterType);
 		if (Constants.UPDATE == alterType) {
 			off += U_D_ID_SKIP;
 			end = findNextChar(data, off, '|');
-			int beforePk = parseLong(data, off, end);
+			r.setBeforePk(parseLong(data, off, end));
 			off = end + 1;
 			end = findNextChar(data, off, '|');
-			int pk = parseLong(data, off, end);
-			/*
-			 * if (needPrint(pk) || needPrint(beforePk)) print = true;
-			 */
+			r.setPk(parseLong(data, off, end));
 			off = end + 1;
-			if (beforePk != pk) {
-				resultMap.move(beforePk, pk);
+			if (r.isPkUpdate4Codec()) {
+				r.setAlterType(Constants.PK_UPDATE);
 			}
 			if (data[off] == '\n') {
 				return off;
 			}
 			for (;;) {
+				byte c = r.getColumn();
 				end = findNextChar(data, off, ':');
 				byte name = getName(table, data, off, end - off);
 				off = end + U_D_SKIP;
 				end = findNextChar(data, off, '|');
 				off = end + 1;
 				end = findNextChar(data, off, '|');
-				//RecordLog.setColumn(record, name, data, off, end - off);
-				resultMap.setColumn(pk, name, data, off, end - off);
+				r.setColumn(c,name, data, off, end - off);
 				off = end + 1;
 				if (data[off] == '\n') {
 					return off;
@@ -91,29 +73,22 @@ public class RecordLogCodec2 implements Constants{
 		if (Constants.DELETE == alterType) {
 			off += U_D_ID_SKIP;
 			end = findNextChar(data, off, '|');
-			int pk = parseLong(data, off, end);
-			//print = needPrint(pk);
-			resultMap.remove(pk);
+			r.setPk(parseLong(data, off, end));
 			off = end + table.getDelSkip();
 			return findNextChar(data, end, '\n');
 		}
 
 		if (Constants.INSERT == alterType) {
 			off += I_ID_SKIP;
-			//byte[] record = table.newRecord();
 			end = findNextChar(data, off, '|');
-			int id = parseLong(data, off, end);
-			//print = needPrint(id);
-			resultMap.newRecord(id);
-			//records.put(parseLong(data, off, end), record);
+			r.setPk(parseLong(data, off, end));
 			int[] colsSkip = table.getColumnNameSkip();
 			off = end + 1;
-			byte cIndex = 0;
 			for (;;) {
-				off += colsSkip[cIndex];
+				byte c = r.getColumn();
+				off += colsSkip[c];
 				end = findNextChar(data, off, '|');
-				//RecordLog.setColumn(record, cIndex++, data, off, end - off);
-				resultMap.setColumn(id, cIndex++, data, off, end - off);
+				r.setColumn(c,c, data, off, end - off);
 				off = end + 1;
 				if (data[off] == '\n') {
 					return off;
@@ -142,12 +117,6 @@ public class RecordLogCodec2 implements Constants{
 			all = all * 10 + (data[i] - 48);
 		}
 		return all;
-	}
-
-	private boolean needPrint(int pk) {
-		if (pk == 604)
-			return true;
-		return false;
 	}
 
 }

@@ -8,7 +8,7 @@ import java.util.List;
 import com.alibaba.middleware.race.sync.Context;
 
 /**
- * Created by wubincen on 2017/6/24.
+ * Created by xiefan on 6/24/17.
  */
 public class ArrayRecordMap implements RecordMap {
 
@@ -18,7 +18,7 @@ public class ArrayRecordMap implements RecordMap {
     private static final int MASK = (1<<SIZE_SHIFT) - 1;
     private ByteBuffer currentBuffer = ByteBuffer.allocate(1<<SIZE_SHIFT);
     private Context context = Context.getInstance();
-    private final int RECORD_SIZE = context.RECORD_SIZE;
+    private final int RECORD_SIZE = context.getTable().getColumnSize() * 8;
     private int start;
     private int end;
     private int position = 0;

@@ -3,26 +3,20 @@ package com.alibaba.middleware.race.sync;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
 import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
 import com.alibaba.middleware.race.sync.common.BufferPool;
 import com.alibaba.middleware.race.sync.common.HashPartitioner;
 import com.alibaba.middleware.race.sync.common.RangePartitioner;
-import com.alibaba.middleware.race.sync.model.Column;
+import com.alibaba.middleware.race.sync.model.Table;
 
 /**
  * Created by xiefan on 6/24/17.
  */
 public class Context {
 
-	public static final int			READ_BUFFER_POOL_SIZE	= 128;
-
-	private static volatile Context	INSTANCE				= new Context();
+	private static volatile Context INSTANCE = new Context();
 
 	public static Context getInstance() {
 		return INSTANCE;
@@ -31,55 +25,28 @@ public class Context {
 	private long				startTime			= System.currentTimeMillis();
 
 	private String				schema;
+
 	private String				table;
+
 	private long				startPk;
+
 	private long				endPk;
 
 	private RangePartitioner		rangePartitioner;
+
 	private HashPartitioner		hashPartitioner	= new HashPartitioner(
 			Config.OUTRANGE_REPLAYER_COUNT);
 
 	// 内存池
-	private BufferPool			readBufferPool		= new BufferPool(READ_BUFFER_POOL_SIZE,
-			Config.READ_BUFFER_SIZE);
+	private BufferPool			blockBufferPool	= new BufferPool(128, 1024 * 1024);
+
+	private BufferPool			recordLogBufferPool	= new BufferPool(1024, 256 * 1024);
 
 	private volatile Socket		client;
-
-	private Map<String, Column>	columnMap			= new HashMap<>();
-	private List<Column>		columnList		= new ArrayList<>();
-	private List<byte[]>		columnByteList		= new ArrayList<>();
-
-	public int				RECORD_SIZE;
 
 	private MuiltFileInputStream	muiltFileInputStream;
 
 	private Context() {
-
-		columnList.add(new Column(0, true));
-		columnList.add(new Column(1, false));
-		columnList.add(new Column(2, false));
-		columnList.add(new Column(3, false));
-		columnList.add(new Column(4, true));
-		if (!Constants.DEBUG)
-			columnList.add(new Column(5, true));
-
-		columnMap.put("id", new Column(0, true));
-		columnMap.put("first_name", new Column(1, false));
-		columnMap.put("last_name", new Column(2, false));
-		columnMap.put("sex", new Column(3, false));
-		columnMap.put("score", new Column(4, true));
-		if (!Constants.DEBUG)
-			columnMap.put("score2", new Column(5, true));
-
-		columnByteList.add("id".getBytes());
-		columnByteList.add("firse_name".getBytes());
-		columnByteList.add("last_name".getBytes());
-		columnByteList.add("sex".getBytes());
-		columnByteList.add("score".getBytes());
-		if (!Constants.DEBUG)
-			columnByteList.add("score2".getBytes());
-
-		RECORD_SIZE = (columnList.size() - 1) * 8;
 	}
 
 	public void initQuery(String schema, String table, long startPk, long endPk)
@@ -96,7 +63,7 @@ public class Context {
 		return schema;
 	}
 
-	public String getTable() {
+	public String getTableName() {
 		return table;
 	}
 
@@ -108,20 +75,12 @@ public class Context {
 		return endPk;
 	}
 
-	public List<Column> getColumnList() {
-		return columnList;
-	}
-
 	public long getCostTime() {
 		return System.currentTimeMillis() - startTime;
 	}
 
-	public BufferPool getReadBufferPool() {
-		return readBufferPool;
-	}
-
-	public Map<String, Column> getColumnMap() {
-		return columnMap;
+	public BufferPool getBlockBufferPool() {
+		return blockBufferPool;
 	}
 
 	public Socket getClient() {
@@ -140,10 +99,6 @@ public class Context {
 		return hashPartitioner;
 	}
 
-	public List<byte[]> getColumnByteList() {
-		return columnByteList;
-	}
-
 	private MuiltFileInputStream initMultiFileStream() throws IOException {
 		File root = new File(Constants.DATA_HOME);
 		return MuiltFileReadChannelSplitor.newInputStream(root.getAbsolutePath() + "/", 1, 10,
@@ -156,5 +111,21 @@ public class Context {
 
 	public void setMuiltFileInputStream(MuiltFileInputStream muiltFileInputStream) {
 		this.muiltFileInputStream = muiltFileInputStream;
+	}
+
+	public Table getTable() {
+		if (Constants.DEBUG) {
+			return Table.newOffline();
+		} else {
+			return Table.newOnline();
+		}
+	}
+
+	public BufferPool getRecordLogPool() {
+		return recordLogBufferPool;
+	}
+
+	public void setRecordLogPool(BufferPool recordLogPool) {
+		this.recordLogBufferPool = recordLogPool;
 	}
 }

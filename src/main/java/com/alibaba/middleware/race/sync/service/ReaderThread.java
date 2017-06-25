@@ -2,9 +2,7 @@ package com.alibaba.middleware.race.sync.service;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
 
-import com.alibaba.middleware.race.sync.Config;
 import com.alibaba.middleware.race.sync.common.BufferPool;
 import com.alibaba.middleware.race.sync.model.Block;
 import org.slf4j.Logger;
@@ -12,9 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
-import com.generallycloud.baseio.buffer.ByteBuf;
-import com.generallycloud.baseio.buffer.ByteBufAllocator;
-import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
 
 /**
  * @author wangkai
@@ -46,7 +41,7 @@ public class ReaderThread extends Thread {
 
 	public void execute(Context context, ConcurrentLinkedQueue<Block> blocksQueue)
 			throws Exception {
-		BufferPool bufferPool = context.getReadBufferPool();
+		BufferPool bufferPool = context.getBlockBufferPool();
 		MuiltFileInputStream muiltFileInputStream = context.getMuiltFileInputStream();
 		int blockId = 0;
 		for (; muiltFileInputStream.hasRemaining();) {

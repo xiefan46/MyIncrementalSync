@@ -14,27 +14,33 @@ public class Table {
 
 	private Map<ByteArray, Byte>	columnIndexs	= new HashMap<>();
 
-	private int					columnSize;
-	
-	private int []			columnNameSkip;
-	
+	private int				columnSize;
+
+	private int[]				columnNameSkip;
+
 	private int				delSkip;
 
-	public byte [] newRecord() {
-		return new byte [columnSize * 8];
+	private String				tableSchema;
+
+	private byte[]				tableSchemaBytes;
+
+	public byte[] newRecord() {
+		return new byte[columnSize * 8];
 	}
 
 	public byte getIndex(ByteArray2 array) {
 		return columnIndexs.get(array);
 	}
 
-	public static Table newTable(String []cols) {
+	public static Table newTable(String tableSchema, String[] cols) {
 		byte index = 0;
 		Table t = new Table();
+		t.tableSchema = tableSchema;
+		t.tableSchemaBytes = tableSchema.getBytes();
 		t.columnSize = cols.length;
 		t.columnNameSkip = new int[cols.length];
 		for (int i = 0; i < cols.length; i++) {
-			byte [] name = cols[i].getBytes();
+			byte[] name = cols[i].getBytes();
 			t.columnNameSkip[i] = name.length + 10;
 			t.columnIndexs.put(new ByteArray(name), index++);
 			t.delSkip = t.delSkip + t.columnNameSkip[i] + 2;
@@ -42,26 +48,36 @@ public class Table {
 		t.delSkip += 2;
 		return t;
 	}
-	
-	public static Table newOffline(){
-		return newTable(new String[]{"first_name","last_name","sex","score"});
+
+	public static Table newOffline() {
+		return newTable("middleware3|student",
+				new String[] { "first_name", "last_name", "sex", "score" });
 	}
-	
-	public static Table newOnline(){
-		return newTable(new String[]{"first_name","last_name","sex","score","score2"});
+
+	public static Table newOnline() {
+		return newTable("middleware8|student",
+				new String[] { "first_name", "last_name", "sex", "score", "score2" });
 	}
-	
+
 	//first_name:2:0|NULL|彭|last_name:2:0|NULL|恬|sex:2:0|NULL|男|score:1:0|NULL|479|score2:1:0|NULL|159370|
 
 	public int getColumnSize() {
 		return columnSize;
 	}
-	
+
 	public int[] getColumnNameSkip() {
 		return columnNameSkip;
 	}
 
 	public int getDelSkip() {
 		return delSkip;
+	}
+
+	public String getTableSchema() {
+		return tableSchema;
+	}
+
+	public byte[] getTableSchemaBytes() {
+		return tableSchemaBytes;
 	}
 }

@@ -3,13 +3,13 @@ package com.alibaba.middleware.race.sync;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.alibaba.middleware.race.sync.service.ParseStage;
 import com.alibaba.middleware.race.sync.service.ReaderThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.model.Block;
 import com.alibaba.middleware.race.sync.model.SendTask;
-import com.alibaba.middleware.race.sync.service.DataParseService;
 import com.alibaba.middleware.race.sync.service.DataReplayService;
 import com.alibaba.middleware.race.sync.service.DataSendService;
 
@@ -90,13 +90,21 @@ public class Server {
 				Config.INRANGE_REPLAYER_COUNT);
 		DataReplayService outRangeReplayService = new DataReplayService(sendTaskQueue, false,
 				Config.OUTRANGE_REPLAYER_COUNT);
+
+		ParseStage parseStage = new ParseStage(inRangeReplayService,outRangeReplayService,parseTaskQueue);
+
+		parseStage.start();
+		
 		inRangeReplayService.start();
 		outRangeReplayService.start();
-
-		DataParseService parseService = new DataParseService(parseTaskQueue, inRangeReplayService,
-				outRangeReplayService);
-		parseService.start();
+		
 
 		readThread.join();
+		parseStage.stop();
 	}
+
+	private void startParsers() {
+
+	}
+
 }

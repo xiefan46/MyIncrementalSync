@@ -25,6 +25,19 @@ public class BufferPool {
 		return pool.poll();
 	}
 
+	public ByteBuffer getBufferWait(){
+		ByteBuffer byteBuffer = pool.poll();
+		while(byteBuffer == null){
+			try {
+				Thread.currentThread().sleep(10);
+				byteBuffer = pool.poll();
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return byteBuffer;
+	}
+
 	public void freeBuffer(ByteBuffer buffer) {
 		buffer.clear();
 		pool.offer(buffer);

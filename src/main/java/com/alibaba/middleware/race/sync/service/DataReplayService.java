@@ -25,12 +25,21 @@ import com.alibaba.middleware.race.sync.util.Timer;
  * Created by xiefan on 6/24/17.
  */
 public class DataReplayService implements Constants {
-	private static Logger				stat		= LoggerFactory.getLogger("stat");
+
+	private static Logger				logger	= LoggerFactory
+			.getLogger(DataReplayService.class);
+
 	private Replayer[]					replayers;
+
 	private Context					context	= Context.getInstance();
+
 	private ConcurrentLinkedQueue<SendTask>	output;
+
 	private int						replayerCount;
+
 	private boolean					inRange;
+
+	private byte[] oneCol = new byte[8];
 
 	public DataReplayService(ConcurrentLinkedQueue<SendTask> output, boolean inRange,
 			int replayerCount) {
@@ -75,12 +84,12 @@ public class DataReplayService implements Constants {
 		private Map<Long, ReplayTask>				taskMap		= new HashMap<>();
 		private CountDownLatch					latch;
 		private long							now			= 0;
-		private List<Column>					columnList	= context.getColumnList();
+		private List<Column>					columnList	= null;
 		private Replayer[]						replayers;
 		private Map<Long, Long>					waitMap		= new ConcurrentHashMap<>();
 
 		private boolean						inRange;
-		private RecordMap replayMap;
+		private RecordMap						replayMap;
 		private int							partitionId;
 
 		public Replayer(CountDownLatch latch, Replayer[] replayers, boolean inRange,
@@ -178,7 +187,7 @@ public class DataReplayService implements Constants {
 					replayNormalUpdate(buffer);
 				} else if (op == INSERT) {
 					replayInsert(buffer);
-				} else if (op == UPDATE_PK) {
+				} else if (op == PK_UPDATE) {
 					replayUpdatePk(buffer);
 				} else if (op == DELETE) {
 					long pk = buffer.getLong();
@@ -197,7 +206,7 @@ public class DataReplayService implements Constants {
 				for (ByteBuffer buffer : task.getList()) {
 					if (inRange)
 						replayOp(buffer);
-					task.getPool().freeBuffer(buffer);
+					Context.getInstance().getRecordLogPool().freeBuffer(buffer);
 				}
 			}
 		}
