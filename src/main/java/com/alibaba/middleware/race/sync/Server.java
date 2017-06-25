@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.entity.ParseTask;
 import com.alibaba.middleware.race.sync.entity.SendTask;
-import com.alibaba.middleware.race.sync.service.DataLoadService;
+import com.alibaba.middleware.race.sync.service.Reader;
 import com.alibaba.middleware.race.sync.service.DataParseService;
 import com.alibaba.middleware.race.sync.service.DataReplayService;
 import com.alibaba.middleware.race.sync.service.DataSendService;
@@ -82,8 +82,9 @@ public class Server {
 		sendService.start();
 
 		ConcurrentLinkedQueue<ParseTask> parseTaskQueue = new ConcurrentLinkedQueue<>();
-		DataLoadService loadService = new DataLoadService(parseTaskQueue);
-		loadService.start();
+		Reader reader = new Reader(parseTaskQueue);
+		Thread readThread = new Thread(reader);
+		readThread.start();
 
 		DataReplayService inRangeReplayService = new DataReplayService(sendTaskQueue, true,
 				Config.INRANGE_REPLAYER_COUNT);
@@ -96,5 +97,6 @@ public class Server {
 				outRangeReplayService);
 		parseService.start();
 
+		readThread.join();
 	}
 }

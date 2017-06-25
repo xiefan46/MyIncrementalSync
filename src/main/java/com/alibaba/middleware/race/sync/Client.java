@@ -116,6 +116,7 @@ public class Client {
 	List<Column>							columnList	= context.getColumnList();
 
 	private ConcurrentLinkedQueue<ParseTask>	parseTasks	= new ConcurrentLinkedQueue<>();
+
 	private ConcurrentLinkedQueue<WriteTask>	writeTasks	= new ConcurrentLinkedQueue<>();
 
 	private void newAnswer() throws IOException {

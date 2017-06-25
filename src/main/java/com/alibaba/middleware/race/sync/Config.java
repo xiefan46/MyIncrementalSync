@@ -6,8 +6,7 @@ package com.alibaba.middleware.race.sync;
 public final class Config {
 
 
-	public static final int		READ_BUFFER_SIZE				= Integer
-			.valueOf(System.getProperty("read.buffer.size", "" + (1 << 20)));
+	public static final int		READ_BUFFER_SIZE				= 1024 * 1024;
 
 	//分区相关的配置
 
