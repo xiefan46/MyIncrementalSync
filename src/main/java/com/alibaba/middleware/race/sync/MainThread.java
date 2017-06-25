@@ -2,16 +2,14 @@ package com.alibaba.middleware.race.sync;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
 import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
-import com.alibaba.middleware.race.sync.channel.RAFInputStream;
-import com.alibaba.middleware.race.sync.channel.ReadChannel;
-import com.alibaba.middleware.race.sync.channel.SimpleReadChannel;
+import com.generallycloud.baseio.common.ThreadUtil;
 
 /**
  * @author wangkai
@@ -20,7 +18,7 @@ public class MainThread {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-	public void execute(Context context) {
+	public void execute() {
 		try {
 			logger.info("--------------Main thread start-----------");
 			execute1(context);
@@ -28,19 +26,9 @@ public class MainThread {
 			logger.error(e.getMessage(), e);
 		}
 	}
-
-	private void execute1(Context context) throws Exception {
-		
-		long startTime = System.currentTimeMillis();
-
-		context.setReadChannel(initChannels2());
-
-		context.getReaderThread().init();
-
-		context.getReaderThread().run();
-
-		logger.info("等待所有线程完成总耗时 : {}", System.currentTimeMillis() - startTime);
-		JvmUsingState.print();
+	
+	public MainThread(Context context) {
+		this.context = context;
 	}
 
 	private MuiltFileInputStream initChannels2() throws IOException {
@@ -49,11 +37,88 @@ public class MainThread {
 				1024 * 256);
 	}
 
-	private ReadChannel initChannels3() throws IOException {
-		File root = new File(Constants.TESTER_HOME + "/canal.txt");
-		RandomAccessFile raf = new RandomAccessFile(root, "r");
-		RAFInputStream inputStream = new RAFInputStream(raf);
-		return new SimpleReadChannel(inputStream, 1024 * 256);
+	private void startReader(Context context) {
+		readerThread = new ReaderThread(context, parseThreads);
+		readerThread.start();
+	}
+
+	private void startParser(Context context) {
+		int parseThreadNum = context.getParseThreadNum();
+		parseThreads = new ParseThread[parseThreadNum];
+		for (int i = 0; i < parseThreadNum; i++) {
+			parseThreads[i] = new ParseThread(context, i);
+		}
+		for (int i = 0; i < parseThreadNum; i++) {
+			parseThreads[i].start();
+		}
+	}
+
+	private void startRecaler(Context context) throws InterruptedException {
+		context.getDispatcher().start();
+	}
+
+	private Context		context;
+	
+	private ReaderThread	readerThread;
+
+	private ParseThread[]	parseThreads;
+
+	private CountDownLatch	recalCountDownLatch;
+
+	private void execute1(Context context) throws Exception {
+		//		int tmp = 1024 * 1024 * 1024 / (context.getBlockSize() * context.getParseThreadNum());
+		//		int tmpCount = 0;
+		
+		MuiltFileInputStream channel = initChannels2();
+		context.setReadChannel(channel);
+		
+		startRecaler(context);
+		startParser(context);
+		startReader(context);
+		
+		long time1 = 0;
+		long time2 = 0;
+		
+		ParseThread[] parseThreads = this.parseThreads;
+		Dispatcher dispatcher = context.getDispatcher();
+		for (; channel.hasRemaining();) {
+			long startTime = System.currentTimeMillis();
+			int parseIndex = 0;
+			recalCountDownLatch = new CountDownLatch(context.getRecalThreadNum());
+			dispatcher.beforeDispatch();
+			for (;;) {
+				if (!parseThreads[parseIndex].isDone()) {
+					ThreadUtil.sleep(1);
+					continue;
+				}
+				ParseThread p = parseThreads[parseIndex++];
+				dispatcher.dispatch(p.getResult(),p.getLimit());
+				p.startWork();
+				if (parseIndex == context.getParseThreadNum()) {
+					break;
+				}
+			}
+			time1 += (System.currentTimeMillis() - startTime);
+			startTime = System.currentTimeMillis();
+			dispatcher.startWork();
+			recalCountDownLatch.await();
+			time2 += (System.currentTimeMillis() - startTime);
+
+		}
+		logger.info("读取,解析,分发完成:{}，合并完成:{}", time1, time2);
+		for (ParseThread t : parseThreads) {
+			t.shutdown();
+		}
+		dispatcher.readRecordOver();
+		JvmUsingState.print();
+	}
+
+	public Context getContext() {
+		return context;
+	}
+
+	public void recalDone(int index) {
+		recalCountDownLatch.countDown();
 	}
 
 }

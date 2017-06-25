@@ -39,8 +39,6 @@ public class Server {
 
 	private static Logger		logger		= LoggerFactory.getLogger(Server.class);
 
-	private MainThread			mainThread	= new MainThread();
-
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
 			args = new String[] { "middleware3", "student", "0", "70000000" };
@@ -133,13 +131,9 @@ public class Server {
 
 		context.initialize();
 
-		mainThread.execute(context);
+		context.getMainThread().execute();
 
 		sendResultToClient(context);
-	}
-
-	public MainThread getMainThread() {
-		return mainThread;
 	}
 
 	public SocketChannelContext getSocketChannelContext() {

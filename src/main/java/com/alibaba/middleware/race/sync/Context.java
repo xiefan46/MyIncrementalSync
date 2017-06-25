@@ -13,11 +13,11 @@ public class Context {
 	private long				startId;
 	private MuiltFileInputStream	readChannel;
 	private Table				table;
-	private ReaderThread		readerThread	= new ReaderThread(this);
+	private MainThread			mainThread = new MainThread(this);
 	private int				recalThreadNum	= 4;
 	private int				parseThreadNum	= 2;
-	private int				blockSize		= (int) (1024 * 1024 * 4);
 	private Dispatcher			dispatcher;
+	private ByteBufPool			byteBufPool;
 
 	public Context(long endId, long startId) {
 		this.endId = endId;
@@ -25,8 +25,9 @@ public class Context {
 	}
 
 	public void initialize() {
-		setTable(Table.newOnline());
+		setTable(Table.newOffline());
 		dispatcher = new Dispatcher(this);
+		byteBufPool = new ByteBufPool(parseThreadNum * 2, (int) (1024 * 1024 * 4));
 	}
 
 	public long getEndId() {
@@ -69,14 +70,10 @@ public class Context {
 		return parseThreadNum;
 	}
 
-	public int getBlockSize() {
-		return blockSize;
+	public MainThread getMainThread() {
+		return mainThread;
 	}
 
-	public ReaderThread getReaderThread() {
-		return readerThread;
-	}
-	
 	public Dispatcher getDispatcher() {
 		return dispatcher;
 	}
@@ -84,5 +81,12 @@ public class Context {
 	public byte[] getRecord(int i) {
 		return dispatcher.getRecord(i);
 	}
-	
+
+	/**
+	 * @return the byteBufPool
+	 */
+	public ByteBufPool getByteBufPool() {
+		return byteBufPool;
+	}
+
 }

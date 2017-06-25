@@ -33,8 +33,6 @@ public abstract class WorkThread extends Thread {
 				work();
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
-			}finally{
-				work = false;
 			}
 		}
 	}
@@ -71,7 +69,7 @@ public abstract class WorkThread extends Thread {
 		this.wakeup();
 	}
 
-	private void wait4Work() {
+	protected void wait4Work() {
 		synchronized (lock) {
 			try {
 				lock.wait();

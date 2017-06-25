@@ -15,19 +15,16 @@ public class RecalculateThread extends WorkThread implements Constants{
 
 	private Table					table;
 
-	private Context				context;
-	
 	private Task					task;
 	
-	private ReaderThread			readerThread;
+	private MainThread				mainThread;
 	
 	public RecalculateThread(Context context, IntObjectHashMap<byte []> records,Task task,int i) {
 		super("recal-",i);
-		this.context = context;
 		this.table = context.getTable();
 		this.records = records;
 		this.task = task;
-		this.readerThread = context.getReaderThread();
+		this.mainThread = context.getMainThread();
 	}
 
 	/* (non-Javadoc)
@@ -48,7 +45,8 @@ public class RecalculateThread extends WorkThread implements Constants{
 			received(table, records, cnr.getValue());
 			cnr = cnr.getNext();
 		}
-		readerThread.recalDone(getIndex());
+		mainThread.recalDone(getIndex());
+		setWork(false);
 	}
 
 	public IntObjectHashMap<byte []> getRecords() {

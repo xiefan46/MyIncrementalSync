@@ -39,8 +39,7 @@ public class MainThreadTest {
 		ThreadUtil.execute(new JvmUsingState());
 		Context context = new Context(endId, startId);
 		context.initialize();
-		MainThread mainThread = new MainThread();
-		mainThread.execute(context);
+		context.getMainThread().execute();
 		
 		RecordUtil.writeResultToLocalFile(context, Constants.RESULT_HOME + "/" +Constants.RESULT_FILE_NAME);
 	}

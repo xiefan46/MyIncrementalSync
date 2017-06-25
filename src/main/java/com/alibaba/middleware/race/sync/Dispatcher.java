@@ -84,13 +84,11 @@ public class Dispatcher {
 		}
 	}
 	
-	public void dispatch(ParseThread parser){
+	public void dispatch(Node<RecordLog> pnr,int limit){
 		Node<RecordLog>[] currentRecordLogs = this.currentNodes;
 		int cols = context.getTable().getColumnSize();
 		byte B = -1;
 		MyIntByteHashMap redirectMap = this.redirectMap;
-		Node<RecordLog> pnr = parser.getRootRecord();
-		int limit = parser.getLimit();
 		for (int i = 0; i < limit; i++) {
 			RecordLog r = pnr.getValue();
 			int id = r.getPk();

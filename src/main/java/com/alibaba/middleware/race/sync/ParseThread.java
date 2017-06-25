@@ -1,5 +1,9 @@
 package com.alibaba.middleware.race.sync;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+
 import com.alibaba.middleware.race.sync.model.Node;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
@@ -7,42 +11,67 @@ import com.generallycloud.baseio.buffer.ByteBuf;
 
 public class ParseThread extends WorkThread {
 
-	private ByteBuf		buf;
-
-	private Node<RecordLog>	rootRecord;
+	private Node<RecordLog>	rootRecord1;
+	
+	private Node<RecordLog>	rootRecord2;
+	
+	private boolean		use1;
+	
+	private Node<RecordLog>	result;
+	
+	private boolean 		done;
+	
+	private BlockingQueue<ByteBuf> bufs = new ArrayBlockingQueue<>(2);
 
 	private int			limit;
-
-	private ReaderThread	readerThread;
+	
+	private Context		context;
 
 	private ByteBufReader	byteBufReader	= new ByteBufReader();
 
-	private Dispatcher		dispatcher;
-
-	public ParseThread(ReaderThread readerThread, ByteBuf buf, int index) {
+	public ParseThread(Context context, int index) {
 		super("parse-", index);
-		this.buf = buf;
-		this.readerThread = readerThread;
-		this.dispatcher = readerThread.getContext().getDispatcher();
+		this.context = context;
+		this.setWork(true);
 	}
 
 	protected void work() throws Exception {
-		ReaderThread readerThread = this.readerThread;
-		ByteBuf buf = this.buf;
-		Context context = readerThread.getContext();
+		BlockingQueue<ByteBuf> bufs = this.bufs;
+		ByteBuf buf = bufs.poll(16, TimeUnit.MICROSECONDS);
+		if (buf == null) {
+			return;
+		}
+		if (done) {
+			wait4Work();
+		}
 		Table table = context.getTable();
 		byte[] tableSchema = table.getTableSchemaBytes();
 		int cols = table.getColumnSize();
 		ByteBufReader reader = this.byteBufReader;
 		if (!buf.hasRemaining()) {
+			this.done = true;
 			return;
 		}
-		if (rootRecord == null) {
-			rootRecord = new Node<>();
-			rootRecord.setValue(RecordLog.newRecordLog(cols));
+		Node<RecordLog> result;
+		Node<RecordLog> cr;
+		if (use1) {
+			use1 = false;
+			if (rootRecord1 == null) {
+				rootRecord1 = new Node<>();
+				rootRecord1.setValue(RecordLog.newRecordLog(cols));
+			}
+			result = rootRecord1;
+			cr = rootRecord1;
+		}else{
+			use1 = true;
+			if (rootRecord2 == null) {
+				rootRecord2 = new Node<>();
+				rootRecord2.setValue(RecordLog.newRecordLog(cols));
+			}
+			result = rootRecord2;
+			cr = rootRecord2;
 		}
 		limit = 1;
-		Node<RecordLog> cr = rootRecord;
 		RecordLog crv = cr.getValue();
 		crv.reset();
 		reader.read(table, buf, tableSchema, crv);
@@ -52,7 +81,9 @@ public class ParseThread extends WorkThread {
 			crv.reset();
 			reader.read(table, buf, tableSchema, crv);
 		}
-		readerThread.parseDone(getIndex());
+		context.getByteBufPool().free(buf);
+		this.result = result;
+		this.done = true;
 	}
 
 	private Node<RecordLog> getNext(Node<RecordLog> node, int cols) {
@@ -67,24 +98,6 @@ public class ParseThread extends WorkThread {
 		return next;
 	}
 
-//	public void dispatch() throws InterruptedException {
-//		int limit = this.limit;
-//		Dispatcher dispatcher = this.dispatcher;
-//		Node<RecordLog> r = this.rootRecord;
-//		for (int i = 0; i < limit; i++) {
-//			dispatcher.dispatch(r.getValue());
-//			r = r.getNext();
-//		}
-//	}
-
-	public ByteBuf getBuf() {
-		return buf;
-	}
-
-	public void setBuf(ByteBuf buf) {
-		this.buf = buf;
-	}
-
 	public int getLimit() {
 		return limit;
 	}
@@ -92,8 +105,24 @@ public class ParseThread extends WorkThread {
 	/**
 	 * @return the rootRecord
 	 */
-	public Node<RecordLog> getRootRecord() {
-		return rootRecord;
+	public Node<RecordLog> getResult() {
+		return result;
 	}
+	
+	public void offerBuf(ByteBuf buf){
+		bufs.offer(buf);
+	}
+	
+	public boolean isDone() {
+		return done;
+	}
+	
+	@Override
+	public void startWork() {
+		done = false;
+		limit = 0;
+		super.startWork();
+	}
+	
 
 }
