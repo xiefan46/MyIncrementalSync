@@ -48,24 +48,6 @@ public class Dispatcher {
 		}
 	}
 
-//	public void dispatch(RecordLog recordLog) throws InterruptedException {
-//		int id = recordLog.getPk();
-//		int oldId = recordLog.getBeforePk();
-//		if (recordLog.isPkUpdate()) {
-//			Byte oldDirect = redirectMap.remove(oldId);
-//			if (oldDirect == null) {
-//				oldDirect = hashFun(oldId);
-//			}
-//			redirectMap.put(id, oldDirect);
-//			threads[oldDirect].submit(recordLog);
-//		} else {
-//			Byte threadId = redirectMap.get(id);
-//			if (threadId == null)
-//				threadId = hashFun(id);
-//			threads[threadId].submit(recordLog);
-//		}
-//	}
-
 	public void readRecordOver() {
 		for (RecalculateThread t : threads) {
 			t.shutdown();
@@ -94,53 +76,53 @@ public class Dispatcher {
 		return recordMaps;
 	}
 	
-	public void dispatch(ParseThread [] parsers){
+	public void beforeDispatch(){
 		Node<RecordLog>[] currentRecordLogs = this.currentNodes;
-		int cols = context.getTable().getColumnSize();
 		for (int i = 0; i < threadNum; i++) {
 			currentRecordLogs[i] = rootTasks[i].rootNode;
 			rootTasks[i].limit = 0;
 		}
-		MyIntByteHashMap			redirectMap = this.redirectMap;
+	}
+	
+	public void dispatch(ParseThread parser){
+		Node<RecordLog>[] currentRecordLogs = this.currentNodes;
+		int cols = context.getTable().getColumnSize();
 		byte B = -1;
-		for (ParseThread p : parsers) {
-			Node<RecordLog> pnr = p.getRootRecord();
-			int limit = p.getLimit();
-			for (int i = 0; i < limit; i++) {
-				RecordLog r = pnr.getValue();
-				int id = r.getPk();
-				int oldId = r.getBeforePk();
-//				if (id == 454867168 || oldId == 454867168) {
-//					System.out.println(123);
-//				}
-				if (r.isPkUpdate()) {
-					byte oldDirect = redirectMap.remove(oldId, B);
-					if (oldDirect == B) {
-						oldDirect = hashFun(oldId);
-						if (oldDirect != hashFun(id)) {
-							redirectMap.put(id, oldDirect);
-						}
-					}else{
+		MyIntByteHashMap redirectMap = this.redirectMap;
+		Node<RecordLog> pnr = parser.getRootRecord();
+		int limit = parser.getLimit();
+		for (int i = 0; i < limit; i++) {
+			RecordLog r = pnr.getValue();
+			int id = r.getPk();
+			int oldId = r.getBeforePk();
+			if (r.isPkUpdate()) {
+				byte oldDirect = redirectMap.remove(oldId, B);
+				if (oldDirect == B) {
+					oldDirect = hashFun(oldId);
+					if (oldDirect != hashFun(id)) {
 						redirectMap.put(id, oldDirect);
 					}
-					currentRecordLogs[oldDirect] = getNext(currentRecordLogs[oldDirect], cols, oldDirect);
-					currentRecordLogs[oldDirect].setValue(r);
-				} else {
-					byte threadId;
-					if (r.getAlterType() == Constants.DELETE) {
-						threadId = redirectMap.remove(id, B);
-					}else{
-						threadId = redirectMap.getOrDefault(id,B);
-					}
-					if (threadId == B) {
-						threadId = hashFun(id);
-					}
-					currentRecordLogs[threadId] = getNext(currentRecordLogs[threadId], cols, threadId);
-					currentRecordLogs[threadId].setValue(r);
+				}else{
+					redirectMap.put(id, oldDirect);
 				}
-				pnr = pnr.getNext();
+				currentRecordLogs[oldDirect] = getNext(currentRecordLogs[oldDirect], cols, oldDirect);
+				currentRecordLogs[oldDirect].setValue(r);
+			} else {
+				byte threadId;
+				if (r.getAlterType() == Constants.DELETE) {
+					threadId = redirectMap.remove(id, B);
+				}else{
+					threadId = redirectMap.getOrDefault(id,B);
+				}
+				if (threadId == B) {
+					threadId = hashFun(id);
+				}
+				currentRecordLogs[threadId] = getNext(currentRecordLogs[threadId], cols, threadId);
+				currentRecordLogs[threadId].setValue(r);
 			}
+			pnr = pnr.getNext();
 		}
+		
 	}
 	
 	private Node<RecordLog> getNext(Node<RecordLog> node,int cols,int limitIndex){

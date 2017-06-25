@@ -9,6 +9,7 @@ import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
 import com.generallycloud.baseio.buffer.ByteBuf;
 import com.generallycloud.baseio.buffer.ByteBufAllocator;
 import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
+import com.generallycloud.baseio.common.ThreadUtil;
 
 /**
  * @author wangkai
@@ -21,10 +22,10 @@ public class ReaderThread extends Thread {
 
 	private ParseThread[]	parseThreads;
 
-	private CountDownLatch	parseCountDownLatch;
-	
 	private CountDownLatch	recalCountDownLatch;
-
+	
+	private boolean[]		parseDone;
+	
 	private Dispatcher		dispatcher;
 
 	public ReaderThread(Context context) {
@@ -35,6 +36,7 @@ public class ReaderThread extends Thread {
 		int threadNum = context.getParseThreadNum();
 		int blockSize = context.getBlockSize();
 		parseThreads = new ParseThread[threadNum];
+		parseDone = new boolean[context.getParseThreadNum()];
 		dispatcher = context.getDispatcher();
 		ByteBufAllocator allocator = UnpooledByteBufAllocator.getHeapInstance();
 		for (int i = 0; i < threadNum; i++) {
@@ -64,13 +66,16 @@ public class ReaderThread extends Thread {
 //		int tmpCount = 0;
 		long time1 = 0;
 		long time2 = 0;
-		long time3 = 0;
-		long time4 = 0;
+		boolean [] parseDone = this.parseDone;
+		ParseThread[] parseThreads = this.parseThreads;
+		Dispatcher dispatcher = this.dispatcher;
 		for (; channel.hasRemaining();) {
 			long startTime = System.currentTimeMillis();
-			parseCountDownLatch = new CountDownLatch(context.getParseThreadNum());
+			int parseIndex = 0;
 			recalCountDownLatch = new CountDownLatch(context.getRecalThreadNum());
-			for (ParseThread t : parseThreads) {
+			for (int i = 0; i < parseThreads.length; i++) {
+				parseDone[i] = false;
+				ParseThread t = parseThreads[i];
 				ByteBuf buf = t.getBuf();
 				buf.clear();
 				int len = channel.readFull(buf, buf.capacity() - 1024);
@@ -81,20 +86,25 @@ public class ReaderThread extends Thread {
 				}
 				t.startWork();
 			}
+			dispatcher.beforeDispatch();
+			for(;;){
+				if(!parseDone[parseIndex]){
+					ThreadUtil.sleep(1);
+					continue;
+				}
+				dispatcher.dispatch(parseThreads[parseIndex++]);
+				if (parseIndex == parseDone.length) {
+					break;
+				}
+			}
 			time1 += (System.currentTimeMillis() - startTime);
-			startTime = System.currentTimeMillis();
-			parseCountDownLatch.await();
-			time2 += (System.currentTimeMillis() - startTime);
-			startTime = System.currentTimeMillis();
-			dispatcher.dispatch(parseThreads);
-			time3 += (System.currentTimeMillis() - startTime);
 			startTime = System.currentTimeMillis();
 			dispatcher.startWork();
 			recalCountDownLatch.await();
-			time4 += (System.currentTimeMillis() - startTime);
+			time2 += (System.currentTimeMillis() - startTime);
 				
 		}
-		logger.info("读取完成:{}，解析完成:{},分发完成:{}，合并完成:{}", time1, time2, time3,time4);
+		logger.info("读取,解析,分发完成:{}，合并完成:{}", time1, time2);
 		for (ParseThread t : parseThreads) {
 			t.shutdown();
 		}
@@ -106,7 +116,7 @@ public class ReaderThread extends Thread {
 	}
 
 	public void parseDone(int index) {
-		parseCountDownLatch.countDown();
+		parseDone[index] = true;
 	}
 	
 	public void recalDone(int index) {
