@@ -3,7 +3,7 @@ package com.alibaba.middleware.race.sync.channel;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.alibaba.middleware.race.sync.other.bytes.ByteBufUtil;
+import com.alibaba.middleware.race.sync.util.ByteBufUtil;
 import com.generallycloud.baseio.buffer.ByteBuf;
 import com.generallycloud.baseio.common.Logger;
 import com.generallycloud.baseio.common.LoggerFactory;

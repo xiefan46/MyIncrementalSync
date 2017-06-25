@@ -29,5 +29,16 @@ public class MuiltFileReadChannelSplitor {
 		}
 		return new MuiltFileReadChannel(streams, bufferLen);
 	}
+	
+	public static MuiltFileInputStream newInputStream(String path, int begin, int len, int bufferLen)
+			throws FileNotFoundException {
+		InputStream[] streams = new InputStream[len];
+		for (int i = 0; i < len; i++) {
+			File file = new File(path + (i + begin) + ".txt");
+			RandomAccessFile raf = new RandomAccessFile(file, "r");
+			streams[i] = new RAFInputStream(raf);
+		}
+		return new MuiltFileInputStream(streams);
+	}
 
 }

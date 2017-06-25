@@ -5,12 +5,12 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.middleware.race.sync.channel.ByteArrayBuffer;
 import com.alibaba.middleware.race.sync.channel.SingleBufferedOutputStream;
 import com.alibaba.middleware.race.sync.compress.Lz4CompressedOutputStream;
 import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
-import com.alibaba.middleware.race.sync.other.bytes.ByteArrayBuffer;
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.acceptor.SocketChannelAcceptor;
 import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
@@ -123,13 +123,13 @@ public class Server {
 
 		this.socketChannelContext = context;
 
-		execute(endId, new RecordLogReceiverImpl(), startId, (schema + "|" + table));
+		execute(endId, startId, (schema + "|" + table));
 
 	}
 
-	private void execute(long endId, RecordLogReceiver receiver, long startId, String tableSchema) throws Exception {
+	private void execute(long endId, long startId, String tableSchema) throws Exception {
 
-		Context context = new Context(endId, receiver, startId, tableSchema);
+		Context context = new Context(endId, startId);
 
 		context.initialize();
 

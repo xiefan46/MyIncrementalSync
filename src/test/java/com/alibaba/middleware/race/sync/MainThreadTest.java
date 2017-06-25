@@ -32,13 +32,12 @@ public class MainThreadTest {
 	@Test
 	public void testBasic() throws Exception {
 //		ThreadUtil.execute(new PageCacheHelper());
-		RecordLogReceiver recordLogReceiver = new RecordLogReceiverImpl();
 		String schema = "middleware3";
 		String table = "student";
 		long startId = 600;
 		long endId = 700;
 		ThreadUtil.execute(new JvmUsingState());
-		Context context = new Context(endId, recordLogReceiver , startId, (schema + "|" + table));
+		Context context = new Context(endId, startId);
 		context.initialize();
 		MainThread mainThread = new MainThread();
 		mainThread.execute(context);
