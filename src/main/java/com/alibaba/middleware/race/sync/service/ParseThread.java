@@ -101,15 +101,15 @@ public class ParseThread implements Runnable, Constants {
 
 		while (buffer.hasRemaining()) {
 			recordLog.reset();
-			byteBufReader.read(table, buffer, tableSchema, recordLog);
+			boolean read = byteBufReader.read(table, buffer, tableSchema, recordLog);
 
 			/*
 			 * logger.info("get record. Alter type : {}. Pk : {} OldPk : {}",
 			 * (char) recordLog.getAlterType(), recordLog.getPk(),
 			 * recordLog.getBeforePk());
 			 */
-
-			dealRecordLog(recordLog);
+			if (read)
+				dealRecordLog(recordLog);
 		}
 
 		Context.getInstance().getBlockBufferPool().freeBuffer(buffer);
@@ -195,7 +195,11 @@ public class ParseThread implements Runnable, Constants {
 
 	class ByteBufReader {
 
-		private RecordLogCodec2 codec = new RecordLogCodec2();
+		private RecordLogCodec2	codec	= new RecordLogCodec2();
+
+		private int			startId	= Context.getInstance().getStartPk();
+
+		private int			endId	= Context.getInstance().getEndPk();
 
 		public boolean read(Table table, ByteBuffer buf, byte[] tableSchema, RecordLog r)
 				throws IOException {
@@ -204,9 +208,9 @@ public class ParseThread implements Runnable, Constants {
 			if (!buf.hasRemaining()) {
 				return false;
 			}
-			int off = codec.decode(table, readBuffer, tableSchema, offset, r);
-			buf.position(off);
-			return true;
+			int off = codec.decode(table, readBuffer, tableSchema, offset, r, startId, endId);
+			buf.position(off + 1);
+			return r.isRead();
 		}
 
 	}

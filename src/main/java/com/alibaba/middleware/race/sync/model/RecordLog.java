@@ -17,6 +17,16 @@ public class RecordLog {
 	private int beforePk;
 	private int pk;
 	
+	private boolean read;
+	
+	public boolean isRead() {
+		return read;
+	}
+
+	public void setRead(boolean read) {
+		this.read = read;
+	}
+
 	public byte getAlterType() {
 		return alterType;
 	}
@@ -60,6 +70,7 @@ public class RecordLog {
 
 	public void reset(){
 		edit = 0;
+		read = false;
 	}
 	
 	public int getEdit() {

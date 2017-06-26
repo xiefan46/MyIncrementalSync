@@ -13,7 +13,7 @@ public class RecordLogCodec2 {
 
 	private final int				I_ID_SKIP		= "I|id:1:1|NULL|".length();
 
-	private final int				HEAD_SKIP		= "|mysql-bin.".length() + 5;
+	private final int				HEAD_SKIP		= "|mysql-bin.".length();
 
 	private final int				TIME_SKIP		= "1496720884000".length() + 1;
 
@@ -30,7 +30,8 @@ public class RecordLogCodec2 {
 		return true;
 	}
 
-	public int decode(Table table, byte[] data, byte[] tableSchema, int offset, RecordLog r) {
+	public int decode(Table table, byte[] data, byte[] tableSchema, int offset, RecordLog r
+			, int startId, int endId) {
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
 		off += TIME_SKIP;
 		//		if (!compare(data, off + 1, tableSchema)) {
@@ -49,8 +50,18 @@ public class RecordLogCodec2 {
 			r.setPk(parseLong(data, off, end));
 			off = end + 1;
 			if (r.isPkUpdate4Codec()) {
-				r.setAlterType(Constants.PK_UPDATE);
+				if (inRange(r.getBeforePk(), startId, endId)) {
+					r.setAlterType(Constants.DELETE);
+					r.setPk(r.getBeforePk());
+					r.setRead(true);
+				}
+				return findNextChar(data, end, '\n');
+			}else{
+				if (!inRange(r.getPk(), startId, endId)) {
+					return findNextChar(data, end, '\n');
+				}
 			}
+			r.setRead(true);
 			if (data[off] == '\n') {
 				return off;
 			}
@@ -75,13 +86,20 @@ public class RecordLogCodec2 {
 			end = findNextChar(data, off, '|');
 			r.setPk(parseLong(data, off, end));
 			off = end + table.getDelSkip();
-			return findNextChar(data, off, '\n') - 1;
+			if (inRange(r.getPk(), startId, endId)) {
+				r.setRead(true);
+			}
+			return findNextChar(data, off, '\n');
 		}
 
 		if (Constants.INSERT == alterType) {
 			off += I_ID_SKIP;
 			end = findNextChar(data, off, '|');
 			r.setPk(parseLong(data, off, end));
+			if (!inRange(r.getPk(), startId, endId)) {
+				return findNextChar(data, end + table.getDelSkip(), '\n');
+			}
+			r.setRead(true);
 			int[] colsSkip = table.getColumnNameSkip();
 			off = end + 1;
 			for (;;) {
@@ -98,22 +116,20 @@ public class RecordLogCodec2 {
 		}
 		throw new RuntimeException(String.valueOf(alterType));
 	}
+	
+	private boolean inRange(int pk,int startId,int endId){
+		return pk > startId && pk < endId;
+	}
 
 	private byte getName(Table table, byte[] bytes, int off, int len) {
 		return table.getIndex(byteArray2.reset(bytes, off, len));
 	}
 
 	private int findNextChar(byte[] data, int offset, char c) {
-		int startOff = offset;
-		try {
-			for (; ; ) {
-				if (data[++offset] == c) {
-					return offset;
-				}
+		for (;;) {
+			if (data[++offset] == c) {
+				return offset;
 			}
-		}catch (Exception e){
-			int a = 1;
-			throw new RuntimeException(e);
 		}
 	}
 
