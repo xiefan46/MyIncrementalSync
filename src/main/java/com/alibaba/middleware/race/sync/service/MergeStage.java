@@ -24,7 +24,7 @@ public class MergeStage {
 
 	private static final Logger	logger		= LoggerFactory.getLogger(MergeStage.class);
 
-	private ArrayHashMap2[]		recordMaps	= new ArrayHashMap2[CalculateStage.REPLAYER_COUNT];
+	private ArrayHashMap2[]		recordMaps	= new ArrayHashMap2[CalculateStage.CALCULATOR_COUNT];
 
 	public MergeStage() {
 

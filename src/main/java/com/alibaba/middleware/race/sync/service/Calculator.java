@@ -95,14 +95,13 @@ public class Calculator implements Runnable, Constants {
 				recordMap.remove(id);
 				break;
 			case PK_UPDATE:
-				id = buffer.getInt();
 				int oldId = buffer.getInt();
 				recordMap.remove(oldId);
 				break;
 			case UPDATE:
 				id = buffer.getInt();
 				buffer.get(col);
-				recordMap.setColumn(id, col[0], col, 0, col[1]);
+				recordMap.setColumn(id, col[0], col, 2, col[1]);
 				break;
 			}
 		}

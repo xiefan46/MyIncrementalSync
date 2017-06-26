@@ -43,26 +43,23 @@ public class BlockReaderer extends Thread {
 		int blockId = 0;
 		for (; muiltFileInputStream.hasRemaining();) {
 			ByteBuffer buf = bufferPool.getBufferWait();
-			/*if (buf == null) {
-				Thread.currentThread().sleep(10);
-				continue;
-			}*/
+			/*
+			 * if (buf == null) { Thread.currentThread().sleep(10); continue;
+			 * }
+			 */
 			buf.clear();
 			int len = muiltFileInputStream.readFull(buf, buf.capacity() - 1024);
-			if (len <= 0) {
+			if (len >= 0) {
 				//logger.info("end");
-				parseStage.submit(ReadResult.END_TASK);
-				break;
-			} else {
-				//logger.info("aaa");
 				buf.flip();
 				parseStage.submit(new ReadResult(buf, blockId++));
-				if (blockId % 200 == 0) {
+				if (blockId % 2000 == 0) {
 					logger.info("block id : {}", blockId);
 				}
 			}
 
 		}
+		parseStage.submit(new ReadResult(null, -1));
 
 	}
 

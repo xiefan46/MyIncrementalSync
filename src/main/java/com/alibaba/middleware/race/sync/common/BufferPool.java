@@ -25,13 +25,16 @@ public class BufferPool {
 		return pool.poll();
 	}
 
+	private int count = 5;
+
 	public ByteBuffer getBufferWait() {
 		ByteBuffer byteBuffer = pool.poll();
 		while (byteBuffer == null) {
 			try {
-				Thread.currentThread().sleep(1000);
+				Thread.currentThread().sleep(10);
 				byteBuffer = pool.poll();
-				logger.info("wait wait");
+				if (count-- > 0)
+					logger.info("buffer pool wait");
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}

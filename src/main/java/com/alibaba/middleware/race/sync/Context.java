@@ -2,7 +2,6 @@ package com.alibaba.middleware.race.sync;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.Socket;
 
 import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
 import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
@@ -10,8 +9,9 @@ import com.alibaba.middleware.race.sync.common.BufferPool;
 import com.alibaba.middleware.race.sync.common.RangeSearcher;
 import com.alibaba.middleware.race.sync.model.Table;
 import com.alibaba.middleware.race.sync.service.CalculateStage;
-import com.alibaba.middleware.race.sync.service.ParseStage;
 import com.alibaba.middleware.race.sync.util.ByteArrayBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by xiefan on 6/24/17.
@@ -44,6 +44,8 @@ public class Context {
 
 	private ByteArrayBuffer		resultBuffer;
 
+	private static final Logger logger = LoggerFactory.getLogger(Context.class);
+
 	private Context() {
 	}
 
@@ -53,7 +55,12 @@ public class Context {
 		this.schema = schema;
 		this.table = table;
 		this.muiltFileInputStream = initMultiFileStream();
-		this.rangeSearcher = new RangeSearcher(startPk + 1, endPk, CalculateStage.REPLAYER_COUNT);
+		this.rangeSearcher = new RangeSearcher(startPk + 1, endPk, CalculateStage.CALCULATOR_COUNT);
+		if(Constants.DEBUG){
+			logger.info("使用OFFLINE模式,线上记得切换");
+		}else{
+			logger.info("使用ONLINE模式,线上记得切换");
+		}
 	}
 
 	public String getSchema() {
@@ -120,5 +127,11 @@ public class Context {
 
 	public void setResultBuffer(ByteArrayBuffer resultBuffer) {
 		this.resultBuffer = resultBuffer;
+	}
+
+	public boolean inRange(int pk){
+		if(pk > startPk && pk < endPk)
+			return true;
+		return false;
 	}
 }

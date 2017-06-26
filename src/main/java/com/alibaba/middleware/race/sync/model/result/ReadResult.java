@@ -24,8 +24,6 @@ public class ReadResult {
 		return buffer == null;
 	}
 
-	public static final ReadResult END_TASK = new ReadResult(null, -1);
-
 	public void setBuffer(ByteBuffer buffer) {
 		this.buffer = buffer;
 	}

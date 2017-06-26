@@ -29,9 +29,9 @@ public class ParseThread implements Runnable, Constants {
 
 	private ByteBufReader					byteBufReader		= new ByteBufReader();
 
-	private ByteBuffer[]					partitions		= new ByteBuffer[CalculateStage.REPLAYER_COUNT];
+	private ByteBuffer[]					partitions		= new ByteBuffer[CalculateStage.CALCULATOR_COUNT];
 
-	private ParseResult[]					parseResults		= new ParseResult[CalculateStage.REPLAYER_COUNT];
+	private ParseResult[]					parseResults		= new ParseResult[CalculateStage.CALCULATOR_COUNT];
 
 	private RangeSearcher					rangeSearcher		= Context.getInstance()
 			.getRangeSearcher();
@@ -48,33 +48,39 @@ public class ParseThread implements Runnable, Constants {
 
 	private AtomicInteger					count			= new AtomicInteger(0);
 
+	private volatile boolean					stop				= false;
+
+	private ParseStage						parseStage;
+
+	private Context						context			= Context.getInstance();
+
 	public ParseThread(CalculateStage calculateStage, ParseStage parseStage) {
 
 		this.calculateStage = calculateStage;
 
 		this.readResults = parseStage.getReadResultQueue();
 
-		partitions = new ByteBuffer[CalculateStage.REPLAYER_COUNT];
+		partitions = new ByteBuffer[CalculateStage.CALCULATOR_COUNT];
 
-		parseResults = new ParseResult[CalculateStage.REPLAYER_COUNT];
+		parseResults = new ParseResult[CalculateStage.CALCULATOR_COUNT];
 
 		int cols = table.getColumnSize();
 
 		this.recordLog = RecordLog.newRecordLog(cols);
+
+		this.parseStage = parseStage;
 
 	}
 
 	@Override
 	public void run() {
 		try {
-			boolean stop = false;
-			while (!readResults.isEmpty() || !stop) {
+			while (!stop || !readResults.isEmpty()) {
 				while (!readResults.isEmpty()) {
 					ReadResult readResult = readResults.poll();
 					if (readResult != null) {
 						if (readResult.getId() == -1) {
-							stop = true;
-							readResults.add(readResult);
+							parseStage.notifyStop();
 							break;
 						}
 						dealResult(readResult);
@@ -85,6 +91,7 @@ public class ParseThread implements Runnable, Constants {
 					}
 				}
 			}
+
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -102,21 +109,30 @@ public class ParseThread implements Runnable, Constants {
 		while (buffer.hasRemaining()) {
 			recordLog.reset();
 			boolean read = byteBufReader.read(table, buffer, tableSchema, recordLog);
-
+			/*if (count.incrementAndGet() % 5000000 == 0) {
+				logger.info("deal count : {}", count.get());
+			}*/
 			/*
 			 * logger.info("get record. Alter type : {}. Pk : {} OldPk : {}",
 			 * (char) recordLog.getAlterType(), recordLog.getPk(),
 			 * recordLog.getBeforePk());
 			 */
-			if (read)
+			if (read && filter(recordLog)) {
 				dealRecordLog(recordLog);
+			}
 		}
-
-		Context.getInstance().getBlockBufferPool().freeBuffer(buffer);
 
 		//发送解析结果
 		finish();
 
+	}
+
+	private boolean filter(RecordLog recordLog) {
+		if(recordLog.getAlterType() == PK_UPDATE){
+			return inRange(recordLog.getBeforePk());
+		}else{
+			return inRange(recordLog.getPk());
+		}
 	}
 
 	private void dealRecordLog(RecordLog recordLog) {
@@ -151,7 +167,6 @@ public class ParseThread implements Runnable, Constants {
 		case PK_UPDATE:
 			ByteBuffer oldBuffer = getBufferByPk(recordLog.getBeforePk());
 			oldBuffer.put(PK_UPDATE);
-			oldBuffer.putInt(recordLog.getPk());
 			oldBuffer.putInt(recordLog.getBeforePk());
 			break;
 		default:
@@ -195,11 +210,11 @@ public class ParseThread implements Runnable, Constants {
 
 	class ByteBufReader {
 
-		private RecordLogCodec2	codec	= new RecordLogCodec2();
-
 		private int			startId	= Context.getInstance().getStartPk();
 
 		private int			endId	= Context.getInstance().getEndPk();
+
+		private RecordLogCodec2	codec	= new RecordLogCodec2();
 
 		public boolean read(Table table, ByteBuffer buf, byte[] tableSchema, RecordLog r)
 				throws IOException {
@@ -213,5 +228,9 @@ public class ParseThread implements Runnable, Constants {
 			return r.isRead();
 		}
 
+	}
+
+	public void stop() {
+		this.stop = true;
 	}
 }

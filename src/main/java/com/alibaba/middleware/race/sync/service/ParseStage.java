@@ -2,15 +2,18 @@ package com.alibaba.middleware.race.sync.service;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.model.result.ParseResult;
 import com.alibaba.middleware.race.sync.model.result.ReadResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by xiefan on 6/26/17.
  */
 public class ParseStage {
 
-	public static final int					PARSER_NUM		= 1;
+	public static final int					PARSER_NUM		= Constants.DEBUG ? 4 : 8;
 
 	private ParseThread[]					parsers			= new ParseThread[PARSER_NUM];
 
@@ -19,6 +22,9 @@ public class ParseStage {
 	private CalculateStage					calculateStage;
 
 	private ConcurrentLinkedQueue<ReadResult>	readResultQueue	= new ConcurrentLinkedQueue<>();
+
+	private static final Logger				logger			= LoggerFactory
+			.getLogger(ParseStage.class);
 
 	public ParseStage(CalculateStage calculateStage) {
 		this.calculateStage = calculateStage;
@@ -46,17 +52,26 @@ public class ParseStage {
 			@Override
 			public void run() {
 				try {
+					long startTime = System.currentTimeMillis();
 					for (int i = 0; i < parsers.length; i++) {
 						threads[i].join();
 					}
-					for (int i = 0; i < CalculateStage.REPLAYER_COUNT; i++) {
-						calculateStage.submit(i, new ParseResult( -1));
+					for (int i = 0; i < CalculateStage.CALCULATOR_COUNT; i++) {
+						calculateStage.submit(i, new ParseResult(-1));
 					}
+					logger.info("所有Parse thread完成耗时 : {}",
+							System.currentTimeMillis() - startTime);
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
 			}
 		}).start();
+	}
+
+	public void notifyStop() {
+		for (int i = 0; i < parsers.length; i++) {
+			parsers[i].stop();
+		}
 	}
 
 }

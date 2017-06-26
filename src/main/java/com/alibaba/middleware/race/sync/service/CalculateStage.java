@@ -1,7 +1,5 @@
 package com.alibaba.middleware.race.sync.service;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import com.alibaba.middleware.race.sync.common.RangeSearcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,24 +7,23 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.model.result.ParseResult;
-import com.alibaba.middleware.race.sync.model.result.CalculateResult;
 
 /**
  * Created by xiefan on 6/24/17.
  */
 public class CalculateStage implements Constants {
 
-	private static Logger	logger		= LoggerFactory.getLogger(CalculateStage.class);
+	private static Logger	logger			= LoggerFactory.getLogger(CalculateStage.class);
 
-	private Calculator[]	calculators	= new Calculator[REPLAYER_COUNT];
+	private Calculator[]	calculators		= new Calculator[CALCULATOR_COUNT];
 
-	private Thread[]		threads		= new Thread[REPLAYER_COUNT];
+	private Thread[]		threads			= new Thread[CALCULATOR_COUNT];
 
-	private Context		context		= Context.getInstance();
+	private Context		context			= Context.getInstance();
 
-	public static final int	REPLAYER_COUNT	= 8;
+	public static final int	CALCULATOR_COUNT	= Constants.DEBUG ? 4 : 8;
 
-	private byte[]			oneCol		= new byte[8];
+	private byte[]			oneCol			= new byte[8];
 
 	private RangeSearcher	searcher;
 
@@ -43,7 +40,7 @@ public class CalculateStage implements Constants {
 
 	public void start() {
 		long start = System.currentTimeMillis();
-		for (int i = 0; i < REPLAYER_COUNT; i++) {
+		for (int i = 0; i < CALCULATOR_COUNT; i++) {
 			calculators[i] = new Calculator(i, mergeStage);
 			threads[i] = new Thread(calculators[i]);
 			threads[i].start();
@@ -52,7 +49,7 @@ public class CalculateStage implements Constants {
 	}
 
 	public void waitForOk() throws InterruptedException {
-		for (int i = 0; i < REPLAYER_COUNT; i++) {
+		for (int i = 0; i < CALCULATOR_COUNT; i++) {
 			threads[i].join();
 		}
 	}

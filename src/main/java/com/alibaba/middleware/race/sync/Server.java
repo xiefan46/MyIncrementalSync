@@ -45,9 +45,11 @@ public class Server {
 		initProperties();
 		Server server = get();
 		try {
+			long startTime = System.currentTimeMillis();
 			server.start(args, 5527);
 			server.runMainThread(args);
 			server.sendResultToClient(Context.getInstance());
+			logger.info("Server花费的总时间 : {}",System.currentTimeMillis() - startTime);
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
 		}
