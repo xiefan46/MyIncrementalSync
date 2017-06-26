@@ -74,7 +74,8 @@ public class RecordLogCodec2 {
 			off += U_D_ID_SKIP;
 			end = findNextChar(data, off, '|');
 			r.setPk(parseLong(data, off, end));
-			return findNextChar(data, end + table.getDelSkip(), '\n');
+			off = end + table.getDelSkip();
+			return findNextChar(data, end, '\n');//FIXME 加上delSkip
 		}
 
 		if (Constants.INSERT == alterType) {
