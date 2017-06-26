@@ -27,7 +27,7 @@ public class RangeSearcher {
 		this.threadNum = threadNum;
 		this.count = total / threadNum; //多出来的部分直接补给最后一个区间
 		for (int i = 0; i < threadNum; i++) {
-			System.out.println("i : " + i + " start : " + (startId + i * count));
+			//System.out.println("i : " + i + " start : " + (startId + i * count));
 			map.put(startId + i * count, i);
 		}
 	}

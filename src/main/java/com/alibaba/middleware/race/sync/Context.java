@@ -34,9 +34,11 @@ public class Context {
 
 	private int				endPk;
 
-	private BufferPool			blockBufferPool	= new BufferPool(256, 1024 * 1024);
+	private BufferPool			blockBufferPool	= new BufferPool(512, 1024 * 1024,
+			"block pool");
 
-	private BufferPool			recordLogBufferPool	= new BufferPool(512, 512 * 1024);
+	private BufferPool			recordLogBufferPool	= new BufferPool(512, 512 * 1024,
+			"record pool");
 
 	private MuiltFileInputStream	muiltFileInputStream;
 
@@ -44,7 +46,7 @@ public class Context {
 
 	private ByteArrayBuffer		resultBuffer;
 
-	private static final Logger logger = LoggerFactory.getLogger(Context.class);
+	private static final Logger	logger			= LoggerFactory.getLogger(Context.class);
 
 	private Context() {
 	}
@@ -55,10 +57,11 @@ public class Context {
 		this.schema = schema;
 		this.table = table;
 		this.muiltFileInputStream = initMultiFileStream();
-		this.rangeSearcher = new RangeSearcher(startPk + 1, endPk, CalculateStage.CALCULATOR_COUNT);
-		if(Constants.DEBUG){
+		this.rangeSearcher = new RangeSearcher(startPk + 1, endPk,
+				CalculateStage.CALCULATOR_COUNT);
+		if (Constants.DEBUG) {
 			logger.info("使用OFFLINE模式,线上记得切换");
-		}else{
+		} else {
 			logger.info("使用ONLINE模式,线上记得切换");
 		}
 	}
@@ -129,8 +132,8 @@ public class Context {
 		this.resultBuffer = resultBuffer;
 	}
 
-	public boolean inRange(int pk){
-		if(pk > startPk && pk < endPk)
+	public boolean inRange(int pk) {
+		if (pk > startPk && pk < endPk)
 			return true;
 		return false;
 	}

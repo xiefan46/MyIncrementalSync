@@ -13,12 +13,19 @@ public class BufferPool {
 
 	private ConcurrentLinkedQueue<ByteBuffer>	pool		= new ConcurrentLinkedQueue<>();
 
+	private String							name		= "";
+
 	public BufferPool(int poolSize, int bufferSize) {
 		for (int i = 0; i < poolSize; ++i) {
 			pool.offer(ByteBuffer.allocate(bufferSize));
 		}
 		//logger.info("Buffer pool init");
 		//        stat.info("buffer pool cost {} MB", (poolSize * (long)bufferSize) >> 20);
+	}
+
+	public BufferPool(int poolSize, int bufferSize, String name) {
+		this(poolSize, bufferSize);
+		this.name = name;
 	}
 
 	public ByteBuffer getBuffer() {
@@ -34,7 +41,7 @@ public class BufferPool {
 				Thread.currentThread().sleep(10);
 				byteBuffer = pool.poll();
 				if (count-- > 0)
-					logger.info("buffer pool wait");
+					logger.info("buffer pool wait. pool name : {}", this.name);
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}
