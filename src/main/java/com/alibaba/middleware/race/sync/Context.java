@@ -10,6 +10,7 @@ import com.alibaba.middleware.race.sync.common.BufferPool;
 import com.alibaba.middleware.race.sync.common.RangeSearcher;
 import com.alibaba.middleware.race.sync.model.Table;
 import com.alibaba.middleware.race.sync.service.CalculateStage;
+import com.alibaba.middleware.race.sync.service.ParseStage;
 import com.alibaba.middleware.race.sync.util.ByteArrayBuffer;
 
 /**
@@ -33,9 +34,9 @@ public class Context {
 
 	private int				endPk;
 
-	private BufferPool			blockBufferPool	= new BufferPool(128, 1024 * 1024);
+	private BufferPool			blockBufferPool	= new BufferPool(256, 1024 * 1024);
 
-	private BufferPool			recordLogBufferPool	= new BufferPool(1024, 256 * 1024);
+	private BufferPool			recordLogBufferPool	= new BufferPool(512, 512 * 1024);
 
 	private MuiltFileInputStream	muiltFileInputStream;
 

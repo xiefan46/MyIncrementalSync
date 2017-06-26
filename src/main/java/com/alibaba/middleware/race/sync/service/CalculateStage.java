@@ -24,7 +24,7 @@ public class CalculateStage implements Constants {
 
 	private Context		context		= Context.getInstance();
 
-	public static final int	REPLAYER_COUNT	= 10;
+	public static final int	REPLAYER_COUNT	= 8;
 
 	private byte[]			oneCol		= new byte[8];
 

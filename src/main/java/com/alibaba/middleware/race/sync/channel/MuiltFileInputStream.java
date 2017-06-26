@@ -31,7 +31,7 @@ public class MuiltFileInputStream extends InputStream {
 		for(;read < limit;){
 			int len = read(b, read, limit - read);
 			if (len == -1) {
-				return len;
+				return read;
 			}
 			read += len;
 			buf.position(read);

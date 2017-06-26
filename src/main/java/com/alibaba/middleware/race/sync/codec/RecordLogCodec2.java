@@ -1,7 +1,6 @@
 package com.alibaba.middleware.race.sync.codec;
 
 import com.alibaba.middleware.race.sync.Constants;
-import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
 
@@ -10,21 +9,17 @@ import com.alibaba.middleware.race.sync.model.Table;
  */
 public class RecordLogCodec2 {
 
-	private final int		U_D_SKIP		= "1:1|X".length();
+	private final int				U_D_SKIP		= "1:1|X".length();
 
-	private final int		I_ID_SKIP		= "I|id:1:1|NULL|".length();
+	private final int				I_ID_SKIP		= "I|id:1:1|NULL|".length();
 
-	private final int		HEAD_SKIP		= "|mysql-bin.".length() + 5;
+	private final int				HEAD_SKIP		= "|mysql-bin.".length() + 5;
 
-	private final int		TIME_SKIP		= "1496720884000".length() + 1;
+	private final int				TIME_SKIP		= "1496720884000".length() + 1;
 
-	private final int		U_D_ID_SKIP	= "U|id:1:1|".length();
+	private final int				U_D_ID_SKIP	= "U|id:1:1|".length();
 
-	private final ByteArray2	byteArray2	= new ByteArray2(null, 0, 0);
-
-	private int			startPk		= (int) Context.getInstance().getStartPk();
-
-	private int			endPk		= (int) Context.getInstance().getEndPk();
+	private final ByteArray2 byteArray2	= new ByteArray2(null, 0, 0);
 
 	private boolean compare(byte[] data, int offset, byte[] tableSchema) {
 		for (int i = 0; i < tableSchema.length; i++) {
@@ -48,26 +43,16 @@ public class RecordLogCodec2 {
 		if (Constants.UPDATE == alterType) {
 			off += U_D_ID_SKIP;
 			end = findNextChar(data, off, '|');
-			int beforePk = parseLong(data, off, end);
-			r.setBeforePk(beforePk);
+			r.setBeforePk(parseLong(data, off, end));
 			off = end + 1;
 			end = findNextChar(data, off, '|');
-			int pk = parseLong(data, off, end);
-			r.setPk(pk);
+			r.setPk(parseLong(data, off, end));
 			off = end + 1;
 			if (r.isPkUpdate4Codec()) {
 				r.setAlterType(Constants.PK_UPDATE);
-				if(!inRange(beforePk)){
-					end = findNextChar(data,off,'\n');
-					return end;
-				}
 			}
 			if (data[off] == '\n') {
 				return off;
-			}
-			if(r.getAlterType() == Constants.UPDATE && !inRange(pk)){
-				end = findNextChar(data,off,'\n');
-				return end;
 			}
 			for (;;) {
 				byte c = r.getColumn();
@@ -77,7 +62,7 @@ public class RecordLogCodec2 {
 				end = findNextChar(data, off, '|');
 				off = end + 1;
 				end = findNextChar(data, off, '|');
-				r.setColumn(c, name, data, off, end - off);
+				r.setColumn(c,name, data, off, end - off);
 				off = end + 1;
 				if (data[off] == '\n') {
 					return off;
@@ -88,28 +73,22 @@ public class RecordLogCodec2 {
 		if (Constants.DELETE == alterType) {
 			off += U_D_ID_SKIP;
 			end = findNextChar(data, off, '|');
-			int pk = parseLong(data, off, end);
-			r.setPk(pk);
+			r.setPk(parseLong(data, off, end));
 			off = end + table.getDelSkip();
-			return findNextChar(data, end, '\n');
+			return findNextChar(data, off, '\n') - 1;
 		}
 
 		if (Constants.INSERT == alterType) {
 			off += I_ID_SKIP;
 			end = findNextChar(data, off, '|');
-			int pk = parseLong(data, off, end);
-			r.setPk(pk);
-			if(!inRange(pk)){
-				end = findNextChar(data,off,'\n');
-				return end;
-			}
+			r.setPk(parseLong(data, off, end));
 			int[] colsSkip = table.getColumnNameSkip();
 			off = end + 1;
 			for (;;) {
 				byte c = r.getColumn();
 				off += colsSkip[c];
 				end = findNextChar(data, off, '|');
-				r.setColumn(c, c, data, off, end - off);
+				r.setColumn(c,c, data, off, end - off);
 				off = end + 1;
 				if (data[off] == '\n') {
 					return off;
@@ -125,17 +104,17 @@ public class RecordLogCodec2 {
 	}
 
 	private int findNextChar(byte[] data, int offset, char c) {
-		for (;;) {
-			if (data[++offset] == c) {
-				return offset;
+		int startOff = offset;
+		try {
+			for (; ; ) {
+				if (data[++offset] == c) {
+					return offset;
+				}
 			}
+		}catch (Exception e){
+			int a = 1;
+			throw new RuntimeException(e);
 		}
-	}
-
-	public boolean inRange(int pk) {
-		if (pk > startPk && pk < endPk)
-			return true;
-		return false;
 	}
 
 	private int parseLong(byte[] data, int offset, int end) {

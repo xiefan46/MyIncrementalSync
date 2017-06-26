@@ -3,6 +3,7 @@ package com.alibaba.middleware.race.sync.service;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
@@ -13,6 +14,8 @@ import com.alibaba.middleware.race.sync.model.result.ReadResult;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.result.ParseResult;
 import com.alibaba.middleware.race.sync.model.Table;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by xiefan on 6/25/17.
@@ -39,6 +42,11 @@ public class ParseThread implements Runnable, Constants {
 	private CalculateStage					calculateStage;
 
 	private RecordLog						recordLog;
+
+	private static final Logger				logger			= LoggerFactory
+			.getLogger(ParseThread.class);
+
+	private AtomicInteger					count			= new AtomicInteger(0);
 
 	public ParseThread(CalculateStage calculateStage, ParseStage parseStage) {
 
@@ -85,7 +93,7 @@ public class ParseThread implements Runnable, Constants {
 	private void dealResult(ReadResult result) throws IOException {
 		ByteBuffer buffer = result.getBuffer();
 		int id = result.getId();
-		if (id == -1 || buffer == null || !buffer.hasRemaining()) {
+		if (id == -1 || buffer == null) {
 			return;
 		}
 		reset(result);
@@ -94,8 +102,18 @@ public class ParseThread implements Runnable, Constants {
 		while (buffer.hasRemaining()) {
 			recordLog.reset();
 			byteBufReader.read(table, buffer, tableSchema, recordLog);
+
+			/*
+			 * logger.info("get record. Alter type : {}. Pk : {} OldPk : {}",
+			 * (char) recordLog.getAlterType(), recordLog.getPk(),
+			 * recordLog.getBeforePk());
+			 */
+
 			dealRecordLog(recordLog);
 		}
+
+		Context.getInstance().getBlockBufferPool().freeBuffer(buffer);
+
 		//发送解析结果
 		finish();
 
@@ -109,14 +127,16 @@ public class ParseThread implements Runnable, Constants {
 			if (!inRange(recordLog.getPk()))
 				return;
 		}
-		ByteBuffer buffer = getBufferByPk(recordLog.getPk());
+		ByteBuffer buffer;
 		switch (recordLog.getAlterType()) {
 		case INSERT:
+			buffer = getBufferByPk(recordLog.getPk());
 			buffer.put(INSERT);
 			buffer.putInt(recordLog.getPk());
 			buffer.put(recordLog.getColumns());
 			break;
 		case UPDATE:
+			buffer = getBufferByPk(recordLog.getPk());
 			for (int i = 0; i < recordLog.getEdit(); i++) { //为了方便,所有字段的更新分开成不同record
 				buffer.put(UPDATE);
 				buffer.putInt(recordLog.getPk());
@@ -124,6 +144,7 @@ public class ParseThread implements Runnable, Constants {
 			}
 			break;
 		case DELETE:
+			buffer = getBufferByPk(recordLog.getPk());
 			buffer.put(DELETE);
 			buffer.putInt(recordLog.getPk());
 			break;
@@ -184,7 +205,7 @@ public class ParseThread implements Runnable, Constants {
 				return false;
 			}
 			int off = codec.decode(table, readBuffer, tableSchema, offset, r);
-			buf.position(off + 1);
+			buf.position(off);
 			return true;
 		}
 

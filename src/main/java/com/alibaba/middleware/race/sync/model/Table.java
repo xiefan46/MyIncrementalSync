@@ -50,7 +50,7 @@ public class Table {
 	}
 
 	public static Table newOffline() {
-		return newTable("middleware3|student",
+		return newTable("middleware5|student",
 				new String[] { "first_name", "last_name", "sex", "score" });
 	}
 

@@ -10,7 +10,7 @@ import com.alibaba.middleware.race.sync.model.result.ReadResult;
  */
 public class ParseStage {
 
-	public static final int					PARSER_NUM		= 8;
+	public static final int					PARSER_NUM		= 1;
 
 	private ParseThread[]					parsers			= new ParseThread[PARSER_NUM];
 
