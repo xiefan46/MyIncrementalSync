@@ -1,50 +1,55 @@
 package com.alibaba.middleware.race.sync;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-
-import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.middleware.race.sync.channel.RAFInputStream;
-import com.alibaba.middleware.race.sync.channel.ReadChannel;
-import com.alibaba.middleware.race.sync.channel.SimpleReadChannel;
+import com.alibaba.middleware.race.sync.service.CalculateStage;
+import com.alibaba.middleware.race.sync.service.MergeStage;
+import com.alibaba.middleware.race.sync.service.ParseStage;
+import com.alibaba.middleware.race.sync.service.ReadStage;
 
 /**
  * @author wangkai
  */
 public class MainThread {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private Logger		logger	= LoggerFactory.getLogger(getClass());
 
-	public void execute(Context context) {
+	private Context	context	= Context.getInstance();
+
+	public void start(String[] args) {
 		try {
 			logger.info("--------------Main thread start-----------");
-			execute1(context);
+			long start = System.currentTimeMillis();
+			context.initQuery(args[0], args[1], Integer.parseInt(args[2]),
+					Integer.parseInt(args[3]));
+			logger.info("init context cost time : {}", System.currentTimeMillis() - start);
+			start = System.currentTimeMillis();
+			execute();
+			logger.info("Run all thread cost time : {}", System.currentTimeMillis() - start);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
 	}
 
-	private void execute1(Context context) throws Exception {
-		
-		long startTime = System.currentTimeMillis();
+	private void execute() throws Exception {
+		MergeStage mergeStage = new MergeStage();
+		CalculateStage calculateStage = new CalculateStage(mergeStage);
+		ParseStage parseStage = new ParseStage(calculateStage);
+		ReadStage readStage = new ReadStage(parseStage);
 
-		//ReadChannel channel = initChannels2();
-
-
-		logger.info("等待所有线程完成总耗时 : {}", System.currentTimeMillis() - startTime);
-		JvmUsingState.print();
-	}
-
-
-	private ReadChannel initChannels3() throws IOException {
-		File root = new File(Constants.TESTER_HOME + "/canal.txt");
-		RandomAccessFile raf = new RandomAccessFile(root, "r");
-		RAFInputStream inputStream = new RAFInputStream(raf);
-		return new SimpleReadChannel(inputStream, 1024 * 256);
+		long start = System.currentTimeMillis();
+		calculateStage.start();
+		parseStage.start();
+		readStage.start();
+		logger.info("start all the stage cost time : {}", System.currentTimeMillis() - start);
+		start = System.currentTimeMillis();
+		calculateStage.waitForOk();
+		logger.info("wait for calculate stage ok cost time : {}",
+				System.currentTimeMillis() - start);
+		start = System.currentTimeMillis();
+		mergeStage.start();
+		logger.info("merge result cost time : {}", System.currentTimeMillis() - start);
 	}
 
 }

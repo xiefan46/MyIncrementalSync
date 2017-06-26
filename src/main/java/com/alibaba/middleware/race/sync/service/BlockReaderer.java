@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.alibaba.middleware.race.sync.common.BufferPool;
-import com.alibaba.middleware.race.sync.model.Block;
+import com.alibaba.middleware.race.sync.model.result.ReadResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,33 +14,30 @@ import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
 /**
  * @author wangkai
  */
-public class ReaderThread extends Thread {
+public class BlockReaderer extends Thread {
 
-	private Logger						logger	= LoggerFactory.getLogger(getClass());
+	private Logger		logger	= LoggerFactory.getLogger(getClass());
 
-	private Context					context;
+	private Context	context	= Context.getInstance();
 
-	private ConcurrentLinkedQueue<Block>	blocksQueue;
+	private ParseStage	parseStage;
 
-	public ReaderThread(Context context, ConcurrentLinkedQueue<Block> blocksQueue) {
-		this.context = context;
-		this.blocksQueue = blocksQueue;
+	public BlockReaderer(ParseStage parseStage) {
+		this.parseStage = parseStage;
 	}
 
 	@Override
 	public void run() {
 		try {
 			long startTime = System.currentTimeMillis();
-			execute(context, blocksQueue);
-			logger.info("线程 {} 执行耗时: {}", Thread.currentThread().getId(),
-					System.currentTimeMillis() - startTime);
+			execute();
+			logger.info("读取完成. 耗时 : {}", System.currentTimeMillis() - startTime);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
 	}
 
-	public void execute(Context context, ConcurrentLinkedQueue<Block> blocksQueue)
-			throws Exception {
+	public void execute() throws Exception {
 		BufferPool bufferPool = context.getBlockBufferPool();
 		MuiltFileInputStream muiltFileInputStream = context.getMuiltFileInputStream();
 		int blockId = 0;
@@ -53,11 +50,11 @@ public class ReaderThread extends Thread {
 			buf.clear();
 			int len = muiltFileInputStream.readFull(buf, buf.capacity() - 1024);
 			if (len == -1) {
-				blocksQueue.add(Block.END_TASK);
+				parseStage.submit(ReadResult.END_TASK);
 				break;
 			} else {
 				buf.flip();
-				blocksQueue.add(new Block(buf, blockId++));
+				parseStage.submit(new ReadResult(buf, blockId++));
 				if (blockId % 2000 == 0) {
 					logger.info("block id : {}", blockId);
 				}

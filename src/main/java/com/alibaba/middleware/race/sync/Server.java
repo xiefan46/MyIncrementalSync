@@ -1,69 +1,56 @@
 package com.alibaba.middleware.race.sync;
 
-import java.io.IOException;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Map;
 
-import com.alibaba.middleware.race.sync.service.ParseStage;
-import com.alibaba.middleware.race.sync.service.ReaderThread;
+import com.alibaba.middleware.race.sync.util.ByteArrayBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.middleware.race.sync.model.Block;
-import com.alibaba.middleware.race.sync.model.SendTask;
-import com.alibaba.middleware.race.sync.service.DataReplayService;
-import com.alibaba.middleware.race.sync.service.DataSendService;
+import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
+import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
+import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
+import com.generallycloud.baseio.acceptor.SocketChannelAcceptor;
+import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
+import com.generallycloud.baseio.common.MathUtil;
+import com.generallycloud.baseio.component.IoEventHandleAdaptor;
+import com.generallycloud.baseio.component.LoggerSocketSEListener;
+import com.generallycloud.baseio.component.NioSocketChannelContext;
+import com.generallycloud.baseio.component.SocketChannelContext;
+import com.generallycloud.baseio.component.SocketSession;
+import com.generallycloud.baseio.configuration.ServerConfiguration;
+import com.generallycloud.baseio.protocol.ReadFuture;
 
+/**
+ * 服务器类，负责push消息到client Created by wanshao on 2017/5/25.
+ */
 public class Server {
 
-	// 保存channel
-	// 接收评测程序的三个参数
+	private static Server server = new Server();
 
-	private String			schema;
-	private String			table;
-	private int			startPkId;
-	private int			endPkId;
-
-	private static Logger	logger	= LoggerFactory.getLogger(Server.class);
-
-	private static Context	context	= Context.getInstance();
-
-	private void getArgs(String[] args) {
-		schema = args[0];
-		table = args[1];
-		startPkId = Integer.valueOf(args[2]);
-		endPkId = Integer.valueOf(args[3]);
+	public static Server get() {
+		return server;
 	}
 
-	public Server(String[] args) {
-		getArgs(args);
-	}
+	private SocketChannelContext	socketChannelContext;
 
-	public static void main(String[] args) throws InterruptedException, IOException {
-		logger.info("start " + System.currentTimeMillis());
+	private static Logger		logger		= LoggerFactory.getLogger(Server.class);
+
+	public static void main(String[] args) throws Exception {
+		if (args == null || args.length == 0) {
+			args = new String[] { "middleware3", "student", "100000", "2000000" };
+		}
+
+		logger.info("----------------server start-----------------");
+		JvmUsingState.print();
 		initProperties();
-		printInput(args);
-		initContext(args);
-
-		Server server = new Server(args);
-		server.startServer(5527);
-	}
-
-	private static void initContext(String[] args) throws IOException {
-		context.initQuery(args[0], args[1], Long.valueOf(args[2]), Long.valueOf(args[3]));
-	}
-
-	/**
-	 * 打印赛题输入 赛题输入格式： schemaName tableName startPkId endPkId，例如输入： middleware
-	 * student 100 200
-	 * 上面表示，查询的schema为middleware，查询的表为student,主键的查询范围是(100,200)，注意是开区间
-	 * 对应DB的SQL为： select * from middleware.student where id>100 and id<200
-	 */
-	private static void printInput(String[] args) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Schema: ").append(args[0]).append("\n").append("Table: ").append(args[1])
-				.append("\n").append("start: ").append(args[2]).append("\n").append("end: ")
-				.append(args[3]);
-		logger.info("\n{}", sb.toString());
+		Server server = get();
+		try {
+			server.start(args, 5527);
+			server.runMainThread(args);
+			server.sendResultToClient(Context.getInstance());
+		} catch (Throwable e) {
+			logger.error(e.getMessage(), e);
+		}
 	}
 
 	/**
@@ -75,36 +62,95 @@ public class Server {
 		System.setProperty("app.logging.level", Constants.LOG_LEVEL);
 	}
 
-	private void startServer(int port) throws InterruptedException, IOException {
+	/**
+	 * 打印赛题输入 赛题输入格式： schemaName tableName startPkId endPkId，例如输入： middleware
+	 * student 100 200
+	 * 上面表示，查询的schema为middleware，查询的表为student,主键的查询范围是(100,200)，注意是开区间
+	 * 对应DB的SQL为： select * from middleware.student where id>100 and id<200
+	 */
+	private void start(String[] args, int port) throws Exception {
+		// 第一个参数是Schema Name
+		logger.info("tableSchema:" + args[0]);
+		// 第二个参数是Schema Name
+		logger.info("table:" + args[1]);
+		// 第三个参数是start pk Id
+		logger.info("start:" + args[2]);
+		// 第四个参数是end pk Id
+		logger.info("end:" + args[3]);
 
-		ConcurrentLinkedQueue<SendTask> sendTaskQueue = new ConcurrentLinkedQueue<>();
-		DataSendService sendService = new DataSendService(sendTaskQueue);
-		sendService.start();
+		IoEventHandleAdaptor eventHandleAdaptor = new IoEventHandleAdaptor() {
 
-		ConcurrentLinkedQueue<Block> parseTaskQueue = new ConcurrentLinkedQueue<>();
-		ReaderThread reader = new ReaderThread(Context.getInstance(), parseTaskQueue);
-		Thread readThread = new Thread(reader);
-		readThread.start();
+			@Override
+			public void accept(SocketSession session, ReadFuture future) throws Exception {
+				logger.info(future.getReadText());
+			}
+		};
 
-		DataReplayService inRangeReplayService = new DataReplayService(sendTaskQueue, true,
-				Config.INRANGE_REPLAYER_COUNT);
-		DataReplayService outRangeReplayService = new DataReplayService(sendTaskQueue, false,
-				Config.OUTRANGE_REPLAYER_COUNT);
+		ServerConfiguration configuration = new ServerConfiguration(port);
 
-		ParseStage parseStage = new ParseStage(inRangeReplayService,outRangeReplayService,parseTaskQueue);
+		configuration.setSERVER_CORE_SIZE(1);
+		configuration.setSERVER_ENABLE_MEMORY_POOL(false);
 
-		parseStage.start();
-		
-		inRangeReplayService.start();
-		outRangeReplayService.start();
-		
+		SocketChannelContext context = new NioSocketChannelContext(configuration);
 
-		readThread.join();
-		parseStage.stop();
+		SocketChannelAcceptor acceptor = new SocketChannelAcceptor(context);
+
+		context.addSessionEventListener(new LoggerSocketSEListener());
+
+		context.setIoEventHandleAdaptor(eventHandleAdaptor);
+
+		context.setProtocolFactory(new FixedLengthProtocolFactory());
+
+		acceptor.bind();
+
+		logger.info("com.alibaba.middleware.race.sync.Server is running....");
+
+		this.socketChannelContext = context;
+
 	}
 
-	private void startParsers() {
+	private void runMainThread(String[] args) {
+		MainThread mainThread = new MainThread();
 
+		mainThread.start(args);
+
+
+	}
+
+	public SocketChannelContext getSocketChannelContext() {
+		return socketChannelContext;
+	}
+
+	private void sendResultToClient(Context context) throws Exception {
+		writeToClient(context.getResultBuffer());
+	}
+
+	private void writeToClient(ByteArrayBuffer buffer) {
+		writeToClient(buffer.array(), buffer.size());
+	}
+
+	private void writeToClient(byte[] array, int len) {
+
+		SocketChannelContext channelContext = Server.get().getSocketChannelContext();
+
+		Map<Integer, SocketSession> sessions = channelContext.getSessionManager()
+				.getManagedSessions();
+
+		if (sessions.size() == 0) {
+			throw new RuntimeException("null client");
+		}
+
+		SocketSession session = sessions.values().iterator().next();
+
+		FixedLengthReadFuture future = new FixedLengthReadFutureImpl(channelContext);
+
+		MathUtil.int2Byte(array, len - 4, 0);
+
+		future.setBuf(UnpooledByteBufAllocator.getHeapInstance().wrap(array, 0, len));
+
+		logger.info("开始向客户端传送文件，当前时间：{}", System.currentTimeMillis());
+
+		session.flush(future);
 	}
 
 }

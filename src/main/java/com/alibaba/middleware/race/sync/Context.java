@@ -7,9 +7,10 @@ import java.net.Socket;
 import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
 import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
 import com.alibaba.middleware.race.sync.common.BufferPool;
-import com.alibaba.middleware.race.sync.common.HashPartitioner;
-import com.alibaba.middleware.race.sync.common.RangePartitioner;
+import com.alibaba.middleware.race.sync.common.RangeSearcher;
 import com.alibaba.middleware.race.sync.model.Table;
+import com.alibaba.middleware.race.sync.service.CalculateStage;
+import com.alibaba.middleware.race.sync.util.ByteArrayBuffer;
 
 /**
  * Created by xiefan on 6/24/17.
@@ -28,35 +29,30 @@ public class Context {
 
 	private String				table;
 
-	private long				startPk;
+	private int				startPk;
 
-	private long				endPk;
+	private int				endPk;
 
-	private RangePartitioner		rangePartitioner;
-
-	private HashPartitioner		hashPartitioner	= new HashPartitioner(
-			Config.OUTRANGE_REPLAYER_COUNT);
-
-	// 内存池
 	private BufferPool			blockBufferPool	= new BufferPool(128, 1024 * 1024);
 
 	private BufferPool			recordLogBufferPool	= new BufferPool(1024, 256 * 1024);
 
-	private volatile Socket		client;
-
 	private MuiltFileInputStream	muiltFileInputStream;
+
+	private RangeSearcher		rangeSearcher;
+
+	private ByteArrayBuffer		resultBuffer;
 
 	private Context() {
 	}
 
-	public void initQuery(String schema, String table, long startPk, long endPk)
-			throws IOException {
+	public void initQuery(String schema, String table, int startPk, int endPk) throws IOException {
 		this.startPk = startPk;
 		this.endPk = endPk;
 		this.schema = schema;
 		this.table = table;
-		rangePartitioner = new RangePartitioner(startPk, endPk, Config.INRANGE_REPLAYER_COUNT);
 		this.muiltFileInputStream = initMultiFileStream();
+		this.rangeSearcher = new RangeSearcher(startPk + 1, endPk, CalculateStage.REPLAYER_COUNT);
 	}
 
 	public String getSchema() {
@@ -67,11 +63,11 @@ public class Context {
 		return table;
 	}
 
-	public long getStartPk() {
+	public int getStartPk() {
 		return startPk;
 	}
 
-	public long getEndPk() {
+	public int getEndPk() {
 		return endPk;
 	}
 
@@ -81,22 +77,6 @@ public class Context {
 
 	public BufferPool getBlockBufferPool() {
 		return blockBufferPool;
-	}
-
-	public Socket getClient() {
-		return client;
-	}
-
-	public void setClient(Socket client) {
-		this.client = client;
-	}
-
-	public RangePartitioner getRangePartitioner() {
-		return rangePartitioner;
-	}
-
-	public HashPartitioner getHashPartitioner() {
-		return hashPartitioner;
 	}
 
 	private MuiltFileInputStream initMultiFileStream() throws IOException {
@@ -127,5 +107,17 @@ public class Context {
 
 	public void setRecordLogPool(BufferPool recordLogPool) {
 		this.recordLogBufferPool = recordLogPool;
+	}
+
+	public RangeSearcher getRangeSearcher() {
+		return rangeSearcher;
+	}
+
+	public ByteArrayBuffer getResultBuffer() {
+		return resultBuffer;
+	}
+
+	public void setResultBuffer(ByteArrayBuffer resultBuffer) {
+		this.resultBuffer = resultBuffer;
 	}
 }
