@@ -106,6 +106,7 @@ public class MainThread {
 
 		}
 		logger.info("读取,解析,分发完成:{}，合并完成:{}", time1, time2);
+		PkCount.get().printResult();
 		for (ParseThread t : parseThreads) {
 			t.shutdown();
 		}
