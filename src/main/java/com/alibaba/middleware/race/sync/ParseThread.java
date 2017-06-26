@@ -11,23 +11,25 @@ import com.generallycloud.baseio.buffer.ByteBuf;
 
 public class ParseThread extends WorkThread {
 
-	private Node<RecordLog>	rootRecord1;
-	
-	private Node<RecordLog>	rootRecord2;
-	
-	private boolean		use1;
-	
-	private Node<RecordLog>	result;
-	
-	private boolean 		done;
-	
-	private BlockingQueue<ByteBuf> bufs = new ArrayBlockingQueue<>(2);
+	private Node<RecordLog>			rootRecord1;
 
-	private int			limit;
-	
-	private Context		context;
+	private Node<RecordLog>			rootRecord2;
 
-	private ByteBufReader	byteBufReader	= new ByteBufReader();
+	private boolean				use1;
+
+	private Node<RecordLog>			result;
+
+	private volatile boolean		done;
+
+	private boolean				workDone;
+
+	private BlockingQueue<ByteBuf>	bufs			= new ArrayBlockingQueue<>(2);
+
+	private int					limit;
+
+	private Context				context;
+
+	private ByteBufReader			byteBufReader	= new ByteBufReader();
 
 	public ParseThread(Context context, int index) {
 		super("parse-", index);
@@ -49,7 +51,10 @@ public class ParseThread extends WorkThread {
 		int cols = table.getColumnSize();
 		ByteBufReader reader = this.byteBufReader;
 		if (!buf.hasRemaining()) {
+			this.limit = 0;
 			this.done = true;
+			this.workDone = true;
+			this.context.getMainThread().setWorkDone();
 			return;
 		}
 		Node<RecordLog> result;
@@ -62,7 +67,7 @@ public class ParseThread extends WorkThread {
 			}
 			result = rootRecord1;
 			cr = rootRecord1;
-		}else{
+		} else {
 			use1 = true;
 			if (rootRecord2 == null) {
 				rootRecord2 = new Node<>();
@@ -105,21 +110,20 @@ public class ParseThread extends WorkThread {
 	public Node<RecordLog> getResult() {
 		return result;
 	}
-	
-	public void offerBuf(ByteBuf buf){
+
+	public void offerBuf(ByteBuf buf) {
 		bufs.offer(buf);
 	}
-	
+
 	public boolean isDone() {
-		return done;
+		return done || workDone;
 	}
-	
+
 	@Override
 	public void startWork() {
 		done = false;
 		limit = 0;
 		super.startWork();
 	}
-	
 
 }

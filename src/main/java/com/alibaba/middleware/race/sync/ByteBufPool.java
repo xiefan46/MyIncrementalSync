@@ -31,7 +31,7 @@ public class ByteBufPool {
 	private ArrayBlockingQueue<ByteBuf> bufs;
 
 	public ByteBufPool(int capacity,int unit) {
-		this.bufs = new ArrayBlockingQueue<>(capacity);
+		this.bufs = new ArrayBlockingQueue<>(capacity * 4);
 		ByteBufAllocator allocator = UnpooledByteBufAllocator.getHeapInstance();
 		for (int i = 0; i < capacity; i++) {
 			bufs.offer(allocator.allocate(unit));
