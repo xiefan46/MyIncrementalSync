@@ -45,8 +45,8 @@ public class RecalculateThread extends WorkThread implements Constants{
 			received(table, records, cnr.getValue());
 			cnr = cnr.getNext();
 		}
-		mainThread.recalDone(getIndex());
 		setWork(false);
+		mainThread.recalDone(getIndex());
 	}
 
 	public IntObjectHashMap<byte []> getRecords() {
