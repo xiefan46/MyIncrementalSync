@@ -29,12 +29,13 @@ public class MuiltFileInputStream extends InputStream {
 		int read = 0;
 		for(;read < limit;){
 			int len = read(b, read, limit - read);
-			if (read == -1) {
+			if (len == -1) {
+				buf.position(read);
 				return read;
 			}
 			read += len;
-			buf.position(read);
 		}
+		buf.position(read);
 		for(;;){
 			int r = read();
 			if (r == -1) {

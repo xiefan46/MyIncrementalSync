@@ -75,7 +75,7 @@ public class RecordLogCodec2 {
 			end = findNextChar(data, off, '|');
 			r.setPk(parseLong(data, off, end));
 			off = end + table.getDelSkip();
-			return findNextChar(data, end, '\n');//FIXME 加上delSkip
+			return findNextChar(data, off, '\n');
 		}
 
 		if (Constants.INSERT == alterType) {
