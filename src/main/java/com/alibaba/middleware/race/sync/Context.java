@@ -9,19 +9,19 @@ import com.alibaba.middleware.race.sync.model.Table;
  */
 public class Context {
 
-	private long				endId;
-	private long				startId;
+	private int				endId;
+	private int				startId;
 	private MuiltFileInputStream	readChannel;
 	private Table				table;
 	private MainThread			mainThread = new MainThread(this);
-	private int				recalThreadNum	= 8;
-	private int				parseThreadNum	= 7;
+	private int				recalThreadNum	= 4;
+	private int				parseThreadNum	= 2;
 	private Dispatcher			dispatcher;
 	private ByteBufPool			byteBufPool;
 
 	public Context(long endId, long startId) {
-		this.endId = endId;
-		this.startId = startId;
+		this.endId = (int) endId;
+		this.startId = (int) startId;
 	}
 
 	public void initialize() {
@@ -30,20 +30,12 @@ public class Context {
 		byteBufPool = new ByteBufPool(parseThreadNum * 2, (int) (1024 * 1024 * 4));
 	}
 
-	public long getEndId() {
+	public int getEndId() {
 		return endId;
 	}
 
-	public void setEndId(long endId) {
-		this.endId = endId;
-	}
-
-	public long getStartId() {
+	public int getStartId() {
 		return startId;
-	}
-
-	public void setStartId(long startId) {
-		this.startId = startId;
 	}
 
 	public Table getTable() {

@@ -2,7 +2,6 @@ package com.alibaba.middleware.race.sync;
 
 import com.alibaba.middleware.race.sync.model.Node;
 import com.alibaba.middleware.race.sync.model.RecordLog;
-import com.alibaba.middleware.race.sync.util.collection.MyIntByteHashMap;
 import com.carrotsearch.hppc.IntObjectHashMap;
 
 /**
@@ -15,8 +14,6 @@ public class Dispatcher {
 	private IntObjectHashMap<byte []>[]	recordMaps;
 
 	private RecalculateThread[]		threads;
-	
-	private MyIntByteHashMap			redirectMap	= new MyIntByteHashMap(1024 * 1024 * 4);
 	
 	private Task[]		rootTasks;
 	
@@ -61,11 +58,7 @@ public class Dispatcher {
 	}
 
 	public byte [] getRecord(int id) {
-		byte b = redirectMap.getOrDefault(id,(byte)(-1));
-		if (b == -1) {
-			return recordMaps[hashFun(id)].get(id);
-		}
-		return recordMaps[b].get(id);
+		return recordMaps[hashFun(id)].get(id);
 	}
 
 	public byte hashFun(int id) {
@@ -87,40 +80,12 @@ public class Dispatcher {
 	public void dispatch(Node<RecordLog> pnr,int limit){
 		Node<RecordLog>[] currentRecordLogs = this.currentNodes;
 		int cols = context.getTable().getColumnSize();
-		byte B = -1;
-		MyIntByteHashMap redirectMap = this.redirectMap;
-		int startId = (int)context.getStartId();
-		int endId = (int)context.getEndId();
 		for (int i = 0; i < limit; i++) {
 			RecordLog r = pnr.getValue();
-			PkCount.get().count(r, startId, endId);
 			int id = r.getPk();
-			int oldId = r.getBeforePk();
-			if (r.isPkUpdate()) {
-				byte oldDirect = redirectMap.remove(oldId, B);
-				if (oldDirect == B) {
-					oldDirect = hashFun(oldId);
-					if (oldDirect != hashFun(id)) {
-						redirectMap.put(id, oldDirect);
-					}
-				}else{
-					redirectMap.put(id, oldDirect);
-				}
-				currentRecordLogs[oldDirect] = getNext(currentRecordLogs[oldDirect], cols, oldDirect);
-				currentRecordLogs[oldDirect].setValue(r);
-			} else {
-				byte threadId;
-				if (r.getAlterType() == Constants.DELETE) {
-					threadId = redirectMap.remove(id, B);
-				}else{
-					threadId = redirectMap.getOrDefault(id,B);
-				}
-				if (threadId == B) {
-					threadId = hashFun(id);
-				}
-				currentRecordLogs[threadId] = getNext(currentRecordLogs[threadId], cols, threadId);
-				currentRecordLogs[threadId].setValue(r);
-			}
+			byte threadId = hashFun(id);
+			currentRecordLogs[threadId] = getNext(currentRecordLogs[threadId], cols, threadId);
+			currentRecordLogs[threadId].setValue(r);
 			pnr = pnr.getNext();
 		}
 		
@@ -135,10 +100,6 @@ public class Dispatcher {
 			return next;
 		}
 		return next;
-	}
-	
-	public MyIntByteHashMap getRedirectMap() {
-		return redirectMap;
 	}
 	
 	class Task{
