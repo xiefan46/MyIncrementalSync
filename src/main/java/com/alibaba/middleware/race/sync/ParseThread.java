@@ -71,15 +71,12 @@ public class ParseThread extends WorkThread {
 			result = rootRecord2;
 			cr = rootRecord2;
 		}
-		limit = 1;
 		RecordLog crv = cr.getValue();
-		crv.reset();
-		reader.read(table, buf, tableSchema, crv);
 		for (; buf.hasRemaining();) {
-			cr = getNext(cr, cols);
-			crv = cr.getValue();
 			crv.reset();
 			reader.read(table, buf, tableSchema, crv);
+			cr = getNext(cr, cols);
+			crv = cr.getValue();
 		}
 		context.getByteBufPool().free(buf);
 		this.result = result;
