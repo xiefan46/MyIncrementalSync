@@ -43,9 +43,8 @@ public class Table {
 			byte [] name = cols[i].getBytes();
 			t.columnNameSkip[i] = name.length + 10;
 			t.columnIndexs.put(new ByteArray(name), index++);
-			t.delSkip = t.delSkip + t.columnNameSkip[i] + 2;
+			t.delSkip = t.delSkip + t.columnNameSkip[i] + 1;
 		}
-		t.delSkip += 2;
 		return t;
 	}
 	
