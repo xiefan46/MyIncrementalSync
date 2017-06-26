@@ -38,6 +38,7 @@ public class MainThreadTest {
 		long endId = 2000000;
 //		startId = 170000;
 //		endId = 170100;
+		ThreadUtil.execute(new JvmUsingState());
 		Context context = new Context(endId, startId);
 		context.initialize();
 		context.getMainThread().execute();

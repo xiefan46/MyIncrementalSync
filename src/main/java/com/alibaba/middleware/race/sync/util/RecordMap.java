@@ -13,31 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.middleware.race.sync.model;
+package com.alibaba.middleware.race.sync.util;
 
 /**
  * @author wangkai
  *
  */
-public class Node<V> {
+public class RecordMap<V> {
+
+	private V[]	vs;
+
+	private int	capacity;
+
+	private int	off;
+
+	public RecordMap(int capacity, int off) {
+		this.off = off;
+		this.capacity = capacity;
+		this.vs = (V[]) new Object[capacity];
+	}
+
+	public V get(int index) {
+		return vs[index - off];
+	}
+
+	public void set(int index, V v) {
+		vs[index - off] = v;
+	}
 	
-	private V			value;
-	private Node<V>	next;
-
-	public V getValue() {
-		return value;
-	}
-
-	public void setValue(V value) {
-		this.value = value;
-	}
-
-	public Node<V> getNext() {
-		return next;
-	}
-
-	public void setNext(Node<V> next) {
-		this.next = next;
+	public V remove(int index){
+		int idx = index - off;
+		V old = vs[idx];
+		vs[idx] = null;
+		return old;
 	}
 
 }

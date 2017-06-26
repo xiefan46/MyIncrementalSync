@@ -7,22 +7,22 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.middleware.race.sync.model.Node;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
+import com.alibaba.middleware.race.sync.util.MyList;
 import com.generallycloud.baseio.buffer.ByteBuf;
 
 public class ParseThread extends WorkThread {
-	
-	private Logger					logger = LoggerFactory.getLogger(getClass());
 
-	private Node<RecordLog>			rootRecord1;
+	private Logger					logger		= LoggerFactory.getLogger(getClass());
 
-	private Node<RecordLog>			rootRecord2;
+	private MyList<RecordLog>		rootRecord1;
+
+	private MyList<RecordLog>		rootRecord2;
 
 	private boolean				use1;
 
-	private Node<RecordLog>			result;
+	private MyList<RecordLog>		result;
 
 	private volatile boolean		done;
 
@@ -36,10 +36,20 @@ public class ParseThread extends WorkThread {
 
 	private ByteBufReader			byteBufReader	= new ByteBufReader();
 
-	public ParseThread(Context context, int index) {
+	public ParseThread(Context context, int index, int recordSize) {
 		super("parse-", index);
 		this.context = context;
 		this.setWork(true);
+		this.initRecordList(recordSize, context.getTable().getColumnSize());
+	}
+
+	private void initRecordList(int recordSize, int cols) {
+		this.rootRecord1 = new MyList<>(recordSize);
+		this.rootRecord2 = new MyList<>(recordSize);
+		for (int i = 0; i < recordSize; i++) {
+			rootRecord1.add(RecordLog.newRecordLog(cols));
+			rootRecord2.add(RecordLog.newRecordLog(cols));
+		}
 	}
 
 	protected void work() throws Exception {
@@ -53,7 +63,6 @@ public class ParseThread extends WorkThread {
 		}
 		Table table = context.getTable();
 		byte[] tableSchema = table.getTableSchemaBytes();
-		int cols = table.getColumnSize();
 		ByteBufReader reader = this.byteBufReader;
 		if (!buf.hasRemaining()) {
 			this.limit = 0;
@@ -62,52 +71,32 @@ public class ParseThread extends WorkThread {
 			this.context.getMainThread().setWorkDone();
 			return;
 		}
-		Node<RecordLog> result;
-		Node<RecordLog> cr;
+		MyList<RecordLog> result;
+		MyList<RecordLog> cr;
 		if (use1) {
 			use1 = false;
-			if (rootRecord1 == null) {
-				rootRecord1 = new Node<>();
-				rootRecord1.setValue(RecordLog.newRecordLog(cols));
-			}
 			result = rootRecord1;
 			cr = rootRecord1;
 		} else {
 			use1 = true;
-			if (rootRecord2 == null) {
-				rootRecord2 = new Node<>();
-				rootRecord2.setValue(RecordLog.newRecordLog(cols));
-			}
 			result = rootRecord2;
 			cr = rootRecord2;
 		}
 		int startId = context.getStartId();
 		int endId = context.getEndId();
-		
-		RecordLog crv = cr.getValue();
+
+		cr.clear();
+		RecordLog crv = cr.get();
 		crv.reset();
 		for (; buf.hasRemaining();) {
-			if(reader.read(table, buf, tableSchema, crv,startId,endId)){
-				cr = getNext(cr, cols);
-				crv = cr.getValue();
+			if (reader.read(table, buf, tableSchema, crv, startId, endId)) {
+				crv = cr.get();
 				crv.reset();
 			}
 		}
 		context.getByteBufPool().free(buf);
 		this.result = result;
 		this.done = true;
-	}
-
-	private Node<RecordLog> getNext(Node<RecordLog> node, int cols) {
-		limit++;
-		Node<RecordLog> next = node.getNext();
-		if (next == null) {
-			next = new Node<>();
-			next.setValue(RecordLog.newRecordLog(cols));
-			node.setNext(next);
-			return next;
-		}
-		return next;
 	}
 
 	public int getLimit() {
@@ -117,7 +106,7 @@ public class ParseThread extends WorkThread {
 	/**
 	 * @return the rootRecord
 	 */
-	public Node<RecordLog> getResult() {
+	public MyList<RecordLog> getResult() {
 		return result;
 	}
 
@@ -135,7 +124,7 @@ public class ParseThread extends WorkThread {
 		limit = 0;
 		super.startWork();
 	}
-	
+
 	@Override
 	Logger getLogger() {
 		return logger;

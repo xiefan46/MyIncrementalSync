@@ -1,25 +1,23 @@
 package com.alibaba.middleware.race.sync;
 
-import com.alibaba.middleware.race.sync.model.Node;
 import com.alibaba.middleware.race.sync.model.RecordLog;
-import com.carrotsearch.hppc.IntObjectHashMap;
+import com.alibaba.middleware.race.sync.util.MyList;
+import com.alibaba.middleware.race.sync.util.RecordMap;
 
 /**
  * Created by xiefan on 6/16/17.
  */
 public class Dispatcher {
-	
-	private int					threadNum;
 
-	private IntObjectHashMap<byte []>[]	recordMaps;
+	private int					recalThreadNum;
+	
+	private RecordMap<byte []>		recordMap;
 
 	private RecalculateThread[]		threads;
-	
-	private Task[]		rootTasks;
-	
-	private Node<RecordLog>[]		currentNodes;
-	
-	private Context context;
+
+	private MyList<RecordLog>[]		recordLogLists;
+
+	private Context				context;
 
 	public Dispatcher(Context context) {
 		this.context = context;
@@ -27,20 +25,19 @@ public class Dispatcher {
 
 	@SuppressWarnings("unchecked")
 	public void start() throws InterruptedException {
-		threadNum = context.getRecalThreadNum();
-		rootTasks = new Task[threadNum];
-		currentNodes = new Node[threadNum];
-		recordMaps = new IntObjectHashMap[threadNum];
-		threads = new RecalculateThread[threadNum];
-		for (int i = 0; i < threadNum; i++) {
-			recordMaps[i] = new IntObjectHashMap<>((int)(1024 * 1024 * (32f / threadNum)));
-			rootTasks[i] = new Task();
-			rootTasks[i].rootNode = new Node<>();
+		int blockSize = context.getBlockSize();
+		int rCapacity = context.getEndId() - context.getStartId();
+		recalThreadNum = context.getRecalThreadNum();
+		recordLogLists = new MyList[recalThreadNum];
+		recordMap = new RecordMap<>(rCapacity, context.getStartId());
+		threads = new RecalculateThread[recalThreadNum];
+		for (int i = 0; i < recalThreadNum; i++) {
+			recordLogLists[i] = new MyList<>((int)(blockSize * context.getParseThreadNum() / 80 ));
 		}
-		for (int i = 0; i < threadNum; i++) {
-			threads[i] = new RecalculateThread(context, recordMaps[i],rootTasks[i],i);
+		for (int i = 0; i < recalThreadNum; i++) {
+			threads[i] = new RecalculateThread(context, recordMap, recordLogLists[i], i);
 		}
-		for (int i = 0; i < threadNum; i++) {
+		for (int i = 0; i < recalThreadNum; i++) {
 			threads[i].start();
 		}
 	}
@@ -50,60 +47,40 @@ public class Dispatcher {
 			t.shutdown();
 		}
 	}
-	
-	public void startWork(){
+
+	public void startWork() {
 		for (RecalculateThread t : threads) {
 			t.startWork();
 		}
 	}
 
-	public byte [] getRecord(int id) {
-		return recordMaps[hashFun(id)].get(id);
+	public byte[] getRecord(int id) {
+		return recordMap.get(id);
 	}
 
 	public byte hashFun(int id) {
-		return (byte) (id % threadNum);
+		return (byte) (id % recalThreadNum);
 	}
 
-	public IntObjectHashMap<byte[]>[] getRecordMaps() {
-		return recordMaps;
+	public RecordMap<byte []> getRecordMaps() {
+		return recordMap;
 	}
-	
-	public void beforeDispatch(){
-		Node<RecordLog>[] currentRecordLogs = this.currentNodes;
-		for (int i = 0; i < threadNum; i++) {
-			currentRecordLogs[i] = rootTasks[i].rootNode;
-			rootTasks[i].limit = 0;
+
+	public void beforeDispatch() {
+		for (int i = 0; i < recalThreadNum; i++) {
+			recordLogLists[i].clear();
 		}
 	}
-	
-	public void dispatch(Node<RecordLog> pnr,int limit){
-		Node<RecordLog>[] currentRecordLogs = this.currentNodes;
-		int cols = context.getTable().getColumnSize();
+
+	public void dispatch(MyList<RecordLog> list) {
+		MyList<RecordLog>[] currentRecordLogs = this.recordLogLists;
+		int limit = list.getPos() - 1;
 		for (int i = 0; i < limit; i++) {
-			RecordLog r = pnr.getValue();
+			RecordLog r = list.get(i);
 			int id = r.getPk();
 			byte threadId = hashFun(id);
-			currentRecordLogs[threadId] = getNext(currentRecordLogs[threadId], cols, threadId);
-			currentRecordLogs[threadId].setValue(r);
-			pnr = pnr.getNext();
+			currentRecordLogs[threadId].add(r);
 		}
-		
 	}
-	
-	private Node<RecordLog> getNext(Node<RecordLog> node,int cols,int limitIndex){
-		rootTasks[limitIndex].limit++; 
-		Node<RecordLog> next = node.getNext();
-		if (next == null) {
-			next = new Node<>();
-			node.setNext(next);
-			return next;
-		}
-		return next;
-	}
-	
-	class Task{
-		Node<RecordLog> rootNode;
-		int limit;
-	}
+
 }

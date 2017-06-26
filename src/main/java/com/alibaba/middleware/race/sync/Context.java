@@ -14,8 +14,9 @@ public class Context {
 	private MuiltFileInputStream	readChannel;
 	private Table				table;
 	private MainThread			mainThread = new MainThread(this);
-	private int				recalThreadNum	= 4;
+	private int				recalThreadNum	= 2;
 	private int				parseThreadNum	= 2;
+	private int				blockSize = (int) (1024 * 1024 * 4);
 	private Dispatcher			dispatcher;
 	private ByteBufPool			byteBufPool;
 
@@ -27,7 +28,7 @@ public class Context {
 	public void initialize() {
 		setTable(Table.newOffline());
 		dispatcher = new Dispatcher(this);
-		byteBufPool = new ByteBufPool(parseThreadNum * 2, (int) (1024 * 1024 * 4));
+		byteBufPool = new ByteBufPool(parseThreadNum * 2, blockSize);
 	}
 
 	public int getEndId() {
@@ -79,6 +80,10 @@ public class Context {
 	 */
 	public ByteBufPool getByteBufPool() {
 		return byteBufPool;
+	}
+	
+	public int getBlockSize() {
+		return blockSize;
 	}
 
 }

@@ -21,8 +21,10 @@ public class MainThread {
 
 	public void execute() {
 		try {
+			long startTime = System.currentTimeMillis();
 			logger.info("--------------Main thread start-----------");
 			execute1(context);
+			logger.info("总耗时：{}",(System.currentTimeMillis()-startTime));
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -45,9 +47,10 @@ public class MainThread {
 
 	private void startParser(Context context) {
 		int parseThreadNum = context.getParseThreadNum();
+		int blockSize = context.getBlockSize();
 		parseThreads = new ParseThread[parseThreadNum];
 		for (int i = 0; i < parseThreadNum; i++) {
-			parseThreads[i] = new ParseThread(context, i);
+			parseThreads[i] = new ParseThread(context, i,(int)(blockSize * 2 / (80 * parseThreadNum)));
 		}
 		for (int i = 0; i < parseThreadNum; i++) {
 			parseThreads[i].start();
@@ -97,7 +100,7 @@ public class MainThread {
 					continue;
 				}
 				ParseThread p = parseThreads[parseIndex++];
-				dispatcher.dispatch(p.getResult(),p.getLimit());
+				dispatcher.dispatch(p.getResult());
 				p.startWork();
 				if (parseIndex == context.getParseThreadNum()) {
 					break;
@@ -110,7 +113,7 @@ public class MainThread {
 			time2 += (System.currentTimeMillis() - startTime);
 		}
 		logger.info("读取,解析,分发完成:{}，合并完成:{}", time1, time2);
-		PkCount.get().printResult();
+//		PkCount.get().printResult();
 		for (ParseThread t : parseThreads) {
 			t.shutdown();
 		}
