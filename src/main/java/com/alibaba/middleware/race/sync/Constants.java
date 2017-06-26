@@ -43,13 +43,16 @@ public interface Constants {
 
 	byte		INSERT			= 'I';
 
-	byte		PK_UPDATE		= 'P';
+	byte		PK_UPDATE			= 'P';
 	/**
 	 * 变更信息中不同列之间的分隔符
 	 */
 	String	SEP				= "|";
+
 	boolean	ENABLE_COMPRESS	= false;
-	
+
 	int		RESULT_LENGTH		= 38334025;
+
+	boolean	ON_LINE			= false;
 
 }
