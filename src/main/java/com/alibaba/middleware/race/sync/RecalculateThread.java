@@ -1,5 +1,8 @@
 package com.alibaba.middleware.race.sync;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.middleware.race.sync.Dispatcher.Task;
 import com.alibaba.middleware.race.sync.model.Node;
 import com.alibaba.middleware.race.sync.model.RecordLog;
@@ -10,6 +13,8 @@ import com.carrotsearch.hppc.IntObjectHashMap;
  * Created by xiefan on 6/16/17.
  */
 public class RecalculateThread extends WorkThread implements Constants{
+	
+	private static Logger logger = LoggerFactory.getLogger(RecalculateThread.class);
 	
 	private IntObjectHashMap<byte []>		records;
 
@@ -39,14 +44,15 @@ public class RecalculateThread extends WorkThread implements Constants{
 		for (int i = 0; i < limit; i++) {
 			RecordLog r = cnr.getValue();
 			if (r.getPk() < 0) {
+				logger.info("pk < 0,{}",r.getPk());
 				cnr = cnr.getNext();
 				continue;
 			}
 			received(table, records, cnr.getValue());
 			cnr = cnr.getNext();
 		}
-		mainThread.recalDone(getIndex());
 		setWork(false);
+		mainThread.recalDone(getIndex());
 	}
 
 	public IntObjectHashMap<byte []> getRecords() {

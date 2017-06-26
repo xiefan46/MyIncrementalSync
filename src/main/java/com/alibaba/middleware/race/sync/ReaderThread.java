@@ -39,7 +39,7 @@ public class ReaderThread extends WorkThread {
 			if (buf == null) {
 				continue;
 			}
-			int len = channel.readFull(buf, buf.capacity() - 1024);
+			int len = channel.readFull(buf, buf.capacity());
 			if (len == -1) {
 				buf.limit(0);
 			} else {
@@ -54,10 +54,11 @@ public class ReaderThread extends WorkThread {
 		
 		ByteBuf empty = UnpooledByteBufAllocator.getHeapInstance().allocate(0);
 		
-		for (int i = parseIndex; i < parseThreads.length; i++) {
-			parseThreads[parseIndex++].offerBuf(empty);
+		for (int i = 0; i < parseThreads.length; i++) {
+			parseThreads[i].offerBuf(empty);
 		}
 		
+		setWork(false);
 	}
 	
 	public Context getContext() {

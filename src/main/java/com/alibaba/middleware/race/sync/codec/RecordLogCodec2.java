@@ -13,7 +13,7 @@ public class RecordLogCodec2 {
 
 	private final int				I_ID_SKIP		= "I|id:1:1|NULL|".length();
 
-	private final int				HEAD_SKIP		= "|mysql-bin.".length() + 5;
+	private final int				HEAD_SKIP		= "|mysql-bin.".length();
 
 	private final int				TIME_SKIP		= "1496720884000".length() + 1;
 
@@ -75,7 +75,7 @@ public class RecordLogCodec2 {
 			end = findNextChar(data, off, '|');
 			r.setPk(parseLong(data, off, end));
 			off = end + table.getDelSkip();
-			return findNextChar(data, end, '\n');
+			return findNextChar(data, off, '\n');
 		}
 
 		if (Constants.INSERT == alterType) {

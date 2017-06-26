@@ -89,8 +89,11 @@ public class Dispatcher {
 		int cols = context.getTable().getColumnSize();
 		byte B = -1;
 		MyIntByteHashMap redirectMap = this.redirectMap;
+		int startId = (int)context.getStartId();
+		int endId = (int)context.getEndId();
 		for (int i = 0; i < limit; i++) {
 			RecordLog r = pnr.getValue();
+			PkCount.get().count(r, startId, endId);
 			int id = r.getPk();
 			int oldId = r.getBeforePk();
 			if (r.isPkUpdate()) {

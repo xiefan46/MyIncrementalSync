@@ -45,7 +45,6 @@ public class Table {
 			t.columnIndexs.put(new ByteArray(name), index++);
 			t.delSkip = t.delSkip + t.columnNameSkip[i] + 2;
 		}
-		t.delSkip += 2;
 		return t;
 	}
 	
