@@ -4,12 +4,17 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.middleware.race.sync.model.Node;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
 import com.generallycloud.baseio.buffer.ByteBuf;
 
 public class ParseThread extends WorkThread {
+	
+	private Logger					logger = LoggerFactory.getLogger(getClass());
 
 	private Node<RecordLog>			rootRecord1;
 
@@ -129,6 +134,11 @@ public class ParseThread extends WorkThread {
 		done = false;
 		limit = 0;
 		super.startWork();
+	}
+	
+	@Override
+	Logger getLogger() {
+		return logger;
 	}
 
 }

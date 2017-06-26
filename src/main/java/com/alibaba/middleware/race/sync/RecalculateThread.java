@@ -93,4 +93,9 @@ public class RecalculateThread extends WorkThread implements Constants{
 		return oldRecord;
 	}
 	
+	@Override
+	Logger getLogger() {
+		return logger;
+	}
+	
 }

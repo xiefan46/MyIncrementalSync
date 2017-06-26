@@ -15,7 +15,6 @@ import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.acceptor.SocketChannelAcceptor;
 import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
 import com.generallycloud.baseio.common.MathUtil;
-import com.generallycloud.baseio.common.ThreadUtil;
 import com.generallycloud.baseio.component.IoEventHandleAdaptor;
 import com.generallycloud.baseio.component.LoggerSocketSEListener;
 import com.generallycloud.baseio.component.NioSocketChannelContext;
@@ -41,11 +40,10 @@ public class Server {
 
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
-			args = new String[] { "middleware3", "student", "0", "70000000" };
+			args = new String[] { "middleware3", "student", "100000", "2000000" };
 		}
 
 		logger.info("----------------server start-----------------");
-		JvmUsingState.print();
 		initProperties();
 		Server server = get();
 		try {
@@ -57,7 +55,6 @@ public class Server {
 
 	private void initPageCache() {
 		// ThreadUtil.execute(new PageCacheHelper());
-		ThreadUtil.execute(new JvmUsingState());
 	}
 
 	/**

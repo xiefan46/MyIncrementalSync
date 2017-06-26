@@ -57,7 +57,7 @@ public class RecordLogCodec2 {
 				}
 				return findNextChar(data, end, '\n');
 			}else{
-				if (!inRange(r.getBeforePk(), startId, endId)) {
+				if (!inRange(r.getPk(), startId, endId)) {
 					return findNextChar(data, end, '\n');
 				}
 			}

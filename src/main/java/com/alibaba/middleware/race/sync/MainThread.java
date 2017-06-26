@@ -115,7 +115,6 @@ public class MainThread {
 			t.shutdown();
 		}
 		dispatcher.readRecordOver();
-		JvmUsingState.print();
 	}
 	
 	public void setWorkDone() {

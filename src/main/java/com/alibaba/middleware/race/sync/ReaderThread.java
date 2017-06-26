@@ -11,8 +11,8 @@ import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
  * @author wangkai
  */
 public class ReaderThread extends WorkThread {
-
-	private Logger			logger	= LoggerFactory.getLogger(getClass());
+	
+	private Logger 		logger = LoggerFactory.getLogger(getClass());
 
 	private Context		context;
 
@@ -63,6 +63,11 @@ public class ReaderThread extends WorkThread {
 	
 	public Context getContext() {
 		return context;
+	}
+	
+	@Override
+	Logger getLogger() {
+		return logger;
 	}
 
 }

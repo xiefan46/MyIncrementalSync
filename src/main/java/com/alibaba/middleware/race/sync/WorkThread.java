@@ -79,6 +79,8 @@ public abstract class WorkThread extends Thread {
 		}
 	}
 	
+	abstract Logger getLogger();
+	
 	public int getIndex() {
 		return index;
 	}
