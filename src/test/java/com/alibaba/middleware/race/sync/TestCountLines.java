@@ -3,8 +3,8 @@ package com.alibaba.middleware.race.sync;
 import java.io.File;
 import java.io.IOException;
 
-import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
-import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
+import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
+import com.alibaba.middleware.race.sync.channel.MultiFileReadChannelSplitor;
 import com.generallycloud.baseio.buffer.ByteBuf;
 import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
 
@@ -17,7 +17,7 @@ public class TestCountLines {
 		
 		ByteBuf buf = UnpooledByteBufAllocator.getHeapInstance().allocate(1024 * 1024 * 4);
 		
-		MuiltFileInputStream inputStream = initChannels2();
+		MultiFileInputStream inputStream = initChannels2();
 		for(;inputStream.hasRemaining();){
 			buf.clear();
 			inputStream.readFull(buf, buf.capacity());
@@ -36,9 +36,9 @@ public class TestCountLines {
 	}
 	
 	
-	private static MuiltFileInputStream initChannels2() throws IOException {
+	private static MultiFileInputStream initChannels2() throws IOException {
 		File root = new File(Constants.DATA_HOME);
-		return MuiltFileReadChannelSplitor.newInputStream(root.getAbsolutePath() + "/", 1, 10,
+		return MultiFileReadChannelSplitor.newInputStream(root.getAbsolutePath() + "/", 1, 10,
 				1024 * 256);
 	}
 }

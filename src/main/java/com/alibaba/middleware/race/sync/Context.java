@@ -1,6 +1,6 @@
 package com.alibaba.middleware.race.sync;
 
-import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
+import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
 import com.alibaba.middleware.race.sync.model.Table;
 
 /**
@@ -11,7 +11,7 @@ public class Context {
 
 	private long				endId;
 	private long				startId;
-	private MuiltFileInputStream	readChannel;
+	private MultiFileInputStream	readChannel;
 	private Table				table;
 	private MainThread			mainThread = new MainThread(this);
 	private int				recalThreadNum	= 8;
@@ -54,11 +54,11 @@ public class Context {
 		this.table = table;
 	}
 
-	public MuiltFileInputStream getReadChannel() {
+	public MultiFileInputStream getReadChannel() {
 		return readChannel;
 	}
 
-	public void setReadChannel(MuiltFileInputStream readChannel) {
+	public void setReadChannel(MultiFileInputStream readChannel) {
 		this.readChannel = readChannel;
 	}
 

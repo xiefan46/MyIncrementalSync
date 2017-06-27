@@ -3,7 +3,7 @@ package com.alibaba.middleware.race.sync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
+import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
 import com.generallycloud.baseio.buffer.ByteBuf;
 import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
 
@@ -31,7 +31,7 @@ public class ReaderThread extends WorkThread {
 	@Override
 	protected void work() throws Exception {
 		ParseThread[] parseThreads = this.parseThreads;
-		MuiltFileInputStream channel = context.getReadChannel();
+		MultiFileInputStream channel = context.getReadChannel();
 		ByteBufPool byteBufPool = context.getByteBufPool();
 		int parseIndex = 0;
 		for (; channel.hasRemaining();) {

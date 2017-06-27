@@ -18,6 +18,9 @@ public class PkCount {
 	private int all,in2in, in2out, out2out, out2in;
 
 	public void count(RecordLog r, int startId, int endId) {
+		if (r.getPk() == 100004 || r.getBeforePk() == 100004) {
+			System.out.println();
+		}
 		all++;
 		if (r.isPkUpdate()) {
 			if (inRange(r.getBeforePk(), startId, endId)) {
