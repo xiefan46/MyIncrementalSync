@@ -89,7 +89,7 @@ public class Client {
 		context.addSessionEventListener(new LoggerSocketSEListener());
 
 		context.setProtocolFactory(new FixedLengthProtocolFactory());
-		Thread.sleep(3000);
+		Thread.sleep(2000);
 		connector.connect();
 	}
 

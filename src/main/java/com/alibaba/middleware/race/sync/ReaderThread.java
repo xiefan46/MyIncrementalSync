@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
 import com.generallycloud.baseio.buffer.ByteBuf;
-import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
 
 /**
  * @author wangkai
@@ -36,7 +35,6 @@ public class ReaderThread extends WorkThread {
 		MultiFileInputStream channel = context.getReadChannel();
 		ByteBufPool byteBufPool = context.getByteBufPool();
 		int parseIndex = 0;
-		int count = 0;
 		int version = 0;
 		for (; channel.hasRemaining();) {
 			ReadTask task = byteBufPool.allocate(); 
@@ -45,10 +43,6 @@ public class ReaderThread extends WorkThread {
 			}
 			ByteBuf buf = task.getBuf();
 			int len = channel.readFull(buf, buf.capacity());
-			count++;
-			if (!Constants.ON_LINE && (count % 1024) == 0) {
-				logger.info("Read block : {}", count);
-			}
 			if (len == -1) {
 				buf.limit(0);
 			} else {

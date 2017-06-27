@@ -19,7 +19,7 @@ public class Context {
 	private Table				table;
 	private MainThread			mainThread = new MainThread(this);
 	private int				parseThreadNum	= Runtime.getRuntime().availableProcessors();
-	private int				blockSize = (int) (1024 * 1024 * 4);
+	private int				blockSize = (int) (1024 * 1024 * 2);
 	private RecordMap			recordMap;
 	private ByteBufPool			byteBufPool;
 	private static final Logger	logger		= LoggerFactory.getLogger(Context.class);
@@ -38,7 +38,7 @@ public class Context {
 			logger.info("使用offline模式初始化table,提交到线上记得切换!!!!!!");
 		}
 		recordMap = new RecordMap(endId - startId, startId,table.getColumnSize());
-		byteBufPool = new ByteBufPool(parseThreadNum * 2, blockSize);
+		byteBufPool = new ByteBufPool(parseThreadNum * 4, blockSize);
 	}
 
 	public int getEndId() {

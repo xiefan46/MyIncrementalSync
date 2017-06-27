@@ -13,9 +13,7 @@ public class ParseThread extends WorkThread {
 
 	private Logger					logger		= LoggerFactory.getLogger(getClass());
 
-	private boolean				workDone;
-
-	private BlockingQueue<ReadTask>	tasks			= new ArrayBlockingQueue<>(2);
+	private BlockingQueue<ReadTask>	tasks		= new ArrayBlockingQueue<>(16);
 
 	private Context				context;
 
@@ -34,7 +32,6 @@ public class ParseThread extends WorkThread {
 			return;
 		}
 		if (task == ReadTask.END_TASK) {
-			this.workDone = true;
 			this.context.getMainThread().setWorkDone();
 			return;
 		}
@@ -47,10 +44,6 @@ public class ParseThread extends WorkThread {
 
 	public void offerTask(ReadTask task) {
 		tasks.offer(task);
-	}
-
-	public boolean isDone() {
-		return workDone;
 	}
 
 	@Override

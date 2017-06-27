@@ -76,6 +76,7 @@ public class MainThread {
 		for (ParseThread t : parseThreads) {
 			t.shutdown();
 		}
+		readerThread.shutdown();
 	}
 	
 	public void setWorkDone() {
