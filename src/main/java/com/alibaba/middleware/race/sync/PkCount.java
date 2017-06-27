@@ -15,9 +15,13 @@ public class PkCount {
 		return pkCount;
 	}
 
-	private int in2in, in2out, out2out, out2in;
+	private int all,in2in, in2out, out2out, out2in;
 
 	public void count(RecordLog r, int startId, int endId) {
+		if (r.getPk() == 100004 || r.getBeforePk() == 100004) {
+			System.out.println();
+		}
+		all++;
 		if (r.isPkUpdate()) {
 			if (inRange(r.getBeforePk(), startId, endId)) {
 				if (inRange(r.getPk(), startId, endId)) {
@@ -70,9 +74,17 @@ public class PkCount {
 	public void setOut2in(int out2in) {
 		this.out2in = out2in;
 	}
+	
+	public int getAll() {
+		return all;
+	}
+
+	public void setAll(int all) {
+		this.all = all;
+	}
 
 	public void printResult() {
-		logger.info("in2in:{}, in2out:{}, out2out:{}, out2in:{}", in2in, in2out, out2out, out2in);
+		logger.info("all:{}, in2in:{}, in2out:{}, out2out:{}, out2in:{}",all, in2in, in2out, out2out, out2in);
 	}
 
 }

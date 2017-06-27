@@ -3,12 +3,13 @@ package com.alibaba.middleware.race.sync;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
-import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
+import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
+import com.alibaba.middleware.race.sync.channel.MultiFileReadChannelSplitor;
 import com.generallycloud.baseio.common.ThreadUtil;
 
 /**
@@ -31,12 +32,12 @@ public class MainThread {
 		this.context = context;
 	}
 
-	private MuiltFileInputStream initChannels2() throws IOException {
+	private MultiFileInputStream initChannels2() throws IOException {
 		File root = new File(Constants.DATA_HOME);
-		return MuiltFileReadChannelSplitor.newInputStream(root.getAbsolutePath() + "/", 1, 10,
+		return MultiFileReadChannelSplitor.newInputStream(root.getAbsolutePath() + "/", 1, 10,
 				1024 * 256);
 	}
-
+	
 	private void startReader(Context context) {
 		readerThread = new ReaderThread(context, parseThreads);
 		readerThread.start();
@@ -64,12 +65,14 @@ public class MainThread {
 	private ParseThread[]	parseThreads;
 
 	private CountDownLatch	recalCountDownLatch;
+	
+	private AtomicInteger	workDone = new AtomicInteger(0);
 
 	private void execute1(Context context) throws Exception {
 		//		int tmp = 1024 * 1024 * 1024 / (context.getBlockSize() * context.getParseThreadNum());
 		//		int tmpCount = 0;
 		
-		MuiltFileInputStream channel = initChannels2();
+		MultiFileInputStream channel = initChannels2();
 		context.setReadChannel(channel);
 		
 		startRecaler(context);
@@ -79,9 +82,11 @@ public class MainThread {
 		long time1 = 0;
 		long time2 = 0;
 		
+		AtomicInteger	workDone = this.workDone;
 		ParseThread[] parseThreads = this.parseThreads;
+		int parseThreadNums = parseThreads.length;
 		Dispatcher dispatcher = context.getDispatcher();
-		for (; channel.hasRemaining();) {
+		for (;parseThreadNums != workDone.get();) {
 			long startTime = System.currentTimeMillis();
 			int parseIndex = 0;
 			recalCountDownLatch = new CountDownLatch(context.getRecalThreadNum());
@@ -103,7 +108,6 @@ public class MainThread {
 			dispatcher.startWork();
 			recalCountDownLatch.await();
 			time2 += (System.currentTimeMillis() - startTime);
-
 		}
 		logger.info("读取,解析,分发完成:{}，合并完成:{}", time1, time2);
 		PkCount.get().printResult();
@@ -112,6 +116,10 @@ public class MainThread {
 		}
 		dispatcher.readRecordOver();
 		JvmUsingState.print();
+	}
+	
+	public void setWorkDone() {
+		this.workDone.getAndIncrement();
 	}
 
 	public Context getContext() {

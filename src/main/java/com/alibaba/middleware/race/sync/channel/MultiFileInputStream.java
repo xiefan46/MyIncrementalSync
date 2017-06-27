@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.generallycloud.baseio.buffer.ByteBuf;
+import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
 
 /**
  * @author wangkai
  *
  */
-public class MuiltFileInputStream extends InputStream {
+public class MultiFileInputStream extends InputStream {
 
 	private InputStream[]		inputStreams;
 
@@ -18,33 +19,40 @@ public class MuiltFileInputStream extends InputStream {
 	private int				currentIndex;
 
 	private boolean			hasRemaining	= true;
+	
+	private ByteBuf			remain;
 
-	public MuiltFileInputStream(InputStream[] inputStreams) {
+	public MultiFileInputStream(InputStream[] inputStreams) {
 		this.inputStreams = inputStreams;
 		this.current = inputStreams[currentIndex++];
+		this.remain = UnpooledByteBufAllocator.getHeapInstance().allocate(1024);
 	}
 
 	public int readFull(ByteBuf buf,int limit) throws IOException{
-		byte [] b = buf.array();
-		int read = 0;
+		ByteBuf remain = this.remain;
+		int read = remain.position();
+		if (remain.position() > 0) {
+			for (int i = remain.position() -1; i >= 0 ; i--) {
+				buf.putByte(remain.getByte(i));
+			}
+			remain.clear();
+		}
+		byte [] array = buf.array();
 		for(;read < limit;){
-			int len = read(b, read, limit - read);
-			if (read == -1) {
+			int len = read(array, read, limit - read);
+			if (len == -1) {
+				buf.position(read);
 				return read;
 			}
 			read += len;
-			buf.position(read);
 		}
 		for(;;){
-			int r = read();
-			if (r == -1) {
+			byte b = buf.getByte(--read);
+			if (b == '\n') {
+				buf.position(++read);
 				return read;
 			}
-			buf.putByte((byte) r);
-			read++;
-			if (r == '\n') {
-				return read;
-			}
+			remain.putByte(b);
 		}
 	}
 
