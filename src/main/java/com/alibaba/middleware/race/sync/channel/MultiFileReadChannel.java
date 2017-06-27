@@ -12,7 +12,7 @@ import com.generallycloud.baseio.common.LoggerFactory;
  * @author wangkai
  *
  */
-public class MuiltFileReadChannel extends ReadChannel {
+public class MultiFileReadChannel extends ReadChannel {
 
 	private InputStream[]		inputStreams;
 
@@ -23,9 +23,9 @@ public class MuiltFileReadChannel extends ReadChannel {
 	private boolean			hasRemaining	= true;
 
 	private static final Logger	logger		= LoggerFactory
-			.getLogger(MuiltFileReadChannel.class);
+			.getLogger(MultiFileReadChannel.class);
 
-	public MuiltFileReadChannel(InputStream[] inputStreams, int maxBufferLen) {
+	public MultiFileReadChannel(InputStream[] inputStreams, int maxBufferLen) {
 		super(maxBufferLen);
 		this.inputStreams = inputStreams;
 		this.current = inputStreams[currentIndex++];

@@ -12,14 +12,14 @@ import java.io.RandomAccessFile;
  */
 public class MuiltFileReadChannelSplitor {
 
-	public static MuiltFileReadChannel[] split(File root, int bufferLen) throws IOException {
-		MuiltFileReadChannel[] cs = new MuiltFileReadChannel[2];
+	public static MultiFileReadChannel[] split(File root, int bufferLen) throws IOException {
+		MultiFileReadChannel[] cs = new MultiFileReadChannel[2];
 		cs[0] = newChannel(root.getAbsolutePath() + "/", 0, 5, bufferLen);
 		cs[1] = newChannel(root.getAbsolutePath() + "/", 5, 5, bufferLen);
 		return cs;
 	}
 
-	public static MuiltFileReadChannel newChannel(String path, int begin, int len, int bufferLen)
+	public static MultiFileReadChannel newChannel(String path, int begin, int len, int bufferLen)
 			throws FileNotFoundException {
 		InputStream[] streams = new InputStream[len];
 		for (int i = 0; i < len; i++) {
@@ -27,10 +27,10 @@ public class MuiltFileReadChannelSplitor {
 			RandomAccessFile raf = new RandomAccessFile(file, "r");
 			streams[i] = new RAFInputStream(raf);
 		}
-		return new MuiltFileReadChannel(streams, bufferLen);
+		return new MultiFileReadChannel(streams, bufferLen);
 	}
 	
-	public static MuiltFileInputStream newInputStream(String path, int begin, int len, int bufferLen)
+	public static MultiFileInputStream newInputStream(String path, int begin, int len, int bufferLen)
 			throws FileNotFoundException {
 		InputStream[] streams = new InputStream[len];
 		for (int i = 0; i < len; i++) {
@@ -38,7 +38,7 @@ public class MuiltFileReadChannelSplitor {
 			RandomAccessFile raf = new RandomAccessFile(file, "r");
 			streams[i] = new RAFInputStream(raf);
 		}
-		return new MuiltFileInputStream(streams);
+		return new MultiFileInputStream(streams);
 	}
 
 }

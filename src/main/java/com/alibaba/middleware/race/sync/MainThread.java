@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
+import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
 import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
 import com.generallycloud.baseio.common.ThreadUtil;
 
@@ -34,7 +34,7 @@ public class MainThread {
 		this.context = context;
 	}
 
-	private MuiltFileInputStream initChannels2() throws IOException {
+	private MultiFileInputStream initChannels2() throws IOException {
 		File root = new File(Constants.DATA_HOME);
 		return MuiltFileReadChannelSplitor.newInputStream(root.getAbsolutePath() + "/", 1, 10,
 				1024 * 256);
@@ -75,7 +75,7 @@ public class MainThread {
 		//		int tmp = 1024 * 1024 * 1024 / (context.getBlockSize() * context.getParseThreadNum());
 		//		int tmpCount = 0;
 		
-		MuiltFileInputStream channel = initChannels2();
+		MultiFileInputStream channel = initChannels2();
 		context.setReadChannel(channel);
 		
 		startRecaler(context);

@@ -10,7 +10,7 @@ import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
  * @author wangkai
  *
  */
-public class MuiltFileInputStream extends InputStream {
+public class MultiFileInputStream extends InputStream {
 
 	private InputStream[]		inputStreams;
 
@@ -22,7 +22,7 @@ public class MuiltFileInputStream extends InputStream {
 	
 	private ByteBuf			remain;
 
-	public MuiltFileInputStream(InputStream[] inputStreams) {
+	public MultiFileInputStream(InputStream[] inputStreams) {
 		this.inputStreams = inputStreams;
 		this.current = inputStreams[currentIndex++];
 		this.remain = UnpooledByteBufAllocator.getHeapInstance().allocate(1024);
