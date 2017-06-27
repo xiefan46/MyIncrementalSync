@@ -95,7 +95,7 @@ public class Client {
 		OutputStream outputStream = null;
 		String fileName = Constants.RESULT_FILE;
 		try {
-			if(Constants.DEBUG)
+			if (Config.DEBUG)
 				printResult(array, 0, array.length);
 			long startTime = System.currentTimeMillis();
 			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");

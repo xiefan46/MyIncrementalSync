@@ -2,6 +2,7 @@ package com.alibaba.middleware.race.sync.stage;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.alibaba.middleware.race.sync.Config;
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.model.result.ParseResult;
 import com.alibaba.middleware.race.sync.model.result.ReadResult;
@@ -11,13 +12,11 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by xiefan on 6/26/17.
  */
-public class  ParseStage {
+public class ParseStage {
 
-	public static final int					PARSER_NUM		= Constants.DEBUG ? 4 : 4;
+	private ParseThread[]					parsers			= new ParseThread[Config.PARSER_COUNT];
 
-	private ParseThread[]					parsers			= new ParseThread[PARSER_NUM];
-
-	private Thread[]						threads			= new Thread[PARSER_NUM];
+	private Thread[]						threads			= new Thread[Config.PARSER_COUNT];
 
 	private CalculateStage					calculateStage;
 
@@ -56,8 +55,8 @@ public class  ParseStage {
 					for (int i = 0; i < parsers.length; i++) {
 						threads[i].join();
 					}
-					for (int i = 0; i < CalculateStage.CALCULATOR_COUNT; i++) {
-						calculateStage.submit(i, new ParseResult(-1));
+					for (int i = 0; i < Config.CALCULATOR_COUNT; i++) {
+						calculateStage.submit(i, new ParseResult(-1,null));
 					}
 					logger.info("所有Parse thread完成耗时 : {}",
 							System.currentTimeMillis() - startTime);

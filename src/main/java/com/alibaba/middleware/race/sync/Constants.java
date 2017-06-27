@@ -10,7 +10,7 @@ public interface Constants {
 	// 工作主目录
 	// String TESTER_HOME = "/Users/wanshao/work/middlewareTester";
 	// 赛题数据
-	String	DATA_HOME		= "/home/admin/canal_data";
+	String	DATA_HOME		= "/home/admin/canal_data_small";
 	// teamCode
 	String	TEAMCODE		= "737049rihy";
 	// 结果文件目录
@@ -25,15 +25,7 @@ public interface Constants {
 	// ------------ 正式比赛指定的路径--------------//
 	//// 工作主目录
 	String	TESTER_HOME	= "/home/admin";
-	//// 赛题数据
-	// String DATA_HOME = "/home/admin/canal_data";
-	//// 结果文件目录(client端会用到)
-	// String RESULT_HOME = "/home/admin/sync_results/${teamcode}";
-	//// 中间结果目录（client和server都会用到）
-	// String MIDDLE_HOME = "/home/admin/middle/${teamcode}";
 
-	// 结果文件的命名
-	// String RESULT_FILE_NAME = "Result.rs";
 
 	String	RESULT_FILE	= "/home/admin/sync_results/" + TEAMCODE + "/Result.rs";
 
@@ -49,7 +41,11 @@ public interface Constants {
 
 	byte		END			= -1;
 
-	boolean	DEBUG		= false;
+
 
 	int		RESULT_LENGTH	= 38334025;
+
+
+
+
 }

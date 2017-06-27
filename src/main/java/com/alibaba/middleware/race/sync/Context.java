@@ -32,11 +32,13 @@ public class Context {
 
 	private int				endPk;
 
-	private BufferPool			blockBufferPool	= new BufferPool(512, 1024 * 1024,
-			"block pool");
+	private BufferPool			blockBufferPool	= new BufferPool(Config.BLOCK_BUFFER_COUNT,
+			Config.BLOCK_BUFFER_SIZE, "block pool");
 
-	private BufferPool			recordLogBufferPool	= new BufferPool(512, 512 * 1024,
-			"record pool");
+	/*
+	 * private BufferPool recordLogBufferPool = new BufferPool(512, 512 * 1024,
+	 * "record pool");
+	 */
 
 	private MuiltFileInputStream	muiltFileInputStream;
 
@@ -55,9 +57,8 @@ public class Context {
 		this.schema = schema;
 		this.table = table;
 		this.muiltFileInputStream = initMultiFileStream();
-		this.rangeSearcher = new RangeSearcher(startPk + 1, endPk,
-				CalculateStage.CALCULATOR_COUNT);
-		if (Constants.DEBUG) {
+		this.rangeSearcher = new RangeSearcher(startPk + 1, endPk, Config.CALCULATOR_COUNT);
+		if (Config.DEBUG) {
 			logger.info("使用OFFLINE模式,线上记得切换");
 		} else {
 			logger.info("使用ONLINE模式,线上记得切换");
@@ -103,19 +104,11 @@ public class Context {
 	}
 
 	public Table getTable() {
-		if (Constants.DEBUG) {
+		if (Config.DEBUG) {
 			return Table.newOffline();
 		} else {
 			return Table.newOnline();
 		}
-	}
-
-	public BufferPool getRecordLogPool() {
-		return recordLogBufferPool;
-	}
-
-	public void setRecordLogPool(BufferPool recordLogPool) {
-		this.recordLogBufferPool = recordLogPool;
 	}
 
 	public RangeSearcher getRangeSearcher() {

@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race.sync.model.result;
 
+import com.alibaba.middleware.race.sync.BufferPool;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +15,11 @@ public class ParseResult {
 
 	private int			id;
 
-	public ParseResult(int id) {
+	private BufferPool pool;
+
+	public ParseResult(int id,BufferPool pool) {
 		this.id = id;
+		this.pool = pool;
 	}
 
 	public List<ByteBuffer> getList() {
@@ -27,5 +32,13 @@ public class ParseResult {
 
 	public int getId() {
 		return id;
+	}
+
+	public BufferPool getPool() {
+		return pool;
+	}
+
+	public void setPool(BufferPool pool) {
+		this.pool = pool;
 	}
 }

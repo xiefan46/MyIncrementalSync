@@ -26,9 +26,6 @@ public class BufferPool {
 		this.name = name;
 	}
 
-	public ByteBuffer getBuffer() {
-		return pool.poll();
-	}
 
 	private int count = 5;
 

@@ -1,5 +1,6 @@
 package com.alibaba.middleware.race.sync.stage;
 
+import com.alibaba.middleware.race.sync.Config;
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.RangeSearcher;
@@ -24,7 +25,7 @@ public class MergeStage {
 
 	private static final Logger	logger		= LoggerFactory.getLogger(MergeStage.class);
 
-	private ArrayHashMap2[]		recordMaps	= new ArrayHashMap2[CalculateStage.CALCULATOR_COUNT];
+	private ArrayHashMap2[]		recordMaps	= new ArrayHashMap2[Config.CALCULATOR_COUNT];
 
 	public MergeStage() {
 

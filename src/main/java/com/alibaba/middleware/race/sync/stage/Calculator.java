@@ -43,7 +43,7 @@ public class Calculator implements Runnable, Constants {
 		this.mergeStage = mergeStage;
 		this.startId = rangeSearcher.getStartId(id);
 		this.endId = rangeSearcher.getEndId(id);
-		this.recordMap = new ArrayHashMap2(Context.getInstance().getTable(), startId, endId );
+		this.recordMap = new ArrayHashMap2(Context.getInstance().getTable(), startId, endId);
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class Calculator implements Runnable, Constants {
 			curBlockId++;
 			for (ByteBuffer buffer : task.getList()) {
 				dealRecord(buffer);
-				Context.getInstance().getRecordLogPool().free(buffer);
+				task.getPool().free(buffer);
 			}
 		}
 	}

@@ -8,6 +8,8 @@ import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.model.result.ParseResult;
 
+import static com.alibaba.middleware.race.sync.Config.CALCULATOR_COUNT;
+
 /**
  * Created by xiefan on 6/24/17.
  */
@@ -20,8 +22,6 @@ public class CalculateStage implements Constants {
 	private Thread[]		threads			= new Thread[CALCULATOR_COUNT];
 
 	private Context		context			= Context.getInstance();
-
-	public static final int	CALCULATOR_COUNT	= Constants.DEBUG ? 4 : 4;
 
 	private byte[]			oneCol			= new byte[8];
 
