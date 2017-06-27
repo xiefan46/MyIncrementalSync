@@ -28,7 +28,9 @@ import com.generallycloud.baseio.protocol.ReadFuture;
  */
 public class Client {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private Logger	logger		= LoggerFactory.getLogger(getClass());
+
+	private long	clientStart	= System.currentTimeMillis();
 
 	public static void main(String[] args) throws Exception {
 		initProperties();
@@ -67,10 +69,12 @@ public class Client {
 			public void accept(SocketSession session, ReadFuture future) throws Exception {
 				FixedLengthReadFuture f = (FixedLengthReadFuture) future;
 				ByteBuf buf = f.getBuf();
-				logger.info("客户端收到文件。当前时间：{}. 文件大小 : {} B", System.currentTimeMillis(),
-						buf.limit());
+				logger.info("客户端收到文件。从启动到收到文件耗时：{}. 文件大小 : {} B",
+						System.currentTimeMillis() - clientStart, buf.limit());
 				writeToFile(buf);
+				logger.info("客户端从启动到写完结果耗时 : {}", System.currentTimeMillis() - clientStart);
 				CloseUtil.close(session);
+				logger.info("client从启动到结束耗时 : {}", System.currentTimeMillis() - clientStart);
 			}
 		};
 
@@ -103,7 +107,7 @@ public class Client {
 			outputStream = new RAFOutputStream(raf);
 			outputStream.write(array, 0, len);
 			outputStream.flush();
-			logger.info("写结果文件到本地文件系统耗时 : {},{}", System.currentTimeMillis() - startTime, len);
+			//logger.info("写结果文件到本地文件系统耗时 : {},{}", System.currentTimeMillis() - startTime, len);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		} finally {
