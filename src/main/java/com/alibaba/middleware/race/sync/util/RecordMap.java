@@ -15,37 +15,36 @@
  */
 package com.alibaba.middleware.race.sync.util;
 
+import com.alibaba.middleware.race.sync.model.Record;
+
 /**
  * @author wangkai
  *
  */
-public class RecordMap<V> {
+public class RecordMap {
 
-	private V[]	vs;
+	private Record[]	vs;
 
 	private int	capacity;
 
 	private int	off;
 
-	public RecordMap(int capacity, int off) {
+	public RecordMap(int capacity, int off,int cols) {
 		this.off = off;
 		this.capacity = capacity;
-		this.vs = (V[]) new Object[capacity];
-	}
-
-	public V get(int index) {
-		return vs[index - off];
-	}
-
-	public void set(int index, V v) {
-		vs[index - off] = v;
+		this.vs = init(capacity, cols);
 	}
 	
-	public V remove(int index){
-		int idx = index - off;
-		V old = vs[idx];
-		vs[idx] = null;
-		return old;
+	private Record[] init(int capacity,int cols){
+		Record[] vs = new Record[capacity];
+		for (int i = 0; i < capacity; i++) {
+			vs[i] = Record.newRecord(cols);
+		}
+		return vs;
+	}
+
+	public Record get(int index) {
+		return vs[index - off];
 	}
 
 }

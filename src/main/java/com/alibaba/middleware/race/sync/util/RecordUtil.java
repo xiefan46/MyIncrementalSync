@@ -42,12 +42,12 @@ public class RecordUtil {
 		buffer.put(FIELD_SEPERATOR_BYTE);
 		int len = cols - 1;
 		for (byte i = 0; i < len; i++) {
-			int tOff = i*8+1;
+			int tOff = i*8;
 			int tLen = record[tOff++];
 			buffer.put(record,tOff,tLen);
 			buffer.put(FIELD_SEPERATOR_BYTE);
 		}
-		int tOff = len*8+1;
+		int tOff = len*8;
 		int tLen = record[tOff++];
 		buffer.put(record,tOff,tLen);
 		buffer.put(FIELD_N_BYTE);

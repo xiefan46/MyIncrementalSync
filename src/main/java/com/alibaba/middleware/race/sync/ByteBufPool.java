@@ -28,17 +28,18 @@ import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
  */
 public class ByteBufPool {
 
-	private ArrayBlockingQueue<ByteBuf> bufs;
+	private ArrayBlockingQueue<ReadTask> bufs;
 
 	public ByteBufPool(int capacity,int unit) {
 		this.bufs = new ArrayBlockingQueue<>(capacity * 4);
 		ByteBufAllocator allocator = UnpooledByteBufAllocator.getHeapInstance();
 		for (int i = 0; i < capacity; i++) {
-			bufs.offer(allocator.allocate(unit));
+			ByteBuf buf = allocator.allocate(unit);
+			bufs.offer(new ReadTask(buf));
 		}
 	}
 	
-	public ByteBuf allocate(){
+	public ReadTask allocate(){
 		try {
 			return bufs.poll(16, TimeUnit.MICROSECONDS);
 		} catch (InterruptedException e) {
@@ -46,9 +47,9 @@ public class ByteBufPool {
 		}
 	}
 	
-	public void free(ByteBuf buf){
-		buf.clear();
-		bufs.offer(buf);
+	public void free(ReadTask task){
+		task.getBuf().clear();
+		bufs.offer(task);
 	}
 	
 	

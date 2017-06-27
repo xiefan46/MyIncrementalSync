@@ -37,11 +37,13 @@ public class ReaderThread extends WorkThread {
 		ByteBufPool byteBufPool = context.getByteBufPool();
 		int parseIndex = 0;
 		int count = 0;
+		int version = 0;
 		for (; channel.hasRemaining();) {
-			ByteBuf buf = byteBufPool.allocate();
-			if (buf == null) {
+			ReadTask task = byteBufPool.allocate(); 
+			if (task == null) {
 				continue;
 			}
+			ByteBuf buf = task.getBuf();
 			int len = channel.readFull(buf, buf.capacity());
 			count++;
 			if (!Constants.ON_LINE && (count % 1024) == 0) {
@@ -52,17 +54,15 @@ public class ReaderThread extends WorkThread {
 			} else {
 				buf.flip();
 			}
-
-			parseThreads[parseIndex++].offerBuf(buf);
+			task.setVersion(version++);
+			parseThreads[parseIndex++].offerTask(task);
 			if (parseIndex == parseThreads.length) {
 				parseIndex = 0;
 			}
 		}
 
-		ByteBuf empty = UnpooledByteBufAllocator.getHeapInstance().allocate(0);
-
 		for (int i = 0; i < parseThreads.length; i++) {
-			parseThreads[i].offerBuf(empty);
+			parseThreads[i].offerTask(ReadTask.END_TASK);
 		}
 
 		setWork(false);

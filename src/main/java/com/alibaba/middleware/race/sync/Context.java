@@ -1,9 +1,12 @@
 package com.alibaba.middleware.race.sync;
 
-import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
-import com.alibaba.middleware.race.sync.model.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
+import com.alibaba.middleware.race.sync.model.Record;
+import com.alibaba.middleware.race.sync.model.Table;
+import com.alibaba.middleware.race.sync.util.RecordMap;
 
 /**
  * @author wangkai
@@ -15,13 +18,10 @@ public class Context {
 	private int				startId;
 	private MultiFileInputStream	readChannel;
 	private Table				table;
-
 	private MainThread			mainThread = new MainThread(this);
-	private int				recalThreadNum	= 2;
-
-	private int				parseThreadNum	= 2;
+	private int				parseThreadNum	= 8;
 	private int				blockSize = (int) (1024 * 1024 * 4);
-	private Dispatcher			dispatcher;
+	private RecordMap			recordMap;
 	private ByteBufPool			byteBufPool;
 	private static final Logger	logger		= LoggerFactory.getLogger(Context.class);
 
@@ -38,7 +38,7 @@ public class Context {
 			setTable(Table.newOffline());
 			logger.info("使用offline模式初始化table,提交到线上记得切换!!!!!!");
 		}
-		dispatcher = new Dispatcher(this);
+		recordMap = new RecordMap(endId - startId, startId,table.getColumnSize());
 		byteBufPool = new ByteBufPool(parseThreadNum * 2, blockSize);
 	}
 
@@ -66,10 +66,6 @@ public class Context {
 		this.readChannel = readChannel;
 	}
 
-	public int getRecalThreadNum() {
-		return recalThreadNum;
-	}
-
 	public int getParseThreadNum() {
 		return parseThreadNum;
 	}
@@ -78,12 +74,12 @@ public class Context {
 		return mainThread;
 	}
 
-	public Dispatcher getDispatcher() {
-		return dispatcher;
-	}
-
 	public byte[] getRecord(int i) {
-		return dispatcher.getRecord(i);
+		Record record = recordMap.get(i);
+		if (record.getPower() == 1) {
+			return record.getColumns();
+		}
+		return null;
 	}
 
 	/**
@@ -95,6 +91,10 @@ public class Context {
 	
 	public int getBlockSize() {
 		return blockSize;
+	}
+	
+	public RecordMap getRecordMap() {
+		return recordMap;
 	}
 
 }

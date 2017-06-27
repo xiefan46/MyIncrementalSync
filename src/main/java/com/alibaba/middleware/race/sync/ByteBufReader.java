@@ -2,9 +2,7 @@ package com.alibaba.middleware.race.sync;
 
 import java.io.IOException;
 
-import com.alibaba.middleware.race.sync.codec.RecordLogCodec2;
-import com.alibaba.middleware.race.sync.model.RecordLog;
-import com.alibaba.middleware.race.sync.model.Table;
+import com.alibaba.middleware.race.sync.codec.RecordLogCodec3;
 import com.generallycloud.baseio.buffer.ByteBuf;
 
 /**
@@ -12,18 +10,18 @@ import com.generallycloud.baseio.buffer.ByteBuf;
  */
 public class ByteBufReader {
 
-	private RecordLogCodec2 codec = new RecordLogCodec2();
+	private RecordLogCodec3 codec = new RecordLogCodec3();
 
-	public boolean read(Table table, ByteBuf buf, byte[] tableSchema, RecordLog r,int startId,int endId)
+	public void read(Context context, ReadTask task,byte[] tableSchema)
 			throws IOException {
+		ByteBuf buf = task.getBuf();
+		int version = task.getVersion();
 		byte[] readBuffer = buf.array();
-		int offset = buf.position();
-		if (!buf.hasRemaining()) {
-			return false;
+		int off = 0;
+		int limit = buf.limit();
+		for(;off < limit;){
+			off = codec.decode(context,version, readBuffer, tableSchema, off) + 1;
 		}
-		int off = codec.decode(table, readBuffer, tableSchema, offset, r,startId,endId);
-		buf.position(off + 1);
-		return r.isRead();
 	}
 
 }
