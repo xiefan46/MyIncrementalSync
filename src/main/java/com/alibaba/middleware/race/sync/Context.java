@@ -74,12 +74,8 @@ public class Context {
 		return mainThread;
 	}
 
-	public byte[] getRecord(int i) {
-		Record record = recordMap.get(i);
-		if (record.getPower() == 1) {
-			return record.getColumns();
-		}
-		return null;
+	public byte[] getRecord(int pk) {
+		return recordMap.getResult(pk);
 	}
 
 	/**

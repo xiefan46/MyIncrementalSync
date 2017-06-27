@@ -2,7 +2,6 @@ package com.alibaba.middleware.race.sync.codec;
 
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.Table;
 import com.alibaba.middleware.race.sync.util.RecordMap;
 
@@ -55,7 +54,7 @@ public class RecordLogCodec3 {
 			off = end + 1;
 			if (beforePk != pk) {
 				if (inRange(beforePk, startId, endId)) {
-					recordMap.get(beforePk).powerDecrement();
+					recordMap.powerDecrement(beforePk);
 				}
 				return findNextChar(data, end, '\n');
 			} else {
@@ -63,8 +62,7 @@ public class RecordLogCodec3 {
 					return findNextChar(data, end, '\n');
 				}
 			}
-			Record record = recordMap.get(pk);
-			record.lockRecord();
+			recordMap.lockRecord(pk);
 			for (;;) {
 				end = findNextChar(data, off, ':');
 				byte name = getName(table, data, off, end - off);
@@ -72,10 +70,10 @@ public class RecordLogCodec3 {
 				end = findNextChar(data, off, '|');
 				off = end + 1;
 				end = findNextChar(data, off, '|');
-				record.setColumn(name, v, data, off, end - off);
+				recordMap.setColumn(pk,name, v, data, off, end - off);
 				off = end + 1;
 				if (data[off] == '\n') {
-					record.releaseRecordLock();
+					recordMap.releaseRecordLock(pk);
 					return off;
 				}
 			}
@@ -86,7 +84,7 @@ public class RecordLogCodec3 {
 			end = findNextChar(data, off, '|');
 			int pk = parseLong(data, off, end);
 			if (inRange(pk, startId, endId)) {
-				recordMap.get(pk).powerDecrement();
+				recordMap.powerDecrement(pk);
 			}
 			off = end + table.getDelSkip();
 			return findNextChar(data, off, '\n');
@@ -100,18 +98,17 @@ public class RecordLogCodec3 {
 				return findNextChar(data, end + table.getDelSkip(), '\n');
 			}
 			int [] colsSkip = table.getColumnNameSkip();
-			Record record = recordMap.get(pk);
-			record.powerIncrement();
-			record.lockRecord();
+			recordMap.powerIncrement(pk);
+			recordMap.lockRecord(pk);
 			off = end + 1;
 			byte cIndex = 0;
 			for (;;) {
 				off += colsSkip[cIndex];
 				end = findNextChar(data, off, '|');
-				record.setColumn(cIndex++, v, data, off, end - off);
+				recordMap.setColumn(pk,cIndex++, v, data, off, end - off);
 				off = end + 1;
 				if (data[off] == '\n') {
-					record.releaseRecordLock();
+					recordMap.releaseRecordLock(pk);
 					return off;
 				}
 			}
