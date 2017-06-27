@@ -5,10 +5,8 @@ import java.io.IOException;
 
 import com.alibaba.middleware.race.sync.channel.MuiltFileInputStream;
 import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
-import com.alibaba.middleware.race.sync.common.BufferPool;
-import com.alibaba.middleware.race.sync.common.RangeSearcher;
 import com.alibaba.middleware.race.sync.model.Table;
-import com.alibaba.middleware.race.sync.service.CalculateStage;
+import com.alibaba.middleware.race.sync.stage.CalculateStage;
 import com.alibaba.middleware.race.sync.util.ByteArrayBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -4,8 +4,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.alibaba.middleware.race.sync.common.BufferPool;
-
 /**
  * Created by xiefan on 6/24/17.
  */

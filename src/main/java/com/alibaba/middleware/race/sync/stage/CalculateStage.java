@@ -1,6 +1,6 @@
-package com.alibaba.middleware.race.sync.service;
+package com.alibaba.middleware.race.sync.stage;
 
-import com.alibaba.middleware.race.sync.common.RangeSearcher;
+import com.alibaba.middleware.race.sync.RangeSearcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +21,7 @@ public class CalculateStage implements Constants {
 
 	private Context		context			= Context.getInstance();
 
-	public static final int	CALCULATOR_COUNT	= Constants.DEBUG ? 8 : 8;
+	public static final int	CALCULATOR_COUNT	= Constants.DEBUG ? 4 : 4;
 
 	private byte[]			oneCol			= new byte[8];
 

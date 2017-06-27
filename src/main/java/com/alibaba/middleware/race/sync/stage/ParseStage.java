@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.sync.service;
+package com.alibaba.middleware.race.sync.stage;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by xiefan on 6/26/17.
  */
-public class ParseStage {
+public class  ParseStage {
 
-	public static final int					PARSER_NUM		= Constants.DEBUG ? 8 : 8;
+	public static final int					PARSER_NUM		= Constants.DEBUG ? 4 : 4;
 
 	private ParseThread[]					parsers			= new ParseThread[PARSER_NUM];
 

@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.sync.service;
+package com.alibaba.middleware.race.sync.stage;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 

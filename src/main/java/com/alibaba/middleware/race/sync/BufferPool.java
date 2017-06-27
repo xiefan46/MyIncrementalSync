@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.sync.common;
+package com.alibaba.middleware.race.sync;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 public class BufferPool {
 
-	private static Logger					logger	= LoggerFactory
+	private static final Logger				logger	= LoggerFactory
 			.getLogger(BufferPool.class);
 
 	private ConcurrentLinkedQueue<ByteBuffer>	pool		= new ConcurrentLinkedQueue<>();
@@ -19,8 +19,6 @@ public class BufferPool {
 		for (int i = 0; i < poolSize; ++i) {
 			pool.offer(ByteBuffer.allocate(bufferSize));
 		}
-		//logger.info("Buffer pool init");
-		//        stat.info("buffer pool cost {} MB", (poolSize * (long)bufferSize) >> 20);
 	}
 
 	public BufferPool(int poolSize, int bufferSize, String name) {
@@ -34,7 +32,7 @@ public class BufferPool {
 
 	private int count = 5;
 
-	public ByteBuffer getBufferWait() {
+	public ByteBuffer allocate() {
 		ByteBuffer byteBuffer = pool.poll();
 		while (byteBuffer == null) {
 			try {
@@ -49,7 +47,7 @@ public class BufferPool {
 		return byteBuffer;
 	}
 
-	public void freeBuffer(ByteBuffer buffer) {
+	public void free(ByteBuffer buffer) {
 		buffer.clear();
 		pool.offer(buffer);
 	}

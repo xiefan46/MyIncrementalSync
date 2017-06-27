@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.sync.service;
+package com.alibaba.middleware.race.sync.stage;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.common.RangeSearcher;
+import com.alibaba.middleware.race.sync.RangeSearcher;
 import com.alibaba.middleware.race.sync.map.ArrayHashMap2;
 import com.alibaba.middleware.race.sync.model.result.ParseResult;
 import com.alibaba.middleware.race.sync.model.result.CalculateResult;
@@ -76,7 +76,7 @@ public class Calculator implements Runnable, Constants {
 			curBlockId++;
 			for (ByteBuffer buffer : task.getList()) {
 				dealRecord(buffer);
-				Context.getInstance().getRecordLogPool().freeBuffer(buffer);
+				Context.getInstance().getRecordLogPool().free(buffer);
 			}
 		}
 	}

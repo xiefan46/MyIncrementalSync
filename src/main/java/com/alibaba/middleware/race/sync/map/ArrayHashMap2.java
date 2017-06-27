@@ -1,8 +1,6 @@
 package com.alibaba.middleware.race.sync.map;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.alibaba.middleware.race.sync.model.Table;
 import com.generallycloud.baseio.common.Logger;

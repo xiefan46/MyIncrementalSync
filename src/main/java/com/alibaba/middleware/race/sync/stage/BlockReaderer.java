@@ -1,9 +1,8 @@
-package com.alibaba.middleware.race.sync.service;
+package com.alibaba.middleware.race.sync.stage;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.alibaba.middleware.race.sync.common.BufferPool;
+import com.alibaba.middleware.race.sync.BufferPool;
 import com.alibaba.middleware.race.sync.model.result.ReadResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +41,7 @@ public class BlockReaderer extends Thread {
 		MuiltFileInputStream muiltFileInputStream = context.getMuiltFileInputStream();
 		int blockId = 0;
 		for (; muiltFileInputStream.hasRemaining();) {
-			ByteBuffer buf = bufferPool.getBufferWait();
+			ByteBuffer buf = bufferPool.allocate();
 			/*
 			 * if (buf == null) { Thread.currentThread().sleep(10); continue;
 			 * }

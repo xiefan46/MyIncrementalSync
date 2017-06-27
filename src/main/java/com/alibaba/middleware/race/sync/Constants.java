@@ -10,7 +10,7 @@ public interface Constants {
 	// 工作主目录
 	// String TESTER_HOME = "/Users/wanshao/work/middlewareTester";
 	// 赛题数据
-	String	DATA_HOME		= "/home/admin/canal_data";
+	String	DATA_HOME		= "/home/admin/canal_data_small";
 	// teamCode
 	String	TEAMCODE		= "737049rihy";
 	// 结果文件目录

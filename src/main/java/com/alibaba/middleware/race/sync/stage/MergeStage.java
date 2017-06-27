@@ -1,8 +1,8 @@
-package com.alibaba.middleware.race.sync.service;
+package com.alibaba.middleware.race.sync.stage;
 
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
-import com.alibaba.middleware.race.sync.common.RangeSearcher;
+import com.alibaba.middleware.race.sync.RangeSearcher;
 import com.alibaba.middleware.race.sync.map.ArrayHashMap;
 import com.alibaba.middleware.race.sync.map.ArrayHashMap2;
 import com.alibaba.middleware.race.sync.model.result.CalculateResult;

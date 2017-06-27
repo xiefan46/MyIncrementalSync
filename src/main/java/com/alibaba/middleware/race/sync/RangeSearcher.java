@@ -1,6 +1,4 @@
-package com.alibaba.middleware.race.sync.common;
-
-import org.omg.Messaging.SYNC_WITH_TRANSPORT;
+package com.alibaba.middleware.race.sync;
 
 import java.util.TreeMap;
 

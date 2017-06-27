@@ -1,15 +1,11 @@
 package com.alibaba.middleware.race.sync.map;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.alibaba.middleware.race.sync.model.Table;
 import com.generallycloud.baseio.common.Logger;
 import com.generallycloud.baseio.common.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * Created by xiefan on 6/24/17.

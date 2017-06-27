@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.sync.service;
+package com.alibaba.middleware.race.sync.stage;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -8,8 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.codec.RecordLogCodec2;
-import com.alibaba.middleware.race.sync.common.BufferPool;
-import com.alibaba.middleware.race.sync.common.RangeSearcher;
+import com.alibaba.middleware.race.sync.BufferPool;
+import com.alibaba.middleware.race.sync.RangeSearcher;
 import com.alibaba.middleware.race.sync.model.result.ReadResult;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.result.ParseResult;
@@ -85,7 +85,7 @@ public class ParseThread implements Runnable, Constants {
 						}
 						dealResult(readResult);
 						Context.getInstance().getBlockBufferPool()
-								.freeBuffer(readResult.getBuffer());
+								.free(readResult.getBuffer());
 					} else {
 						Thread.currentThread().sleep(10);
 					}
@@ -189,7 +189,7 @@ public class ParseThread implements Runnable, Constants {
 
 	private void reset(ReadResult result) {
 		for (int i = 0; i < partitions.length; i++) {
-			partitions[i] = recordLogBufferPool.getBufferWait();
+			partitions[i] = recordLogBufferPool.allocate();
 			partitions[i].clear();
 			parseResults[i] = new ParseResult(result.getId());
 		}

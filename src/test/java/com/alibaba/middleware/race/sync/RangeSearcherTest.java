@@ -1,6 +1,5 @@
 package com.alibaba.middleware.race.sync;
 
-import com.alibaba.middleware.race.sync.common.RangeSearcher;
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;

@@ -3,10 +3,10 @@ package com.alibaba.middleware.race.sync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.middleware.race.sync.service.CalculateStage;
-import com.alibaba.middleware.race.sync.service.MergeStage;
-import com.alibaba.middleware.race.sync.service.ParseStage;
-import com.alibaba.middleware.race.sync.service.ReadStage;
+import com.alibaba.middleware.race.sync.stage.CalculateStage;
+import com.alibaba.middleware.race.sync.stage.MergeStage;
+import com.alibaba.middleware.race.sync.stage.ParseStage;
+import com.alibaba.middleware.race.sync.stage.ReadStage;
 
 /**
  * @author wangkai
