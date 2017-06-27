@@ -15,28 +15,30 @@
  */
 package com.alibaba.middleware.race.sync.util;
 
+import java.util.concurrent.atomic.AtomicIntegerArray;
+
 /**
  * @author wangkai
  *
  */
 public class RecordMap {
 
-	private int			cols;
+	private int				cols;
 
-	private int			recordLen;
+	private int				recordLen;
 
-	private byte[]		data;
+	private byte[]			data;
 
-	private int[]			powers;
+	private int[]				powers;
 
-	private AtomicLongArray lock;
+	private AtomicIntegerArray	lock;
 
-	private int[]			versions;
+	private int[]				versions;
 
-	private int			capacity;
+	private int				capacity;
 
-	private int			off;
-	
+	private int				off;
+
 	public RecordMap(int capacity, int off, int cols) {
 		this.off = off;
 		this.cols = cols;
@@ -49,7 +51,7 @@ public class RecordMap {
 		this.data = new byte[capacity * recordLen];
 		this.versions = new int[cols * capacity];
 		this.powers = new int[capacity];
-		this.lock = new AtomicLongArray(capacity);
+		this.lock = new AtomicIntegerArray(capacity);
 	}
 
 	public int getResult(int pk) {
@@ -79,18 +81,18 @@ public class RecordMap {
 	}
 
 	private void lockRecordByIdx(int idx) {
-		AtomicLongArray lock = this.lock;
-		if (!lock.compareAndSet(idx,0, 1)) {
-			for (; lock.compareAndSet(idx,0, 1);) {
+		AtomicIntegerArray lock = this.lock;
+		if (!lock.compareAndSet(idx, 0, 1)) {
+			for (; lock.compareAndSet(idx, 0, 1);) {
 			}
 		}
 	}
 
 	public void lockRecord(int pk) {
 		int idx = ix(pk);
-		AtomicLongArray lock = this.lock;
-		if (!lock.compareAndSet(idx,0, 1)) {
-			for (; lock.compareAndSet(idx,0, 1);) {
+		AtomicIntegerArray lock = this.lock;
+		if (!lock.compareAndSet(idx, 0, 1)) {
+			for (; lock.compareAndSet(idx, 0, 1);) {
 			}
 		}
 	}
