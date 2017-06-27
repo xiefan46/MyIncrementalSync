@@ -61,10 +61,10 @@ public class Record {
 			return;
 		}
 		versions[name] = version;
-		int tOff = name * 8;
-		src[tOff++] = (byte)len;
-		int end = off + len;
 		byte [] target = this.columns;
+		int tOff = name * 8;
+		target[tOff++] = (byte)len;
+		int end = off + len;
 		for (int i = off; i < end; i++) {
 			target[tOff++] = src[i];
 		}
