@@ -89,23 +89,28 @@ public class Client {
 		context.addSessionEventListener(new LoggerSocketSEListener());
 
 		context.setProtocolFactory(new FixedLengthProtocolFactory());
-        Thread.sleep(3000);
+		Thread.sleep(3000);
 		connector.connect();
 	}
-	
-	
-	private void writeToFile(byte []array,int off,int len) {
+
+	private void writeToFile(byte[] array, int off, int len) {
 		OutputStream outputStream = null;
 		String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
 		try {
-//			printResult(buf);
+			if (!Constants.ON_LINE)
+				printMD5(array, 0, len);
 			long startTime = System.currentTimeMillis();
+			File f = new File(fileName);
+			if (f.exists())
+				f.delete();
+			f.createNewFile();
 			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
 			raf.setLength(0);
 			outputStream = new RAFOutputStream(raf);
 			outputStream.write(array, 0, len);
 			outputStream.flush();
-			logger.info("写结果文件到本地文件系统耗时 : {},{}", System.currentTimeMillis() - startTime,len);
+			logger.info("写结果文件到本地文件系统耗时 : {}. 文件大小 : {}", System.currentTimeMillis() - startTime,
+					len);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		} finally {
@@ -115,33 +120,36 @@ public class Client {
 
 	private void writeToFile(ByteBuf buf) throws IOException {
 		if (Constants.ENABLE_COMPRESS) {
-			ByteArrayInputStream inputStream = new ByteArrayInputStream(buf.array(),0,buf.limit());
-			Lz4CompressedInputStream lz4InputStream = new Lz4CompressedInputStream(inputStream, 1024 * 512);
-			byte [] read = new byte[1024 * 512];
+			ByteArrayInputStream inputStream = new ByteArrayInputStream(buf.array(), 0,
+					buf.limit());
+			Lz4CompressedInputStream lz4InputStream = new Lz4CompressedInputStream(inputStream,
+					1024 * 512);
+			byte[] read = new byte[1024 * 512];
 			String fileName = Constants.RESULT_HOME + "/" + Constants.RESULT_FILE_NAME;
 			RandomAccessFile raf = new RandomAccessFile(new File(fileName), "rw");
-			OutputStream outputStream = new RAFOutputStream(raf);;
+			OutputStream outputStream = new RAFOutputStream(raf);
+			;
 			raf.setLength(0);
 			long startTime = System.currentTimeMillis();
-			for(;;){
+			for (;;) {
 				int len = lz4InputStream.read(read);
 				if (len == -1) {
 					break;
 				}
 				outputStream.write(read, 0, len);
 			}
-			logger.info("写结果文件到本地文件系统耗时 : {},{}", System.currentTimeMillis() - startTime);
-		}else{
+			logger.info("写结果文件到本地文件系统耗时 : {}", System.currentTimeMillis() - startTime);
+		} else {
 			writeToFile(buf.array(), 0, buf.limit());
 		}
 	}
 
-	private void printResult(ByteBuf buf) {
-		String str = new String(buf.array(), 0, buf.limit());
-		logger.info("r:");
-		logger.info(str);
+	private void printMD5(byte[] array, int offset, int length) {
+		//String str = new String(array, 0, length);
+		//logger.info("r:");
+		//logger.info(str);
 		//generate md5
-		String md5 = MD5Token.getInstance().getLongToken(buf.array(), 0, buf.limit());
+		String md5 = MD5Token.getInstance().getLongToken(array, 0, length);
 		logger.info("Result file md5 : " + md5);
 	}
 

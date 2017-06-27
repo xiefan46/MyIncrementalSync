@@ -36,7 +36,7 @@ public class Server {
 
 	private SocketChannelContext	socketChannelContext;
 
-	private static Logger		logger		= LoggerFactory.getLogger(Server.class);
+	private static Logger		logger	= LoggerFactory.getLogger(Server.class);
 
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
@@ -46,8 +46,10 @@ public class Server {
 		logger.info("----------------server start-----------------");
 		initProperties();
 		Server server = get();
+		long start = System.currentTimeMillis();
 		try {
 			server.startServer1(args, 5527);
+			logger.info("Server端完成所有处理,耗时 : {}", System.currentTimeMillis() - start);
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -144,10 +146,12 @@ public class Server {
 			ByteArrayBuffer target = new ByteArrayBuffer(1024 * 1024 * 8, 4);
 
 			int cBuffer = (int) (1024 * 512 * 1.005);
-			
-			Lz4CompressedOutputStream outputStream = new Lz4CompressedOutputStream(target,cBuffer);
 
-			SingleBufferedOutputStream buffer = new SingleBufferedOutputStream(outputStream, 1024 * 512);
+			Lz4CompressedOutputStream outputStream = new Lz4CompressedOutputStream(target,
+					cBuffer);
+
+			SingleBufferedOutputStream buffer = new SingleBufferedOutputStream(outputStream,
+					1024 * 512);
 
 			RecordUtil.writeToByteArrayBuffer(context, buffer);
 
@@ -156,7 +160,8 @@ public class Server {
 			writeToClient(target);
 		} else {
 
-			ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(Constants.RESULT_LENGTH + 4, 4);
+			ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(Constants.RESULT_LENGTH + 4,
+					4);
 
 			RecordUtil.writeToByteArrayBuffer(context, byteArrayBuffer);
 
@@ -172,7 +177,8 @@ public class Server {
 
 		SocketChannelContext channelContext = Server.get().getSocketChannelContext();
 
-		Map<Integer, SocketSession> sessions = channelContext.getSessionManager().getManagedSessions();
+		Map<Integer, SocketSession> sessions = channelContext.getSessionManager()
+				.getManagedSessions();
 
 		if (sessions.size() == 0) {
 			throw new RuntimeException("null client");

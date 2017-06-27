@@ -2,6 +2,8 @@ package com.alibaba.middleware.race.sync;
 
 import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
 import com.alibaba.middleware.race.sync.model.Table;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author wangkai
@@ -13,12 +15,15 @@ public class Context {
 	private int				startId;
 	private MultiFileInputStream	readChannel;
 	private Table				table;
+
 	private MainThread			mainThread = new MainThread(this);
 	private int				recalThreadNum	= 2;
+
 	private int				parseThreadNum	= 2;
 	private int				blockSize = (int) (1024 * 1024 * 4);
 	private Dispatcher			dispatcher;
 	private ByteBufPool			byteBufPool;
+	private static final Logger	logger		= LoggerFactory.getLogger(Context.class);
 
 	public Context(long endId, long startId) {
 		this.endId = (int) endId;
@@ -26,7 +31,13 @@ public class Context {
 	}
 
 	public void initialize() {
-		setTable(Table.newOffline());
+		if (Constants.ON_LINE) {
+			setTable(Table.newOnline());
+			logger.info("使用online模式初始化table");
+		} else {
+			setTable(Table.newOffline());
+			logger.info("使用offline模式初始化table,提交到线上记得切换!!!!!!");
+		}
 		dispatcher = new Dispatcher(this);
 		byteBufPool = new ByteBufPool(parseThreadNum * 2, blockSize);
 	}
