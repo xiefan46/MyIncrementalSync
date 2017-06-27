@@ -21,7 +21,7 @@ public class CalculateStage implements Constants {
 
 	private Context		context			= Context.getInstance();
 
-	public static final int	CALCULATOR_COUNT	= Constants.DEBUG ? 8 : 16;
+	public static final int	CALCULATOR_COUNT	= Constants.DEBUG ? 16 : 16;
 
 	private byte[]			oneCol			= new byte[8];
 

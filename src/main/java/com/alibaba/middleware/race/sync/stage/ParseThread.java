@@ -189,7 +189,9 @@ public class ParseThread implements Runnable, Constants {
 
 	private void reset(ReadResult result) {
 		for (int i = 0; i < partitions.length; i++) {
+			System.out.println("before allocate");
 			partitions[i] = recordLogBufferPool.allocate();
+			System.out.println("after allocate");
 			partitions[i].clear();
 			parseResults[i] = new ParseResult(result.getId());
 		}
