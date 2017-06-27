@@ -39,7 +39,6 @@ public class ReaderThread extends WorkThread {
 		for (; channel.hasRemaining();) {
 			ReadTask task = byteBufPool.allocate(); 
 			if (task == null) {
-				Thread.currentThread().sleep(10);
 				continue;
 			}
 			ByteBuf buf = task.getBuf();
