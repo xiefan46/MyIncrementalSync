@@ -45,7 +45,7 @@ public class ReaderThread extends WorkThread {
 			} else {
 				buf.flip();
 			}
-			
+			//  what  happens if offer buff  fail ? assume parser is faster than reader thread
 			parseThreads[parseIndex++].offerBuf(buf);
 			if (parseIndex == parseThreads.length) {
 				parseIndex = 0;
