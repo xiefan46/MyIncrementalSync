@@ -37,7 +37,9 @@ public class Context {
 			setTable(Table.newOffline());
 			logger.info("使用offline模式初始化table,提交到线上记得切换!!!!!!");
 		}
+		long startTime = System.currentTimeMillis();
 		recordMap = new RecordMap(endId - startId, startId,table.getColumnSize());
+		logger.info("record map init:{}",(System.currentTimeMillis() - startTime));
 		byteBufPool = new ByteBufPool(parseThreadNum * 4, blockSize);
 	}
 
@@ -71,10 +73,6 @@ public class Context {
 
 	public MainThread getMainThread() {
 		return mainThread;
-	}
-
-	public byte[] getRecord(int pk) {
-		return recordMap.getResult(pk);
 	}
 
 	/**

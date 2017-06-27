@@ -15,98 +15,115 @@
  */
 package com.alibaba.middleware.race.sync.util;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * @author wangkai
  *
  */
 public class RecordMap {
 
-	private int cols;
-	
-	private byte [] [] columns;
-	
-	private AtomicInteger [] powers;
-	
-	private AtomicBoolean [] locks;
-	
-	private int [] versions;
+	private int			cols;
 
-	private int	capacity;
+	private int			recordLen;
 
-	private int	off;
+	private byte[]		data;
 
-	public RecordMap(int capacity, int off,int cols) {
+	private int[]			powers;
+
+	private AtomicLongArray lock;
+
+	private int[]			versions;
+
+	private int			capacity;
+
+	private int			off;
+	
+	public RecordMap(int capacity, int off, int cols) {
 		this.off = off;
 		this.cols = cols;
 		this.capacity = capacity;
 		this.init(capacity, cols);
 	}
-	
-	private void init(int capacity,int cols){
-		this.columns = new byte[capacity][];
+
+	private void init(int capacity, int cols) {
+		this.recordLen = 8 * cols;
+		this.data = new byte[capacity * recordLen];
 		this.versions = new int[cols * capacity];
-		this.powers = new AtomicInteger[capacity];
-		this.locks = new AtomicBoolean[capacity];
-		for (int i = 0; i < capacity; i++) {
-			columns[i] = new byte[cols * 8];
-			powers[i] = new AtomicInteger();
-			locks[i] = new AtomicBoolean();
-		}
+		this.powers = new int[capacity];
+		this.lock = new AtomicLongArray(capacity);
 	}
 
-	public byte[] getResult(int pk) {
+	public int getResult(int pk) {
 		int idx = ix(pk);
-		if (powers[idx].get() == 1) {
-			return columns[idx];
+		if (powers[idx] == 1) {
+			return idx * recordLen;
 		}
-		return null;
-	}
-
-	public byte[] getColumns(int pk) {
-		return columns[ix(pk)];
+		return -1;
 	}
 
 	public void powerIncrement(int pk) {
-		powers[ix(pk)].incrementAndGet();
+		int idx = ix(pk);
+		lockRecordByIdx(idx);
+		powers[idx]++;
+		releaseRecordLockByIdx(idx);
 	}
-	
+
 	public void powerDecrement(int pk) {
-		powers[ix(pk)].decrementAndGet();
+		int idx = ix(pk);
+		lockRecordByIdx(idx);
+		powers[idx]--;
+		releaseRecordLockByIdx(idx);
 	}
-	
-	private int ix(int pk){
+
+	private int ix(int pk) {
 		return pk - off;
 	}
 
-	public void lockRecord(int pk){
-		AtomicBoolean lock = locks[ix(pk)];
-		if (!lock.compareAndSet(false, true)) {
-			for(;lock.compareAndSet(false, true);){
+	private void lockRecordByIdx(int idx) {
+		AtomicLongArray lock = this.lock;
+		if (!lock.compareAndSet(idx,0, 1)) {
+			for (; lock.compareAndSet(idx,0, 1);) {
 			}
 		}
 	}
-	
-	public void releaseRecordLock(int pk){
-		locks[ix(pk)].set(false);
+
+	public void lockRecord(int pk) {
+		int idx = ix(pk);
+		AtomicLongArray lock = this.lock;
+		if (!lock.compareAndSet(idx,0, 1)) {
+			for (; lock.compareAndSet(idx,0, 1);) {
+			}
+		}
 	}
-	
-	public void setColumn(int pk,byte name,int version, byte[] src, int off, int len){
+
+	public void releaseRecordLock(int pk) {
+		lock.set(ix(pk), 0);
+	}
+
+	private void releaseRecordLockByIdx(int idx) {
+		lock.set(idx, 0);
+	}
+
+	public void setColumn(int pk, byte name, int version, byte[] src, int off, int len) {
 		int iPk = ix(pk);
 		int vI = iPk * cols + name;
 		if (version < versions[vI]) {
 			return;
 		}
 		versions[vI] = version;
-		int tOff = name * 8;
-		byte [] target = columns[iPk];
-		target[tOff++] = (byte)len;
+		int tOff = name * 8 + iPk * recordLen;
+		byte[] target = data;
+		target[tOff++] = (byte) len;
 		int end = off + len;
 		for (int i = off; i < end; i++) {
 			target[tOff++] = src[i];
 		}
+	}
+
+	/**
+	 * @return the data
+	 */
+	public byte[] getData() {
+		return data;
 	}
 
 }

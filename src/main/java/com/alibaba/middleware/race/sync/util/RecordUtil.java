@@ -34,22 +34,22 @@ public class RecordUtil {
 	private static final byte[]	NUM_MAPPING			= new byte[] { '0', '1', '2', '3', '4',
 			'5', '6', '7', '8', '9' };
 
-	public static void formatResultString(int cols,long id, byte[] record, ByteBuffer buffer) {
+	public static void formatResultString(byte[] data,int pk,int off,int cols,ByteBuffer buffer) {
 		buffer.clear();
 		byte[] idCache = ID_CACHE;
-		int off = valueOfLong(id, idCache);
-		buffer.put(idCache, off + 1, LONG_LEN - off);
+		int pkOff = valueOfLong(pk, idCache);
+		buffer.put(idCache, pkOff + 1, LONG_LEN - pkOff);
 		buffer.put(FIELD_SEPERATOR_BYTE);
 		int len = cols - 1;
 		for (byte i = 0; i < len; i++) {
-			int tOff = i*8;
-			int tLen = record[tOff++];
-			buffer.put(record,tOff,tLen);
+			int tOff = i*8 + off;
+			int tLen = data[tOff++];
+			buffer.put(data,tOff,tLen);
 			buffer.put(FIELD_SEPERATOR_BYTE);
 		}
-		int tOff = len*8;
-		int tLen = record[tOff++];
-		buffer.put(record,tOff,tLen);
+		int tOff = len*8 + off;
+		int tLen = data[tOff++];
+		buffer.put(data,tOff,tLen);
 		buffer.put(FIELD_N_BYTE);
 	}
 
@@ -82,17 +82,15 @@ public class RecordUtil {
 		int all = 0;
 		int cols = context.getTable().getColumnSize();
 		ByteBuffer array = ByteBuffer.allocate(1024 * 1024 * 1);
+		RecordMap recordMap = context.getRecordMap();
+		byte [] data = recordMap.getData();
 		for (int i = startId + 1; i < endId; i++) {
-			byte [] r = context.getRecord(i);
-			if (r == null) {
+			int off = recordMap.getResult(i);
+			if (off == -1) {
 				continue;
 			}
-//			if (r.getAlterType() != Constants.INSERT) {
-//				throw new RuntimeException(
-//						"Error alter type in result. Type : " + (char) r.getAlterType());
-//			}
 			all++;
-			RecordUtil.formatResultString(cols,i, r, array);
+			RecordUtil.formatResultString(data, i,off, cols, array);
 			buffer.write(array.array(), 0, array.position());
 		}
 		logger.info("result size:{}", all);
