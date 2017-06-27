@@ -35,7 +35,7 @@ public class Context {
 	private BufferPool			blockBufferPool	= new BufferPool(512, 1024 * 1024,
 			"block pool");
 
-	private BufferPool			recordLogBufferPool	= new BufferPool(512, 512 * 1024,
+	private BufferPool			recordLogBufferPool	= new BufferPool(1024, 512 * 1024,
 			"record pool");
 
 	private MuiltFileInputStream	muiltFileInputStream;

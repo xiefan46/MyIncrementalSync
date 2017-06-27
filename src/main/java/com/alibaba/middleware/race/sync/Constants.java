@@ -49,7 +49,7 @@ public interface Constants {
 
 	byte		END			= -1;
 
-	boolean	DEBUG		= false;
+	boolean	DEBUG		= true;
 
 	int		RESULT_LENGTH	= 38334025;
 }

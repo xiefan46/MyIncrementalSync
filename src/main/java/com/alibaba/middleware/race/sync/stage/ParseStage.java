@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
  */
 public class  ParseStage {
 
-	public static final int					PARSER_NUM		= Constants.DEBUG ? 4 : 4;
+	public static final int					PARSER_NUM		= Constants.DEBUG ? 8 : 8;
 
 	private ParseThread[]					parsers			= new ParseThread[PARSER_NUM];
 
