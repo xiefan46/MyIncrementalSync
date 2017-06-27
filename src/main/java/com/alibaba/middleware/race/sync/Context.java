@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
-import com.alibaba.middleware.race.sync.model.Record;
 import com.alibaba.middleware.race.sync.model.Table;
 import com.alibaba.middleware.race.sync.util.RecordMap;
 
@@ -19,7 +18,7 @@ public class Context {
 	private MultiFileInputStream	readChannel;
 	private Table				table;
 	private MainThread			mainThread = new MainThread(this);
-	private int				parseThreadNum	= 8;
+	private int				parseThreadNum	= Runtime.getRuntime().availableProcessors();
 	private int				blockSize = (int) (1024 * 1024 * 4);
 	private RecordMap			recordMap;
 	private ByteBufPool			byteBufPool;
