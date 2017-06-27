@@ -10,7 +10,7 @@ public interface Constants {
 	// 工作主目录
 	// String TESTER_HOME = "/Users/wanshao/work/middlewareTester";
 	// 赛题数据
-	String	DATA_HOME		= "/home/admin/canal_data_small";
+	String	DATA_HOME		= "/home/admin/canal_data";
 	// teamCode
 	String	TEAMCODE		= "737049rihy";
 	// 结果文件目录
@@ -26,7 +26,6 @@ public interface Constants {
 	//// 工作主目录
 	String	TESTER_HOME	= "/home/admin";
 
-
 	String	RESULT_FILE	= "/home/admin/sync_results/" + TEAMCODE + "/Result.rs";
 
 	byte		INSERT		= 'I';
@@ -41,11 +40,6 @@ public interface Constants {
 
 	byte		END			= -1;
 
-
-
 	int		RESULT_LENGTH	= 38334025;
-
-
-
 
 }

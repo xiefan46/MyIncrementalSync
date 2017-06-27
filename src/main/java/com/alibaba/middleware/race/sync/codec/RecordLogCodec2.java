@@ -97,7 +97,7 @@ public class RecordLogCodec2 {
 			end = findNextChar(data, off, '|');
 			r.setPk(parseLong(data, off, end));
 			if (!inRange(r.getPk(), startId, endId)) {
-				return findNextChar(data, end + table.getDelSkip(), '\n');
+				return findNextChar1(data, end , table.getDelSkip(), '\n');
 			}
 			r.setRead(true);
 			int[] colsSkip = table.getColumnNameSkip();
@@ -126,10 +126,31 @@ public class RecordLogCodec2 {
 	}
 
 	private int findNextChar(byte[] data, int offset, char c) {
-		for (;;) {
-			if (data[++offset] == c) {
-				return offset;
+		int start = offset;
+		try {
+			for (; ; ) {
+				if (data[++offset] == c) {
+					return offset;
+				}
 			}
+		}catch (Exception e){
+			int a=0;
+			throw new RuntimeException(e);
+		}
+	}
+
+	private int findNextChar1(byte[] data, int end,int skip, char c) {
+		int offset = end + skip;
+		int start = offset;
+		try {
+			for (; ; ) {
+				if (data[++offset] == c) {
+					return offset;
+				}
+			}
+		}catch (Exception e){
+			int a=0;
+			throw new RuntimeException(e);
 		}
 	}
 

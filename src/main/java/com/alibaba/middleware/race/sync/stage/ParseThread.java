@@ -63,7 +63,8 @@ public class ParseThread implements Runnable, Constants {
 
 		parseResults = new ParseResult[Config.CALCULATOR_COUNT];
 
-		this.recordPool = new BufferPool(Config.RECORD_BUFFER_COUNT, Config.RECORD_BUFFER_SIZE);
+		this.recordPool = new BufferPool(Config.RECORD_BUFFER_COUNT, Config.RECORD_BUFFER_SIZE,
+				"" + "parse-" + Thread.currentThread().getId());
 
 		int cols = table.getColumnSize();
 
@@ -84,6 +85,12 @@ public class ParseThread implements Runnable, Constants {
 							parseStage.notifyStop();
 							break;
 						}
+						int oldPos = readResult.getBuffer().position();
+						/*logger.info("deal block : {}. block end with n : {},buffer pos : {}",
+								readResult.getId(),
+								readResult.getBuffer()
+										.get(readResult.getBuffer().limit() - 1) == '\n',
+								readResult.getBuffer().position());*/
 						dealResult(readResult);
 						Context.getInstance().getBlockBufferPool()
 								.free(readResult.getBuffer());
@@ -115,6 +122,7 @@ public class ParseThread implements Runnable, Constants {
 			 * logger.info("deal count : {}", count.get()); }
 			 */
 			/*
+			 * =
 			 * logger.info("get record. Alter type : {}. Pk : {} OldPk : {}",
 			 * (char) recordLog.getAlterType(), recordLog.getPk(),
 			 * recordLog.getBeforePk());
@@ -237,9 +245,10 @@ public class ParseThread implements Runnable, Constants {
 		public boolean read(Table table, ByteBuffer buf, byte[] tableSchema, RecordLog r)
 				throws IOException {
 			int oldPos = buf.position();
-			logger.info("buffer. limit : {}, position : {},capacity : {}",
-					buf.limit(), buf.position(), buf.capacity());
-			System.out.println("last char : n ? " + (buf.get(buf.limit() - 1) == '\n'));
+
+			/*logger.info("buffer. limit : {}, position : {},capacity : {}", buf.limit(),
+					buf.position(), buf.capacity());
+			System.out.println("last char : n ? " + (buf.get(buf.limit() - 1) == '\n'));*/
 			buf.position(oldPos);
 			byte[] readBuffer = buf.array();
 			int offset = buf.position();
@@ -247,6 +256,7 @@ public class ParseThread implements Runnable, Constants {
 				return false;
 			}
 			int off = codec.decode(table, readBuffer, tableSchema, offset, r, startId, endId);
+			//logger.info("record : {}", new String(readBuffer, offset, off - offset));
 			buf.position(off + 1);
 			return r.isRead();
 		}

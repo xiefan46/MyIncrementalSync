@@ -5,11 +5,13 @@ package com.alibaba.middleware.race.sync;
  */
 public interface Config {
 
+	boolean	DEBUG			= true;
+
 	int		BLOCK_BUFFER_COUNT	= 512;
 
-	int		PARSER_COUNT		= 1;
+	int		PARSER_COUNT		= 16;
 
-	int		CALCULATOR_COUNT	= 1;
+	int		CALCULATOR_COUNT	= 16;
 
 	int		BLOCK_BUFFER_SIZE	= 1024 * 1024;
 
@@ -17,5 +19,4 @@ public interface Config {
 
 	int		RECORD_BUFFER_SIZE	= BLOCK_BUFFER_SIZE * 2 / RECORD_BUFFER_COUNT;
 
-	boolean	DEBUG			= false;
 }
