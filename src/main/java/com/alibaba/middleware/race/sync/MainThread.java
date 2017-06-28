@@ -22,7 +22,7 @@ public class MainThread {
 			long startTime = System.currentTimeMillis();
 			logger.info("--------------Main thread start-----------");
 			execute1(context);
-			logger.info("总耗时：{}",(System.currentTimeMillis()-startTime));
+			logger.info("MainThread总耗时：{}",(System.currentTimeMillis()-startTime));
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}

@@ -27,7 +27,7 @@ public class RecordMap {
 
 	private int				recordLen;
 
-	private byte[]			data;
+	private byte[]				data;
 
 	private byte[]			powers;
 
@@ -82,18 +82,29 @@ public class RecordMap {
 
 	private void lockRecordByIdx(int idx) {
 		AtomicIntegerArray lock = this.lock;
-		if (!lock.compareAndSet(idx, 0, 1)) {
-			for (; lock.compareAndSet(idx, 0, 1);) {
+		try {
+			if (!lock.compareAndSet(idx, 0, 1)) {
+				for (; lock.compareAndSet(idx, 0, 1);) {
+					Thread.currentThread().sleep(10);
+				}
 			}
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
 		}
+
 	}
 
 	public void lockRecord(int pk) {
 		int idx = ix(pk);
 		AtomicIntegerArray lock = this.lock;
-		if (!lock.compareAndSet(idx, 0, 1)) {
-			for (; lock.compareAndSet(idx, 0, 1);) {
+		try {
+			if (!lock.compareAndSet(idx, 0, 1)) {
+				for (; lock.compareAndSet(idx, 0, 1);) {
+					Thread.currentThread().sleep(10);
+				}
 			}
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -115,10 +126,7 @@ public class RecordMap {
 		int tOff = name * 8 + iPk * recordLen;
 		byte[] target = data;
 		target[tOff++] = (byte) len;
-		int end = off + len;
-		for (int i = off; i < end; i++) {
-			target[tOff++] = src[i];
-		}
+		System.arraycopy(src, off, target, tOff, len);
 	}
 
 	/**
