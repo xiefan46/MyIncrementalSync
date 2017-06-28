@@ -41,7 +41,7 @@ public class Context {
 		long startTime = System.currentTimeMillis();
 		recordMap = new RecordMap(endId - startId, startId,table.getColumnSize());
 		logger.info("record map init:{}",(System.currentTimeMillis() - startTime));
-		byteBufPool = new ByteBufPool(parseThreadNum * 8, blockSize);
+		byteBufPool = new ByteBufPool(parseThreadNum * 4, blockSize);
 	}
 
 	public int getEndId() {

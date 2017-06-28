@@ -10,7 +10,7 @@ import com.alibaba.middleware.race.sync.util.RecordMap;
 
 public class ParseThread extends WorkThread {
 
-	private static final int	HEAD_SKIP		= "|mysql-bin.".length();
+	private static final int	HEAD_SKIP		= "|mysql-bin.".length()+8;
 
 	private static final int	I_ID_SKIP		= "I|id:1:1|NULL|".length();
 	
@@ -24,8 +24,6 @@ public class ParseThread extends WorkThread {
 
 	private Context				context;
 	
-	private int					minBinaryIdLen = Integer.MAX_VALUE;
-
 	private BlockingQueue<ReadTask>	tasks		= new ArrayBlockingQueue<>(16);
 
 	public ParseThread(Context context, int index) {
@@ -79,12 +77,7 @@ public class ParseThread extends WorkThread {
 		for(;off < limit;){
 			int startId = context.getStartId();
 			int endId = context.getEndId();
-			int _start = off;
 			off = findNextChar(data, off + HEAD_SKIP, '|');
-			int binaryIdLen = off - _start;
-			if (binaryIdLen < minBinaryIdLen) {
-				minBinaryIdLen = binaryIdLen;
-			}
 			off = TIME_SKIP + tableSchemaLen + off;
 			byte alterType = data[off];
 			if (Constants.UPDATE == alterType) {
@@ -168,11 +161,4 @@ public class ParseThread extends WorkThread {
 		context.getByteBufPool().free(task);
 	}
 
-	/**
-	 * @return the minBinaryIdLen
-	 */
-	public int getMinBinaryIdLen() {
-		return minBinaryIdLen;
-	}
-	
 }
