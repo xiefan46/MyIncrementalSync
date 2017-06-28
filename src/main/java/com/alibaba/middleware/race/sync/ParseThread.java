@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.alibaba.middleware.race.sync.codec.ByteArray2;
 import com.alibaba.middleware.race.sync.model.Table;
-import com.alibaba.middleware.race.sync.util.RecordMap;
+import com.alibaba.middleware.race.sync.util.RecordMap2;
 
 public class ParseThread extends WorkThread {
 
@@ -68,7 +68,7 @@ public class ParseThread extends WorkThread {
 		}
 		Context context = this.context;
 		Table table = context.getTable();
-		RecordMap recordMap = context.getRecordMap();
+		RecordMap2 recordMap = context.getRecordMap();
 		int tableSchemaLen = table.getTableSchemaLen();
 		short version = task.getVersion();
 		byte[] data = task.getBuf().array();
@@ -90,7 +90,8 @@ public class ParseThread extends WorkThread {
 				off = end + 1;
 				if (beforePk != pk) {
 					if (inRange(beforePk, startId, endId)) {
-						recordMap.powerDecrement(beforePk);
+						//recordMap.powerDecrement(beforePk);
+						recordMap.delete(beforePk);
 					}
 					off = findNextChar(data, end, '\n') + 1;
 					continue;
@@ -100,7 +101,7 @@ public class ParseThread extends WorkThread {
 						continue;
 					}
 				}
-				recordMap.lockRecord(pk);
+				//recordMap.lockRecord(pk);
 				for (;;) {
 					end = findNextChar(data, off, ':');
 					byte name = getName(table, data, off, end - off);
@@ -111,7 +112,7 @@ public class ParseThread extends WorkThread {
 					recordMap.setColumn(pk, name, version, data, off, end - off);
 					off = end + 1;
 					if (data[off] == '\n') {
-						recordMap.releaseRecordLock(pk);
+						//recordMap.releaseRecordLock(pk);
 						off++;
 						break;
 					}
@@ -124,7 +125,8 @@ public class ParseThread extends WorkThread {
 				int end = findNextChar(data, off, '|');
 				int pk = parseLong(data, off, end);
 				if (inRange(pk, startId, endId)) {
-					recordMap.powerDecrement(pk);
+					//recordMap.powerDecrement(pk);
+					recordMap.delete(pk);
 				}
 				off = findNextChar(data, end + table.getDelSkip(), '\n') + 1;
 				continue;
@@ -139,8 +141,9 @@ public class ParseThread extends WorkThread {
 					continue;
 				}
 				int[] colsSkip = table.getColumnNameSkip();
-				recordMap.powerIncrement(pk);
-				recordMap.lockRecord(pk);
+				//recordMap.powerIncrement(pk);
+				recordMap.add(pk);
+				//recordMap.lockRecord(pk);
 				off = end + 1;
 				byte cIndex = 0;
 				for (;;) {
@@ -149,7 +152,7 @@ public class ParseThread extends WorkThread {
 					recordMap.setColumn(pk, cIndex++, version, data, off, end - off);
 					off = end + 1;
 					if (data[off] == '\n') {
-						recordMap.releaseRecordLock(pk);
+						//recordMap.releaseRecordLock(pk);
 						off++;
 						break;
 					}

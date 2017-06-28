@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
 import com.alibaba.middleware.race.sync.model.Table;
 import com.alibaba.middleware.race.sync.util.LoggerUtil;
-import com.alibaba.middleware.race.sync.util.RecordMap;
+import com.alibaba.middleware.race.sync.util.RecordMap2;
 
 /**
  * @author wangkai
@@ -17,10 +17,10 @@ public class Context {
 	private int				startId;
 	private MultiFileInputStream	readChannel;
 	private Table				table;
-	private MainThread			mainThread = new MainThread(this);
+	private MainThread			mainThread	= new MainThread(this);
 	private int				parseThreadNum	= Runtime.getRuntime().availableProcessors();
-	private int				blockSize = (int) (1024 * 1024 * 2);
-	private RecordMap			recordMap;
+	private int				blockSize		= (int) (1024 * 1024 * 2);
+	private RecordMap2			recordMap;
 	private ByteBufPool			byteBufPool;
 	private static final Logger	logger		= LoggerUtil.get();
 
@@ -39,8 +39,8 @@ public class Context {
 			logger.info("使用offline模式初始化table,提交到线上记得切换!!!!!!");
 		}
 		long startTime = System.currentTimeMillis();
-		recordMap = new RecordMap(endId - startId, startId,table.getColumnSize());
-		logger.info("record map init:{}",(System.currentTimeMillis() - startTime));
+		recordMap = new RecordMap2(endId - startId, startId, table.getColumnSize());
+		logger.info("record map init:{}", (System.currentTimeMillis() - startTime));
 		byteBufPool = new ByteBufPool(parseThreadNum * 8, blockSize);
 	}
 
@@ -82,12 +82,12 @@ public class Context {
 	public ByteBufPool getByteBufPool() {
 		return byteBufPool;
 	}
-	
+
 	public int getBlockSize() {
 		return blockSize;
 	}
-	
-	public RecordMap getRecordMap() {
+
+	public RecordMap2 getRecordMap() {
 		return recordMap;
 	}
 
