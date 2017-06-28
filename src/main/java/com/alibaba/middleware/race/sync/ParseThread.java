@@ -96,7 +96,7 @@ public class ParseThread extends WorkThread {
 					continue;
 				} else {
 					if (!inRange(pk, startId, endId)) {
-						off = findNextChar(data, end + 10, '\n') + 1;
+						off = findNextChar(data, end + 12, '\n') + 1;
 						continue;
 					}
 				}

@@ -82,10 +82,10 @@ public class RecordUtil {
 	}
 
 	public static void writeToByteArrayBuffer(Context context, OutputStream buffer) throws IOException {
-//		long start = System.currentTimeMillis();
+		long start = System.currentTimeMillis();
 		int startId = (int) context.getStartId();
 		int endId = (int) context.getEndId();
-//		int all = 0;
+		int all = 0;
 		int cols = context.getTable().getColumnSize();
 		byte [] array = new byte [1024];
 		RecordMap recordMap = context.getRecordMap();
@@ -95,10 +95,12 @@ public class RecordUtil {
 			if (off == -1) {
 				continue;
 			}
-//			all++;
+			all++;
 			int len = RecordUtil.formatResultString(data, i,off, cols, array);
 			buffer.write(array, 0, len);
 		}
+		System.out.println("result size:"+all);
+		System.out.println("写结果Buffer耗时 : "+(System.currentTimeMillis() - start));
 //		logger.info("result size:{}. 写结果Buffer耗时 : {}", all,System.currentTimeMillis() - start);
 	}
 
