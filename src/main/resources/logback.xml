@@ -6,7 +6,7 @@
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <charset>UTF-8</charset>
             <pattern><![CDATA[
-             [%d{yyyy-MM-dd HH:mm:ss}]  %-5level %logger{0} - %m%n
+             [%d{yyyy-MM-dd HH:mm:ss.SSS}]  %-5level %logger{0} - %m%n
             ]]></pattern>
         </encoder>
     </appender>

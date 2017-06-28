@@ -5,17 +5,17 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
 import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
+import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
+import com.alibaba.middleware.race.sync.util.LoggerUtil;
 
 /**
  * @author wangkai
  */
 public class MainThread {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private Logger logger = LoggerUtil.get();
 
 	public void execute() {
 		try {

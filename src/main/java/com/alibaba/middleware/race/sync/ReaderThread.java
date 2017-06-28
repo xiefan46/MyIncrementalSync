@@ -1,8 +1,5 @@
 package com.alibaba.middleware.race.sync;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
 import com.generallycloud.baseio.buffer.ByteBuf;
 
@@ -10,8 +7,6 @@ import com.generallycloud.baseio.buffer.ByteBuf;
  * @author wangkai
  */
 public class ReaderThread extends WorkThread {
-
-	private Logger			logger	= LoggerFactory.getLogger(getClass());
 
 	private Context		context;
 
@@ -64,11 +59,6 @@ public class ReaderThread extends WorkThread {
 
 	public Context getContext() {
 		return context;
-	}
-
-	@Override
-	Logger getLogger() {
-		return logger;
 	}
 
 }

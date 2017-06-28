@@ -34,8 +34,8 @@ public class MainThreadTest {
 //		ThreadUtil.execute(new PageCacheHelper());
 		String schema = "middleware3";
 		String table = "student";
-		long startId = 100000;
-		long endId = 2000000;
+		int startId = 100000;
+		int endId = 2000000;
 //		startId = 170000;
 //		endId = 170100;
 		ThreadUtil.execute(new JvmUsingState());

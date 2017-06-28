@@ -19,8 +19,7 @@ import com.generallycloud.baseio.common.CloseUtil;
  */
 public class RecordUtil {
 
-	private static final Logger	logger				= LoggerFactory
-			.getLogger(RecordUtil.class);
+	private static final Logger	logger				= LoggerUtil.get();
 
 	private static final byte	FIELD_SEPERATOR_BYTE	= '\t';
 

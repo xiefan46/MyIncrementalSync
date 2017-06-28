@@ -5,8 +5,6 @@ import java.io.InputStream;
 
 import com.alibaba.middleware.race.sync.util.ByteBufUtil;
 import com.generallycloud.baseio.buffer.ByteBuf;
-import com.generallycloud.baseio.common.Logger;
-import com.generallycloud.baseio.common.LoggerFactory;
 
 /**
  * @author wangkai
@@ -21,9 +19,6 @@ public class MultiFileReadChannel extends ReadChannel {
 	private int				currentIndex;
 
 	private boolean			hasRemaining	= true;
-
-	private static final Logger	logger		= LoggerFactory
-			.getLogger(MultiFileReadChannel.class);
 
 	public MultiFileReadChannel(InputStream[] inputStreams, int maxBufferLen) {
 		super(maxBufferLen);

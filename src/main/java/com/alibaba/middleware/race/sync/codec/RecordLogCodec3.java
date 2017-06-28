@@ -10,43 +10,29 @@ import com.alibaba.middleware.race.sync.util.RecordMap;
  */
 public class RecordLogCodec3 {
 
-	private final int				U_D_SKIP		= "1:1|X".length();
+	private static final int	U_D_SKIP			= "1:1|X".length();
 
-	private final int				I_ID_SKIP	= "I|id:1:1|NULL|".length();
+	private static final int	I_ID_SKIP		= "I|id:1:1|NULL|".length();
 
-	private final int				HEAD_SKIP		= "|mysql-bin.".length();
+	private static final int	HEAD_SKIP		= "|mysql-bin.".length();
 
-	private final int				TIME_SKIP		= "1496720884000".length() + 1;
-	
-	private final int				U_D_ID_SKIP		= "U|id:1:1|".length();
+	private static final int	TIME_SKIP		= "1496720884000".length() + 1;
 
-	private final ByteArray2			byteArray2	= new ByteArray2(null, 0, 0);
+	private static final int	U_D_ID_SKIP		= "U|id:1:1|".length();
 
-	private boolean compare(byte[] data, int offset, byte[] tableSchema) {
-		for (int i = 0; i < tableSchema.length; i++) {
-			if (tableSchema[i] != data[offset + i]) {
-				return false;
-			}
-		}
-		return true;
-	}
+	private final ByteArray2	byteArray2		= new ByteArray2(null, 0, 0);
 
-	public int decode(Context context, int v, byte[] data, byte[] tableSchema, int offset) {
+	public int decode(Context context, int v, byte[] data, int tableSchemaLen, int offset) {
 		Table table = context.getTable();
 		RecordMap recordMap = context.getRecordMap();
 		int startId = context.getStartId();
 		int endId = context.getEndId();
 		int off = findNextChar(data, offset + HEAD_SKIP, '|');
-		off += TIME_SKIP;
-		//		if (!compare(data, off + 1, tableSchema)) {
-		//			return findNextChar(data, offset + tableSchema.length, '\n');
-		//		}
-		int end;
-		off = off + tableSchema.length + 2;
+		off = TIME_SKIP + tableSchemaLen + off;
 		byte alterType = data[off];
 		if (Constants.UPDATE == alterType) {
 			off += U_D_ID_SKIP;
-			end = findNextChar(data, off, '|');
+			int end = findNextChar(data, off, '|');
 			int beforePk = parseLong(data, off, end);
 			off = end + 1;
 			end = findNextChar(data, off, '|');
@@ -70,7 +56,7 @@ public class RecordLogCodec3 {
 				end = findNextChar(data, off, '|');
 				off = end + 1;
 				end = findNextChar(data, off, '|');
-				recordMap.setColumn(pk,name, v, data, off, end - off);
+				recordMap.setColumn(pk, name, v, data, off, end - off);
 				off = end + 1;
 				if (data[off] == '\n') {
 					recordMap.releaseRecordLock(pk);
@@ -81,7 +67,7 @@ public class RecordLogCodec3 {
 
 		if (Constants.DELETE == alterType) {
 			off += U_D_ID_SKIP;
-			end = findNextChar(data, off, '|');
+			int end = findNextChar(data, off, '|');
 			int pk = parseLong(data, off, end);
 			if (inRange(pk, startId, endId)) {
 				recordMap.powerDecrement(pk);
@@ -92,12 +78,12 @@ public class RecordLogCodec3 {
 
 		if (Constants.INSERT == alterType) {
 			off += I_ID_SKIP;
-			end = findNextChar(data, off, '|');
+			int end = findNextChar(data, off, '|');
 			int pk = parseLong(data, off, end);
 			if (!inRange(pk, startId, endId)) {
 				return findNextChar(data, end + table.getDelSkip(), '\n');
 			}
-			int [] colsSkip = table.getColumnNameSkip();
+			int[] colsSkip = table.getColumnNameSkip();
 			recordMap.powerIncrement(pk);
 			recordMap.lockRecord(pk);
 			off = end + 1;
@@ -105,7 +91,7 @@ public class RecordLogCodec3 {
 			for (;;) {
 				off += colsSkip[cIndex];
 				end = findNextChar(data, off, '|');
-				recordMap.setColumn(pk,cIndex++, v, data, off, end - off);
+				recordMap.setColumn(pk, cIndex++, v, data, off, end - off);
 				off = end + 1;
 				if (data[off] == '\n') {
 					recordMap.releaseRecordLock(pk);
@@ -115,8 +101,8 @@ public class RecordLogCodec3 {
 		}
 		throw new RuntimeException(String.valueOf(alterType));
 	}
-	
-	private boolean inRange(int pk,int startId,int endId){
+
+	private boolean inRange(int pk, int startId, int endId) {
 		return pk > startId && pk < endId;
 	}
 
@@ -125,11 +111,8 @@ public class RecordLogCodec3 {
 	}
 
 	private int findNextChar(byte[] data, int offset, char c) {
-		for (;;) {
-			if (data[++offset] == c) {
-				return offset;
-			}
-		}
+		for (;data[++offset] != c;) {}
+		return offset;
 	}
 
 	private int parseLong(byte[] data, int offset, int end) {

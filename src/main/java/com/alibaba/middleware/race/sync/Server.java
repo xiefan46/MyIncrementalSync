@@ -1,9 +1,9 @@
 package com.alibaba.middleware.race.sync;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.ByteArrayBuffer;
 import com.alibaba.middleware.race.sync.channel.SingleBufferedOutputStream;
@@ -11,10 +11,12 @@ import com.alibaba.middleware.race.sync.compress.Lz4CompressedOutputStream;
 import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
+import com.alibaba.middleware.race.sync.util.LoggerUtil;
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.acceptor.SocketChannelAcceptor;
 import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
 import com.generallycloud.baseio.common.MathUtil;
+import com.generallycloud.baseio.common.ThreadUtil;
 import com.generallycloud.baseio.component.IoEventHandleAdaptor;
 import com.generallycloud.baseio.component.LoggerSocketSEListener;
 import com.generallycloud.baseio.component.NioSocketChannelContext;
@@ -36,7 +38,7 @@ public class Server {
 
 	private SocketChannelContext	socketChannelContext;
 
-	private static Logger		logger	= LoggerFactory.getLogger(Server.class);
+	private static Logger		logger	= LoggerUtil.get();
 
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
@@ -44,7 +46,6 @@ public class Server {
 		}
 
 		logger.info("----------------server start-----------------");
-		initProperties();
 		Server server = get();
 		long start = System.currentTimeMillis();
 		try {
@@ -53,10 +54,6 @@ public class Server {
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
 		}
-	}
-
-	private void initPageCache() {
-		// ThreadUtil.execute(new PageCacheHelper());
 	}
 
 	/**
@@ -74,8 +71,7 @@ public class Server {
 	 * 上面表示，查询的schema为middleware，查询的表为student,主键的查询范围是(100,200)，注意是开区间
 	 * 对应DB的SQL为： select * from middleware.student where id>100 and id<200
 	 */
-	private void startServer1(String[] args, int port) throws Exception {
-		initPageCache();
+	private void startServer1(String[] args,final int port) throws Exception {
 
 		// 第一个参数是Schema Name
 		logger.info("tableSchema:" + args[0]);
@@ -88,43 +84,57 @@ public class Server {
 
 		String schema = args[0];
 		String table = args[1];
-		long startId = Long.parseLong(args[2]);
-		long endId = Long.parseLong(args[3]);
-
-		IoEventHandleAdaptor eventHandleAdaptor = new IoEventHandleAdaptor() {
-
+		int startId = Integer.parseInt(args[2]);
+		int endId = Integer.parseInt(args[3]);
+		
+		com.generallycloud.baseio.common.LoggerFactory.enableSLF4JLogger(false);
+		
+		ThreadUtil.execute(new Runnable() {
+			
 			@Override
-			public void accept(SocketSession session, ReadFuture future) throws Exception {
-				logger.info(future.getReadText());
+			public void run() {
+				
+				try {
+					
+					IoEventHandleAdaptor eventHandleAdaptor = new IoEventHandleAdaptor() {
+
+						@Override
+						public void accept(SocketSession session, ReadFuture future) throws Exception {
+							logger.info(future.getReadText());
+						}
+					};
+
+					ServerConfiguration configuration = new ServerConfiguration(port);
+
+					configuration.setSERVER_CORE_SIZE(1);
+					configuration.setSERVER_ENABLE_MEMORY_POOL(false);
+
+					SocketChannelContext context = new NioSocketChannelContext(configuration);
+
+					SocketChannelAcceptor acceptor = new SocketChannelAcceptor(context);
+
+					context.addSessionEventListener(new LoggerSocketSEListener());
+
+					context.setIoEventHandleAdaptor(eventHandleAdaptor);
+
+					context.setProtocolFactory(new FixedLengthProtocolFactory());
+
+					acceptor.bind();
+					
+					Server.get().socketChannelContext = context;
+				} catch (IOException e) {
+					logger.error(e.getMessage(),e);
+				}
 			}
-		};
-
-		ServerConfiguration configuration = new ServerConfiguration(port);
-
-		configuration.setSERVER_CORE_SIZE(1);
-		configuration.setSERVER_ENABLE_MEMORY_POOL(false);
-
-		SocketChannelContext context = new NioSocketChannelContext(configuration);
-
-		SocketChannelAcceptor acceptor = new SocketChannelAcceptor(context);
-
-		context.addSessionEventListener(new LoggerSocketSEListener());
-
-		context.setIoEventHandleAdaptor(eventHandleAdaptor);
-
-		context.setProtocolFactory(new FixedLengthProtocolFactory());
-
-		acceptor.bind();
+		});
 
 		logger.info("com.alibaba.middleware.race.sync.Server is running....");
-
-		this.socketChannelContext = context;
 
 		execute(endId, startId, (schema + "|" + table));
 
 	}
 
-	private void execute(long endId, long startId, String tableSchema) throws Exception {
+	private void execute(int endId, int startId, String tableSchema) throws Exception {
 
 		Context context = new Context(endId, startId);
 

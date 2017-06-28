@@ -1,10 +1,10 @@
 package com.alibaba.middleware.race.sync;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
 import com.alibaba.middleware.race.sync.model.Table;
+import com.alibaba.middleware.race.sync.util.LoggerUtil;
 import com.alibaba.middleware.race.sync.util.RecordMap;
 
 /**
@@ -22,14 +22,15 @@ public class Context {
 	private int				blockSize = (int) (1024 * 1024 * 2);
 	private RecordMap			recordMap;
 	private ByteBufPool			byteBufPool;
-	private static final Logger	logger		= LoggerFactory.getLogger(Context.class);
+	private static final Logger	logger		= LoggerUtil.get();
 
-	public Context(long endId, long startId) {
-		this.endId = (int) endId;
-		this.startId = (int) startId;
+	public Context(int endId, int startId) {
+		this.endId = endId;
+		this.startId = startId;
 	}
 
 	public void initialize() {
+		parseThreadNum = 1;
 		if (Constants.ON_LINE) {
 			setTable(Table.newOnline());
 			logger.info("使用online模式初始化table");
@@ -40,7 +41,7 @@ public class Context {
 		long startTime = System.currentTimeMillis();
 		recordMap = new RecordMap(endId - startId, startId,table.getColumnSize());
 		logger.info("record map init:{}",(System.currentTimeMillis() - startTime));
-		byteBufPool = new ByteBufPool(parseThreadNum * 4, blockSize);
+		byteBufPool = new ByteBufPool(parseThreadNum * 8, blockSize);
 	}
 
 	public int getEndId() {
