@@ -49,7 +49,7 @@ public class RecordMap {
 	private void init(int capacity, int cols) {
 		this.recordLen = 8 * cols;
 		this.data = new byte[capacity * recordLen];
-		this.versions = new short[cols * capacity];
+//		this.versions = new short[cols * capacity];
 		this.powers = new byte[capacity];
 //		this.lock = new AtomicIntegerArray(capacity);
 	}
@@ -107,11 +107,11 @@ public class RecordMap {
 
 	public void setColumn(int pk, byte name, short version, byte[] src, int off, int len) {
 		int iPk = ix(pk);
-		int vI = iPk * cols + name;
-		if (version < versions[vI]) {
-			return;
-		}
-		versions[vI] = version;
+//		int vI = iPk * cols + name;
+//		if (version < versions[vI]) {
+//			return;
+//		}
+//		versions[vI] = version;
 		int tOff = name * 8 + iPk * recordLen;
 		byte[] target = data;
 		target[tOff++] = (byte) len;
