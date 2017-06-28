@@ -126,10 +126,7 @@ public class RecordMap {
 		int tOff = name * 8 + iPk * recordLen;
 		byte[] target = data;
 		target[tOff++] = (byte) len;
-		int end = off + len;
-		for (int i = off; i < end; i++) {
-			target[tOff++] = src[i];
-		}
+		System.arraycopy(src, off, target, tOff, len);
 	}
 
 	/**
