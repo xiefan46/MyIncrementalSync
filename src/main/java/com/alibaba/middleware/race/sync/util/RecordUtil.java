@@ -54,7 +54,7 @@ public class RecordUtil {
 	private static void arrayCopy(byte [] src,int srcOff,byte [] target,int targetOff,int len){
 		int targetLen = targetOff + len;
 		for (int i = targetOff; i < targetLen; i++) {
-			target[targetOff] = src[srcOff++];
+			target[i] = src[srcOff++];
 		}
 	}
 

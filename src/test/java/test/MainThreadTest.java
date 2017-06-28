@@ -41,8 +41,8 @@ public class MainThreadTest {
 		String table = "student";
 		int startId = 1000000;
 		int endId = 8000000;
-//		startId = 170000;
-//		endId = 170100;
+		startId = 100000;
+		endId = 2000000;
 		ThreadUtil.execute(new JvmUsingState());
 		Context context = new Context(endId, startId);
 		context.initialize();
