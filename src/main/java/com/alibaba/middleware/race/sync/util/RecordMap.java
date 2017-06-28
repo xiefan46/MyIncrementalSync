@@ -33,7 +33,7 @@ public class RecordMap {
 
 	private AtomicIntegerArray	lock;
 
-	private short[]			versions;
+	private volatile short[]	versions;
 
 	private int				capacity;
 
@@ -51,7 +51,7 @@ public class RecordMap {
 		this.data = new byte[capacity * recordLen];
 		this.versions = new short[cols * capacity];
 		this.powers = new byte[capacity];
-		this.lock = new AtomicIntegerArray(capacity);
+//		this.lock = new AtomicIntegerArray(capacity);
 	}
 
 	public int getResult(int pk) {
@@ -81,28 +81,28 @@ public class RecordMap {
 	}
 
 	private void lockRecordByIdx(int idx) {
-		AtomicIntegerArray lock = this.lock;
-		if (!lock.compareAndSet(idx, 0, 1)) {
-			for (; lock.compareAndSet(idx, 0, 1);) {
-			}
-		}
+//		AtomicIntegerArray lock = this.lock;
+//		if (!lock.compareAndSet(idx, 0, 1)) {
+//			for (; lock.compareAndSet(idx, 0, 1);) {
+//			}
+//		}
 	}
 
 	public void lockRecord(int pk) {
-		int idx = ix(pk);
-		AtomicIntegerArray lock = this.lock;
-		if (!lock.compareAndSet(idx, 0, 1)) {
-			for (; lock.compareAndSet(idx, 0, 1);) {
-			}
-		}
+//		int idx = ix(pk);
+//		AtomicIntegerArray lock = this.lock;
+//		if (!lock.compareAndSet(idx, 0, 1)) {
+//			for (; lock.compareAndSet(idx, 0, 1);) {
+//			}
+//		}
 	}
 
 	public void releaseRecordLock(int pk) {
-		lock.set(ix(pk), 0);
+//		lock.set(ix(pk), 0);
 	}
 
 	private void releaseRecordLockByIdx(int idx) {
-		lock.set(idx, 0);
+//		lock.set(idx, 0);
 	}
 
 	public void setColumn(int pk, byte name, short version, byte[] src, int off, int len) {

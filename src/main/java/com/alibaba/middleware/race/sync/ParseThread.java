@@ -23,6 +23,8 @@ public class ParseThread extends WorkThread {
 	private final ByteArray2	byteArray2		= new ByteArray2(null, 0, 0);
 
 	private Context				context;
+	
+	private int					minBinaryIdLen = Integer.MAX_VALUE;
 
 	private BlockingQueue<ReadTask>	tasks		= new ArrayBlockingQueue<>(16);
 
@@ -77,7 +79,12 @@ public class ParseThread extends WorkThread {
 		for(;off < limit;){
 			int startId = context.getStartId();
 			int endId = context.getEndId();
+			int _start = off;
 			off = findNextChar(data, off + HEAD_SKIP, '|');
+			int binaryIdLen = off - _start;
+			if (binaryIdLen < minBinaryIdLen) {
+				minBinaryIdLen = binaryIdLen;
+			}
 			off = TIME_SKIP + tableSchemaLen + off;
 			byte alterType = data[off];
 			if (Constants.UPDATE == alterType) {
@@ -96,7 +103,7 @@ public class ParseThread extends WorkThread {
 					continue;
 				} else {
 					if (!inRange(pk, startId, endId)) {
-						off = findNextChar(data, end, '\n') + 1;
+						off = findNextChar(data, end + 10, '\n') + 1;
 						continue;
 					}
 				}
@@ -161,4 +168,11 @@ public class ParseThread extends WorkThread {
 		context.getByteBufPool().free(task);
 	}
 
+	/**
+	 * @return the minBinaryIdLen
+	 */
+	public int getMinBinaryIdLen() {
+		return minBinaryIdLen;
+	}
+	
 }

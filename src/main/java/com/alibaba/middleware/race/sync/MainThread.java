@@ -75,6 +75,7 @@ public class MainThread {
 //		PkCount.get().printResult();
 		for (ParseThread t : parseThreads) {
 			t.shutdown();
+			logger.info("min binaryId:{}",t.getMinBinaryIdLen());
 		}
 		readerThread.shutdown();
 	}
