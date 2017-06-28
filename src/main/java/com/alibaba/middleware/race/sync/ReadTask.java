@@ -12,17 +12,17 @@ public class ReadTask {
 
 	private ByteBuf buf;
 	
-	private int version;
+	private short version;
 
 	public ByteBuf getBuf() {
 		return buf;
 	}
 
-	public int getVersion() {
+	public short getVersion() {
 		return version;
 	}
 
-	public void setVersion(int version) {
+	public void setVersion(short version) {
 		this.version = version;
 	}
 	

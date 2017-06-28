@@ -30,7 +30,7 @@ public class Context {
 	}
 
 	public void initialize() {
-		parseThreadNum = 1;
+		//parseThreadNum = 1;
 		if (Constants.ON_LINE) {
 			setTable(Table.newOnline());
 			logger.info("使用online模式初始化table");

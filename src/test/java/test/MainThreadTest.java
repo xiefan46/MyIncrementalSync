@@ -1,4 +1,4 @@
-package com.alibaba.middleware.race.sync;
+package test;
 
 import java.io.File;
 
@@ -6,6 +6,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.alibaba.middleware.race.sync.Constants;
+import com.alibaba.middleware.race.sync.Context;
+import com.alibaba.middleware.race.sync.JvmUsingState;
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.common.FileUtil;
 import com.generallycloud.baseio.common.ThreadUtil;
@@ -34,8 +37,8 @@ public class MainThreadTest {
 //		ThreadUtil.execute(new PageCacheHelper());
 		String schema = "middleware3";
 		String table = "student";
-		int startId = 100000;
-		int endId = 2000000;
+		int startId = 1000000;
+		int endId = 8000000;
 //		startId = 170000;
 //		endId = 170100;
 		ThreadUtil.execute(new JvmUsingState());
@@ -43,6 +46,7 @@ public class MainThreadTest {
 		context.initialize();
 		context.getMainThread().execute();
 		
+		//194120
 		RecordUtil.writeResultToLocalFile(context, Constants.RESULT_HOME + "/" +Constants.RESULT_FILE_NAME);
 	}
 

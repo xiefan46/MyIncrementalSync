@@ -18,6 +18,8 @@ public class Table {
 
 	private int[]				columnNameSkip;
 	
+	private int[]				columnValueSkip;
+	
 	private int				tableSchemaLen;
 
 	private int				delSkip;
@@ -32,9 +34,10 @@ public class Table {
 		return columnIndexs.get(array);
 	}
 
-	public static Table newTable(byte [] tableSchemaBytes,byte [] []cols) {
+	public static Table newTable(byte [] tableSchemaBytes,byte [] []cols,int []columnValueSkip) {
 		byte index = 0;
 		Table t = new Table();
+		t.columnValueSkip = columnValueSkip;
 		t.tableSchemaBytes = tableSchemaBytes;
 		t.tableSchemaLen = tableSchemaBytes.length + 2;
 		t.columnSize = cols.length;
@@ -43,28 +46,32 @@ public class Table {
 			byte [] name = cols[i];
 			t.columnNameSkip[i] = name.length + 10;
 			t.columnIndexs.put(new ByteArray(name), index++);
-			t.delSkip = t.delSkip + t.columnNameSkip[i] + 2;
+			t.delSkip = t.delSkip + t.columnNameSkip[i] + 1 + columnValueSkip[i];
 		}
 		return t;
 	}
 	
 	public static Table newOffline(){
-		return newTable(new byte[]{'m','i','d','d','l','e','w','a','r','e','3','|','s','t','u','d','e','n','t'}, 
+		return newTable(
+				new byte[]{'m','i','d','d','l','e','w','a','r','e','3','|','s','t','u','d','e','n','t'}, 
 				new byte [][]{
-			new byte []{'f','i','r','s','t','_','n','a','m','e'},
-			new byte []{'l','a','s','t','_','n','a','m','e'},
-			new byte []{'s','e','x'},
-			new byte []{'s','c','o','r','e'}});
+					new byte []{'f','i','r','s','t','_','n','a','m','e'},
+					new byte []{'l','a','s','t','_','n','a','m','e'},
+					new byte []{'s','e','x'},
+					new byte []{'s','c','o','r','e'}},
+				new int[]{3,3,3,1});
 	}
 	
 	public static Table newOnline(){
-		return newTable(new byte[]{'m','i','d','d','l','e','w','a','r','e','8','|','s','t','u','d','e','n','t'}, 
+		return newTable(
+				new byte[]{'m','i','d','d','l','e','w','a','r','e','8','|','s','t','u','d','e','n','t'}, 
 				new byte [][]{
-			new byte []{'f','i','r','s','t','_','n','a','m','e'},
-			new byte []{'l','a','s','t','_','n','a','m','e'},
-			new byte []{'s','e','x'},
-			new byte []{'s','c','o','r','e'},
-			new byte []{'s','c','o','r','e','2'}});
+					new byte []{'f','i','r','s','t','_','n','a','m','e'},
+					new byte []{'l','a','s','t','_','n','a','m','e'},
+					new byte []{'s','e','x'},
+					new byte []{'s','c','o','r','e'},
+					new byte []{'s','c','o','r','e','2'}},
+				new int[]{3,3,3,1,1});
 	}
 	
 	//first_name:2:0|NULL|彭|last_name:2:0|NULL|恬|sex:2:0|NULL|男|score:1:0|NULL|479|score2:1:0|NULL|159370|
@@ -90,6 +97,13 @@ public class Table {
 	 */
 	public int getTableSchemaLen() {
 		return tableSchemaLen;
+	}
+	
+	/**
+	 * @return the columnValueSkip
+	 */
+	public int[] getColumnValueSkip() {
+		return columnValueSkip;
 	}
 	
 }

@@ -30,7 +30,7 @@ public class ReaderThread extends WorkThread {
 		MultiFileInputStream channel = context.getReadChannel();
 		ByteBufPool byteBufPool = context.getByteBufPool();
 		int parseIndex = 0;
-		int version = 0;
+		short version = 0;
 		for (; channel.hasRemaining();) {
 			ReadTask task = byteBufPool.allocate(); 
 			if (task == null) {

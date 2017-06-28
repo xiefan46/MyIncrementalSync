@@ -1,9 +1,10 @@
-package com.alibaba.middleware.race.sync;
+package test;
 
 import java.io.File;
 import java.io.IOException;
 
 import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
+import com.alibaba.middleware.race.sync.Constants;
 import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
 import com.generallycloud.baseio.buffer.ByteBuf;
 import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
