@@ -77,6 +77,7 @@ public class RecordUtil {
 	}
 
 	public static void writeToByteArrayBuffer(Context context, OutputStream buffer) throws IOException {
+		long start = System.currentTimeMillis();
 		int startId = (int) context.getStartId();
 		int endId = (int) context.getEndId();
 		int all = 0;
@@ -93,7 +94,7 @@ public class RecordUtil {
 			RecordUtil.formatResultString(data, i,off, cols, array);
 			buffer.write(array.array(), 0, array.position());
 		}
-		logger.info("result size:{}", all);
+		logger.info("result size:{}. 写结果Buffer耗时 : {}", all,System.currentTimeMillis() - start);
 	}
 
 	public static void writeToFile(ByteArrayBuffer buffer, String fileName) throws IOException {
