@@ -4,27 +4,25 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
-import org.slf4j.Logger;
-
 import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
 import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
-import com.alibaba.middleware.race.sync.util.LoggerUtil;
 
 /**
  * @author wangkai
  */
 public class MainThread {
 
-	private Logger logger = LoggerUtil.get();
+//	private Logger logger = LoggerUtil.get();
 
 	public void execute() {
 		try {
 			long startTime = System.currentTimeMillis();
-			logger.info("--------------Main thread start-----------");
+//			logger.info("--------------Main thread start-----------");
 			execute1(context);
-			logger.info("MainThread总耗时：{}",(System.currentTimeMillis()-startTime));
+			System.out.println("MainThread总耗时：{}"+(System.currentTimeMillis()-startTime));
+//			logger.info("MainThread总耗时：{}",(System.currentTimeMillis()-startTime));
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+//			logger.error(e.getMessage(), e);
 		}
 	}
 	

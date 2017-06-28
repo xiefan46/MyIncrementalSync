@@ -3,15 +3,12 @@ package com.alibaba.middleware.race.sync;
 import java.io.IOException;
 import java.util.Map;
 
-import org.slf4j.Logger;
-
 import com.alibaba.middleware.race.sync.channel.ByteArrayBuffer;
 import com.alibaba.middleware.race.sync.channel.SingleBufferedOutputStream;
 import com.alibaba.middleware.race.sync.compress.Lz4CompressedOutputStream;
 import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
-import com.alibaba.middleware.race.sync.util.LoggerUtil;
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.acceptor.SocketChannelAcceptor;
 import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
@@ -38,21 +35,21 @@ public class Server {
 
 	private SocketChannelContext	socketChannelContext;
 
-	private static Logger		logger	= LoggerUtil.get();
+//	private static Logger		logger	= LoggerUtil.get();
 
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {
 			args = new String[] { "middleware3", "student", "100000", "2000000" };
 		}
 
-		logger.info("----------------server start-----------------");
+//		logger.info("----------------server start-----------------");
 		Server server = get();
-		long start = System.currentTimeMillis();
+//		long start = System.currentTimeMillis();
 		try {
 			server.startServer1(args, 5527);
-			logger.info("Server端完成所有处理,耗时 : {}", System.currentTimeMillis() - start);
+//			logger.info("Server端完成所有处理,耗时 : {}", System.currentTimeMillis() - start);
 		} catch (Throwable e) {
-			logger.error(e.getMessage(), e);
+//			logger.error(e.getMessage(), e);
 		}
 	}
 
@@ -74,13 +71,13 @@ public class Server {
 	private void startServer1(String[] args,final int port) throws Exception {
 
 		// 第一个参数是Schema Name
-		logger.info("tableSchema:" + args[0]);
+//		logger.info("tableSchema:" + args[0]);
 		// 第二个参数是Schema Name
-		logger.info("table:" + args[1]);
+//		logger.info("table:" + args[1]);
 		// 第三个参数是start pk Id
-		logger.info("start:" + args[2]);
+//		logger.info("start:" + args[2]);
 		// 第四个参数是end pk Id
-		logger.info("end:" + args[3]);
+//		logger.info("end:" + args[3]);
 
 		String schema = args[0];
 		String table = args[1];
@@ -100,7 +97,7 @@ public class Server {
 
 						@Override
 						public void accept(SocketSession session, ReadFuture future) throws Exception {
-							logger.info(future.getReadText());
+//							logger.info(future.getReadText());
 						}
 					};
 
@@ -123,12 +120,12 @@ public class Server {
 					
 					Server.get().socketChannelContext = context;
 				} catch (IOException e) {
-					logger.error(e.getMessage(),e);
+//					logger.error(e.getMessage(),e);
 				}
 			}
 		});
 
-		logger.info("com.alibaba.middleware.race.sync.Server is running....");
+//		logger.info("com.alibaba.middleware.race.sync.Server is running....");
 
 		execute(endId, startId, (schema + "|" + table));
 
@@ -202,7 +199,7 @@ public class Server {
 
 		future.setBuf(UnpooledByteBufAllocator.getHeapInstance().wrap(array, 0, len));
 
-		logger.info("开始向客户端传送文件，当前时间：{}", System.currentTimeMillis());
+//		logger.info("开始向客户端传送文件，当前时间：{}", System.currentTimeMillis());
 
 		session.flush(future);
 	}

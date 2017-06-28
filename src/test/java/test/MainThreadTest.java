@@ -11,6 +11,7 @@ import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.JvmUsingState;
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.common.FileUtil;
+import com.generallycloud.baseio.common.LoggerFactory;
 import com.generallycloud.baseio.common.ThreadUtil;
 
 /**
@@ -34,6 +35,7 @@ public class MainThreadTest {
 
 	@Test
 	public void testBasic() throws Exception {
+		LoggerFactory.enableSLF4JLogger(false);
 //		ThreadUtil.execute(new PageCacheHelper());
 		String schema = "middleware3";
 		String table = "student";

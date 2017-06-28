@@ -6,13 +6,13 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.ByteArrayInputStream;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
 import com.alibaba.middleware.race.sync.compress.Lz4CompressedInputStream;
 import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
-import com.alibaba.middleware.race.sync.util.LoggerUtil;
 import com.alibaba.middleware.race.sync.util.MD5Token;
 import com.generallycloud.baseio.buffer.ByteBuf;
 import com.generallycloud.baseio.common.CloseUtil;
@@ -30,7 +30,7 @@ import com.generallycloud.baseio.protocol.ReadFuture;
  */
 public class Client {
 
-	private Logger logger = LoggerUtil.get();
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static void main(String[] args) throws Exception {
 		initProperties();

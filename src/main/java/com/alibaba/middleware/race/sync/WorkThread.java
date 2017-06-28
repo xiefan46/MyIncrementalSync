@@ -1,12 +1,8 @@
 package com.alibaba.middleware.race.sync;
 
-import org.slf4j.Logger;
-
-import com.alibaba.middleware.race.sync.util.LoggerUtil;
-
 public abstract class WorkThread extends Thread {
 
-	private static Logger	logger	= LoggerUtil.get();
+//	private static Logger	logger	= LoggerUtil.get();
 
 	private Object			lock		= new Object();
 
@@ -33,7 +29,7 @@ public abstract class WorkThread extends Thread {
 			try {
 				work();
 			} catch (Exception e) {
-				logger.error(e.getMessage(), e);
+//				logger.error(e.getMessage(), e);
 			}
 		}
 	}
@@ -75,7 +71,7 @@ public abstract class WorkThread extends Thread {
 			try {
 				lock.wait();
 			} catch (Throwable e) {
-				logger.error(e.getMessage(), e);
+//				logger.error(e.getMessage(), e);
 			}
 		}
 	}

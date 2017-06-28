@@ -28,7 +28,7 @@ public class LoggerUtil {
 
 	private static Logger logger = LoggerFactory.getLogger(Server.class);
 	
-	public static Logger get(){
+	private static Logger get(){
 		return logger;
 	}
 	
