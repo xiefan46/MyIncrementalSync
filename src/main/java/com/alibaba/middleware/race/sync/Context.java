@@ -15,7 +15,7 @@ public class Context {
 	private MultiFileInputStream	readChannel;
 	private Table				table;
 	private MainThread			mainThread = new MainThread(this);
-	private int				parseThreadNum	= Runtime.getRuntime().availableProcessors();
+	private int				parseThreadNum	= Runtime.getRuntime().availableProcessors() - 1;
 	private int				blockSize = (int) (1024 * 1024 * 2);
 	private RecordMap			recordMap;
 	private ByteBufPool			byteBufPool;
@@ -27,7 +27,7 @@ public class Context {
 	}
 
 	public void initialize() {
-		//parseThreadNum = 1;
+		parseThreadNum = 24;
 		if (Constants.ON_LINE) {
 			setTable(Table.newOnline());
 //			logger.info("使用online模式初始化table");
