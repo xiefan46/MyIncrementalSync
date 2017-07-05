@@ -1,5 +1,7 @@
 package com.alibaba.middleware.race.sync;
 
+import java.util.BitSet;
+
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.util.MyIntByteHashMap;
 import com.alibaba.middleware.race.sync.util.MyList;
@@ -13,7 +15,9 @@ public class Dispatcher {
 	private int					recalThreadNum;
 	
 	private IntObjectHashMap<byte []>[]	recordMaps;
-
+	
+	private BitSet					redirectFlag;
+	
 	private RecalculateThread[]		threads;
 	
 	private MyIntByteHashMap			redirectMap	= new MyIntByteHashMap(1024 * 1024 * 4);
@@ -33,6 +37,7 @@ public class Dispatcher {
 		recordLogLists = new MyList[recalThreadNum];
 		recordMaps = new IntObjectHashMap[recalThreadNum];
 		threads = new RecalculateThread[recalThreadNum];
+		redirectFlag = new BitSet(Integer.MAX_VALUE);
 		for (int i = 0; i < recalThreadNum; i++) {
 			recordMaps[i] = new IntObjectHashMap<>((int)(1024 * 1024 * (32f / recalThreadNum)));
 			recordLogLists[i] = new MyList<>((int)(blockSize * context.getParseThreadNum() / 80 ));
@@ -85,6 +90,7 @@ public class Dispatcher {
 		int limit = rs.getPos();
 		byte B = -1;
 		MyIntByteHashMap redirectMap = this.redirectMap;
+		BitSet redirectFlag = this.redirectFlag;
 //		int startId = (int)context.getStartId();
 //		int endId = (int)context.getEndId();
 		for (int i = 0; i < limit; i++) {
@@ -97,23 +103,27 @@ public class Dispatcher {
 				if (oldDirect == B) {
 					oldDirect = hashFun(oldId);
 					if (oldDirect != hashFun(id)) {
+						redirectFlag.set(id);
 						redirectMap.put(id, oldDirect);
 					}
 				}else{
+					redirectFlag.clear(oldId);
 					redirectMap.put(id, oldDirect);
 				}
 				recordLogLists[oldDirect].add(r);
 			} else {
-				byte threadId;
-				if (r.getAlterType() == Constants.DELETE) {
-					threadId = redirectMap.remove(id, B);
+				if (redirectFlag.get(id)) {
+					byte threadId;
+					if (r.getAlterType() == Constants.DELETE) {
+						redirectFlag.clear(id);
+						threadId = redirectMap.remove(id, B);
+					}else{
+						threadId = redirectMap.getOrDefault(id,B);
+					}
+					recordLogLists[threadId].add(r);
 				}else{
-					threadId = redirectMap.getOrDefault(id,B);
+					recordLogLists[hashFun(id)].add(r);
 				}
-				if (threadId == B) {
-					threadId = hashFun(id);
-				}
-				recordLogLists[threadId].add(r);
 			}
 		}
 	}
