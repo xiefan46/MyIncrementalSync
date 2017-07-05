@@ -28,7 +28,7 @@ public class ParseThread extends WorkThread {
 
 	private boolean				workDone;
 
-	private BlockingQueue<ByteBuf>	bufs			= new ArrayBlockingQueue<>(2);
+	private BlockingQueue<ByteBuf>	bufs;
 
 	private int					limit;
 
@@ -40,6 +40,7 @@ public class ParseThread extends WorkThread {
 		super("parse-", index);
 		this.context = context;
 		this.setWork(true);
+		this.bufs = new ArrayBlockingQueue<>(context.getParseThreadNum() * 2);
 		this.initRecordList(recordSize, context.getTable().getColumnSize());
 	}
 

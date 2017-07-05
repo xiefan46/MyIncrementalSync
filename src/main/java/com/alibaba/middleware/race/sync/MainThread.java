@@ -50,7 +50,7 @@ public class MainThread {
 		int blockSize = context.getBlockSize();
 		parseThreads = new ParseThread[parseThreadNum];
 		for (int i = 0; i < parseThreadNum; i++) {
-			parseThreads[i] = new ParseThread(context, i,(int)(blockSize * 2 / (80 * parseThreadNum)));
+			parseThreads[i] = new ParseThread(context, i,(int)(blockSize / 80));
 		}
 		for (int i = 0; i < parseThreadNum; i++) {
 			parseThreads[i].start();

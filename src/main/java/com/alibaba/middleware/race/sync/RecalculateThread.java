@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
 import com.alibaba.middleware.race.sync.util.MyList;
-import com.alibaba.middleware.race.sync.util.RecordMap;
+import com.carrotsearch.hppc.IntObjectHashMap;
 
 /**
  * Created by xiefan on 6/16/17.
@@ -15,7 +15,7 @@ public class RecalculateThread extends WorkThread implements Constants {
 
 	private static Logger		logger	= LoggerFactory.getLogger(RecalculateThread.class);
 
-	private RecordMap<byte[]>	recordMap;
+	private IntObjectHashMap<byte[]>	recordMap;
 
 	private Table				table;
 
@@ -23,7 +23,7 @@ public class RecalculateThread extends WorkThread implements Constants {
 
 	private MainThread			mainThread;
 
-	public RecalculateThread(Context context, RecordMap<byte[]> recordMap, MyList<RecordLog> task,
+	public RecalculateThread(Context context, IntObjectHashMap<byte[]> recordMap, MyList<RecordLog> task,
 			int i) {
 		super("recal-", i);
 		this.table = context.getTable();
@@ -39,7 +39,7 @@ public class RecalculateThread extends WorkThread implements Constants {
 	 */
 	@Override
 	protected void work() throws Exception {
-		RecordMap<byte []> recordMap = this.recordMap;
+		IntObjectHashMap<byte []> recordMap = this.recordMap;
 		Table table = this.table;
 		MyList<RecordLog> task = this.task;
 		int limit = task.getPos();
@@ -55,11 +55,11 @@ public class RecalculateThread extends WorkThread implements Constants {
 		mainThread.recalDone(getIndex());
 	}
 
-	public RecordMap<byte []> getRecords() {
+	public IntObjectHashMap<byte []> getRecords() {
 		return recordMap;
 	}
 
-	public void received(Table table, RecordMap<byte []> recordMap, RecordLog r)
+	public void received(Table table, IntObjectHashMap<byte []> recordMap, RecordLog r)
 			throws Exception {
 		int pk = r.getPk();
 		switch (r.getAlterType()) {
@@ -70,13 +70,13 @@ public class RecalculateThread extends WorkThread implements Constants {
 			int beforeValue = r.getBeforePk();
 			byte[] oldRecord = recordMap.remove(beforeValue);
 			update(oldRecord, r);
-			recordMap.set(pk, oldRecord);
+			recordMap.put(pk, oldRecord);
 			break;
 		case Constants.DELETE:
 			recordMap.remove(pk);
 			break;
 		case Constants.INSERT:
-			recordMap.set(pk, update(table.newRecord(), r));
+			recordMap.put(pk, update(table.newRecord(), r));
 			break;
 		default:
 			break;

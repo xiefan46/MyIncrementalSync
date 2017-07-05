@@ -17,10 +17,10 @@ public class Context {
 	private Table				table;
 
 	private MainThread			mainThread = new MainThread(this);
-	private int				recalThreadNum	= 2;
-
-	private int				parseThreadNum	= 2;
-	private int				blockSize = (int) (1024 * 1024 * 4);
+	private int				coreProcesses = Runtime.getRuntime().availableProcessors();
+	private int				recalThreadNum	= coreProcesses;
+	private int				parseThreadNum	= coreProcesses;
+	private int				blockSize = (int) (1024 * 1024 * 2);
 	private Dispatcher			dispatcher;
 	private ByteBufPool			byteBufPool;
 	private static final Logger	logger		= LoggerFactory.getLogger(Context.class);
