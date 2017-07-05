@@ -39,7 +39,7 @@ public class Context {
 			logger.info("使用offline模式初始化table,提交到线上记得切换!!!!!!");
 		}
 		dispatcher = new Dispatcher(this);
-		byteBufPool = new ByteBufPool(parseThreadNum * 2, blockSize);
+		byteBufPool = new ByteBufPool(parseThreadNum * 4, blockSize);
 	}
 
 	public int getEndId() {

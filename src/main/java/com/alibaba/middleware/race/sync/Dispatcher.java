@@ -91,11 +91,8 @@ public class Dispatcher {
 		byte B = -1;
 		MyIntByteHashMap redirectMap = this.redirectMap;
 		BitSet redirectFlag = this.redirectFlag;
-//		int startId = (int)context.getStartId();
-//		int endId = (int)context.getEndId();
 		for (int i = 0; i < limit; i++) {
 			RecordLog r = rs.get(i);
-//			PkCount.get().count(r, startId, endId);
 			int id = r.getPk();
 			int oldId = r.getBeforePk();
 			if (r.isPkUpdate()) {
