@@ -26,8 +26,6 @@ public class ParseThread extends WorkThread {
 
 	private volatile boolean		done;
 
-	private boolean				workDone;
-
 	private BlockingQueue<ByteBuf>	bufs;
 
 	private int					limit;
@@ -68,7 +66,6 @@ public class ParseThread extends WorkThread {
 		if (!buf.hasRemaining()) {
 			this.limit = 0;
 			this.done = true;
-			this.workDone = true;
 			this.context.getMainThread().setWorkDone();
 			return;
 		}
@@ -116,7 +113,7 @@ public class ParseThread extends WorkThread {
 	}
 
 	public boolean isDone() {
-		return done || workDone;
+		return done;
 	}
 
 	@Override
