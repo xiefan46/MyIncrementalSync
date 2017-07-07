@@ -6,21 +6,18 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.middleware.race.sync.Context;
 import com.alibaba.middleware.race.sync.channel.ByteArrayBuffer;
 import com.alibaba.middleware.race.sync.channel.RAFOutputStream;
 import com.generallycloud.baseio.common.CloseUtil;
+import com.generallycloud.baseio.common.Logger;
 
 /**
  * Created by xiefan on 6/4/17.
  */
 public class RecordUtil {
 
-	private static final Logger	logger				= LoggerFactory
-			.getLogger(RecordUtil.class);
+	private static final Logger	logger				= LoggerUtil.get();
 
 	private static final byte	FIELD_SEPERATOR_BYTE	= '\t';
 

@@ -4,17 +4,12 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.middleware.race.sync.model.RecordLog;
 import com.alibaba.middleware.race.sync.model.Table;
 import com.alibaba.middleware.race.sync.util.MyList;
 import com.generallycloud.baseio.buffer.ByteBuf;
 
 public class ParseThread extends WorkThread {
-
-	private Logger					logger		= LoggerFactory.getLogger(getClass());
 
 	private MyList<RecordLog>		rootRecord1;
 
@@ -24,11 +19,9 @@ public class ParseThread extends WorkThread {
 
 	private MyList<RecordLog>		result;
 
-	private volatile boolean		done;
+	private boolean				done;
 
 	private BlockingQueue<ByteBuf>	bufs;
-
-	private int					limit;
 
 	private Context				context;
 
@@ -57,16 +50,18 @@ public class ParseThread extends WorkThread {
 		if (buf == null) {
 			return;
 		}
-		if (done) {
-			wait4Work();
+		synchronized (getLock()) {
+			if (done) {
+				wait4Work();
+			}
 		}
 		Table table = context.getTable();
 		byte[] tableSchema = table.getTableSchemaBytes();
 		ByteBufReader reader = this.byteBufReader;
 		if (!buf.hasRemaining()) {
-			this.limit = 0;
 			this.done = true;
-			this.context.getMainThread().setWorkDone();
+			this.context.getMainThread().parseDone(getIndex());
+			this.context.getMainThread().setWorkDone(getIndex());
 			return;
 		}
 		MyList<RecordLog> result;
@@ -86,7 +81,7 @@ public class ParseThread extends WorkThread {
 		cr.clear();
 		RecordLog crv = cr.get();
 		crv.reset();
-		for (; buf.hasRemaining();) {
+		for (;buf.hasRemaining();) {
 			if (reader.read(table, buf, tableSchema, crv, startId, endId)) {
 				crv = cr.get();
 				crv.reset();
@@ -95,10 +90,7 @@ public class ParseThread extends WorkThread {
 		context.getByteBufPool().free(buf);
 		this.result = result;
 		this.done = true;
-	}
-
-	public int getLimit() {
-		return limit;
+		this.context.getMainThread().parseDone(getIndex());
 	}
 
 	/**
@@ -118,14 +110,10 @@ public class ParseThread extends WorkThread {
 
 	@Override
 	public void startWork() {
-		done = false;
-		limit = 0;
-		super.startWork();
-	}
-
-	@Override
-	Logger getLogger() {
-		return logger;
+		synchronized (getLock()) {
+			done = false;
+			super.startWork();
+		}
 	}
 
 }

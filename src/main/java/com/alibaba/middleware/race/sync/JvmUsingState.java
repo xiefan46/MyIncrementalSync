@@ -1,8 +1,8 @@
 package com.alibaba.middleware.race.sync;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.alibaba.middleware.race.sync.util.LoggerUtil;
+import com.generallycloud.baseio.common.Logger;
 import com.generallycloud.baseio.common.ThreadUtil;
 
 /**
@@ -13,7 +13,7 @@ public class JvmUsingState implements Runnable {
 
 	private static final long	M		= 1024 * 1024;
 
-	private static Logger		logger	= LoggerFactory.getLogger(JvmUsingState.class);
+	private static Logger		logger	= LoggerUtil.get();
 
 	@Override
 	public void run() {
@@ -31,7 +31,7 @@ public class JvmUsingState implements Runnable {
 		long all = runtime.totalMemory() / M;
 		long max = runtime.maxMemory() / M;
 
-		logger.info("free:{}\tall:{}\tmax:{}", free, all, max);
+		logger.info("free:{}\tall:{}\tmax:{}", new Object[]{ free, all, max});
 	}
 
 }

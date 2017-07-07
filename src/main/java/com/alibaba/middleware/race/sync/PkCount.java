@@ -1,13 +1,12 @@
 package com.alibaba.middleware.race.sync;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.alibaba.middleware.race.sync.model.RecordLog;
+import com.alibaba.middleware.race.sync.util.LoggerUtil;
+import com.generallycloud.baseio.common.Logger;
 
 public class PkCount {
 
-	private Logger			logger	= LoggerFactory.getLogger(getClass());
+	private Logger			logger	= LoggerUtil.get();
 
 	private static PkCount	pkCount	= new PkCount();
 
@@ -15,7 +14,7 @@ public class PkCount {
 		return pkCount;
 	}
 
-	private int all,in2in, in2out, out2out, out2in;
+	private int all, in2in, in2out, out2out, out2in;
 
 	public void count(RecordLog r, int startId, int endId) {
 		all++;
@@ -71,7 +70,7 @@ public class PkCount {
 	public void setOut2in(int out2in) {
 		this.out2in = out2in;
 	}
-	
+
 	public int getAll() {
 		return all;
 	}
@@ -81,7 +80,8 @@ public class PkCount {
 	}
 
 	public void printResult() {
-		logger.info("all:{}, in2in:{}, in2out:{}, out2out:{}, out2in:{}",all, in2in, in2out, out2out, out2in);
+		logger.info("all:{}, in2in:{}, in2out:{}, out2out:{}, out2in:{}", new Object[]{all, in2in, in2out,
+				out2out, out2in});
 	}
 
 }

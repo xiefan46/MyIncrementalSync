@@ -2,8 +2,8 @@ package com.alibaba.middleware.race.sync;
 
 import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
 import com.alibaba.middleware.race.sync.model.Table;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.alibaba.middleware.race.sync.util.LoggerUtil;
+import com.generallycloud.baseio.common.Logger;
 
 /**
  * @author wangkai
@@ -16,14 +16,14 @@ public class Context {
 	private MultiFileInputStream	readChannel;
 	private Table				table;
 
-	private MainThread			mainThread = new MainThread(this);
-	private int				coreProcesses = Runtime.getRuntime().availableProcessors();
+	private MainThread			mainThread	= new MainThread(this);
+	private int				coreProcesses	= Runtime.getRuntime().availableProcessors();
 	private int				recalThreadNum	= coreProcesses;
 	private int				parseThreadNum	= coreProcesses;
-	private int				blockSize = (int) (1024 * 1024 * 2);
+	private int				blockSize		= (int) (1024 * 1024 * 2);
 	private Dispatcher			dispatcher;
 	private ByteBufPool			byteBufPool;
-	private static final Logger	logger		= LoggerFactory.getLogger(Context.class);
+	private Logger				logger		= LoggerUtil.get();
 
 	public Context(long endId, long startId) {
 		this.endId = (int) endId;
@@ -92,7 +92,7 @@ public class Context {
 	public ByteBufPool getByteBufPool() {
 		return byteBufPool;
 	}
-	
+
 	public int getBlockSize() {
 		return blockSize;
 	}

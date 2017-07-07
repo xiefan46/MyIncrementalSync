@@ -2,8 +2,6 @@ package com.alibaba.middleware.race.sync;
 
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.ByteArrayBuffer;
 import com.alibaba.middleware.race.sync.channel.SingleBufferedOutputStream;
@@ -11,9 +9,11 @@ import com.alibaba.middleware.race.sync.compress.Lz4CompressedOutputStream;
 import com.alibaba.middleware.race.sync.io.FixedLengthProtocolFactory;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFuture;
 import com.alibaba.middleware.race.sync.io.FixedLengthReadFutureImpl;
+import com.alibaba.middleware.race.sync.util.LoggerUtil;
 import com.alibaba.middleware.race.sync.util.RecordUtil;
 import com.generallycloud.baseio.acceptor.SocketChannelAcceptor;
 import com.generallycloud.baseio.buffer.UnpooledByteBufAllocator;
+import com.generallycloud.baseio.common.Logger;
 import com.generallycloud.baseio.common.MathUtil;
 import com.generallycloud.baseio.component.IoEventHandleAdaptor;
 import com.generallycloud.baseio.component.LoggerSocketSEListener;
@@ -36,7 +36,7 @@ public class Server {
 
 	private SocketChannelContext	socketChannelContext;
 
-	private static Logger		logger	= LoggerFactory.getLogger(Server.class);
+	private static Logger		logger	= LoggerUtil.get();
 
 	public static void main(String[] args) throws Exception {
 		if (args == null || args.length == 0) {

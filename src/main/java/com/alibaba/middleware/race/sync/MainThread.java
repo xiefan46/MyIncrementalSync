@@ -5,19 +5,18 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.alibaba.middleware.race.sync.channel.MultiFileInputStream;
+import com.alibaba.middleware.race.sync.util.LoggerUtil;
+import com.generallycloud.baseio.common.Logger;
 import com.alibaba.middleware.race.sync.channel.MuiltFileReadChannelSplitor;
-import com.generallycloud.baseio.common.ThreadUtil;
 
 /**
  * @author wangkai
  */
 public class MainThread {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private Logger logger = LoggerUtil.get();
 
 	public void execute() {
 		try {
@@ -61,7 +60,11 @@ public class MainThread {
 		context.getDispatcher().start();
 	}
 
+	private Object parseLock = new Object();
+	
 	private Context		context;
+	
+	private volatile boolean	waitParseDone = false;
 	
 	private ReaderThread	readerThread;
 
@@ -72,8 +75,6 @@ public class MainThread {
 	private AtomicInteger	workDone = new AtomicInteger(0);
 
 	private void execute1(Context context) throws Exception {
-		//		int tmp = 1024 * 1024 * 1024 / (context.getBlockSize() * context.getParseThreadNum());
-		//		int tmpCount = 0;
 		
 		MultiFileInputStream channel = initChannels2();
 		context.setReadChannel(channel);
@@ -96,7 +97,12 @@ public class MainThread {
 			dispatcher.beforeDispatch();
 			for (;;) {
 				if (!parseThreads[parseIndex].isDone()) {
-					ThreadUtil.sleep(1);
+					synchronized (parseLock) {
+						if (!parseThreads[parseIndex].isDone()) {
+							waitParseDone = true;
+							parseLock.wait(1);
+						}
+					}
 					continue;
 				}
 				ParseThread p = parseThreads[parseIndex++];
@@ -120,12 +126,21 @@ public class MainThread {
 		dispatcher.readRecordOver();
 	}
 	
-	public void setWorkDone() {
+	public void setWorkDone(int index) {
 		this.workDone.getAndIncrement();
 	}
 
 	public Context getContext() {
 		return context;
+	}
+	
+	public void parseDone(int index){
+		if (waitParseDone) {
+			synchronized (parseLock) {
+				parseLock.notify();
+				waitParseDone = false;
+			}
+		}
 	}
 
 	public void recalDone(int index) {

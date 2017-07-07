@@ -1,17 +1,17 @@
 package com.alibaba.middleware.race.sync;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.alibaba.middleware.race.sync.util.LoggerUtil;
+import com.generallycloud.baseio.common.Logger;
 
 public abstract class WorkThread extends Thread {
 
-	private static Logger	logger	= LoggerFactory.getLogger(WorkThread.class);
+	private static Logger	logger	= LoggerUtil.get();
 
 	private Object			lock		= new Object();
 
 	private volatile boolean	isRunning	= true;
 
-	private boolean		work;
+	private volatile boolean	work;
 
 	private int			index;
 
@@ -79,8 +79,6 @@ public abstract class WorkThread extends Thread {
 		}
 	}
 	
-	abstract Logger getLogger();
-	
 	public int getIndex() {
 		return index;
 	}
@@ -90,4 +88,7 @@ public abstract class WorkThread extends Thread {
 		this.wakeup();
 	}
 	
+	protected Object getLock() {
+		return lock;
+	}
 }
