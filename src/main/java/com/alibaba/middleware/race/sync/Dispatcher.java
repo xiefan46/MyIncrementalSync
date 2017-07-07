@@ -87,25 +87,26 @@ public class Dispatcher {
 	
 	public void dispatch(MyList<RecordLog> rs){
 		MyList<RecordLog>[] recordLogLists = this.recordLogLists;
-		int limit = rs.getPos();
-		byte B = -1;
 		MyIntByteHashMap redirectMap = this.redirectMap;
 		BitSet redirectFlag = this.redirectFlag;
+		int limit = rs.getPos();
 		for (int i = 0; i < limit; i++) {
 			RecordLog r = rs.get(i);
 			int id = r.getPk();
 			int oldId = r.getBeforePk();
 			if (r.isPkUpdate()) {
-				byte oldDirect = redirectMap.remove(oldId, B);
-				if (oldDirect == B) {
+				byte oldDirect;
+				if (redirectFlag.get(oldId)) {
+					oldDirect = redirectMap.remove(oldId);
+					redirectFlag.clear(oldId);
+					redirectFlag.set(id);
+					redirectMap.put(id, oldDirect);
+				}else{
 					oldDirect = hashFun(oldId);
 					if (oldDirect != hashFun(id)) {
 						redirectFlag.set(id);
 						redirectMap.put(id, oldDirect);
 					}
-				}else{
-					redirectFlag.clear(oldId);
-					redirectMap.put(id, oldDirect);
 				}
 				recordLogLists[oldDirect].add(r);
 			} else {
@@ -113,9 +114,9 @@ public class Dispatcher {
 					byte threadId;
 					if (r.getAlterType() == Constants.DELETE) {
 						redirectFlag.clear(id);
-						threadId = redirectMap.remove(id, B);
+						threadId = redirectMap.remove(id);
 					}else{
-						threadId = redirectMap.getOrDefault(id,B);
+						threadId = redirectMap.get(id);
 					}
 					recordLogLists[threadId].add(r);
 				}else{

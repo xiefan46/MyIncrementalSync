@@ -53,6 +53,6 @@ public interface Constants {
 
 	int		RESULT_LENGTH		= 38334025;
 
-	boolean	ON_LINE			= true;
+	boolean	ON_LINE			= false;
 
 }
