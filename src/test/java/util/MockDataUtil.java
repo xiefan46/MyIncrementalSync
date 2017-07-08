@@ -60,6 +60,7 @@ public class MockDataUtil {
 		return new String(randBuffer);
 	}
 
+	//public static byte[] getRandom
 	public static long getRandomTime() throws Exception {
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 		Date start = format.parse(beginDate);

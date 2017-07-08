@@ -96,10 +96,18 @@ public class FastutilMapTest {
         }
         return mock;
     }
-
+    //public byte[] mockBytes
     public void printMockData(byte[][] a){
        for(int i=a.length-1;i>=0;i--){
            System.out.println(Arrays.toString(a[i]));
         }
+    }
+    public byte[] mockByteArray(int len){
+
+        return null;
+    }
+    @Test
+    public void mockByte(){
+        mockByteArray(1,5);
     }
 }
