@@ -1,11 +1,14 @@
 package collection;
 
+import com.carrotsearch.hppc.IntObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.junit.Test;
 import util.ByteUtil;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -24,14 +27,19 @@ public class MapBenchmarkTest {
     @Test
     public void HPPCTest(){
         Random r=new Random();
-        Int2ObjectMap<byte[]> map=new Int2ObjectOpenHashMap(delete*insertScale);
+        //fastutil
+       // Int2ObjectMap<byte[]> map=new Int2ObjectOpenHashMap(delete*insertScale);
+        //jdk
+       // Map<Integer,byte[]> map=new HashMap(delete*insertScale);
+        //hppc
+        IntObjectOpenHashMap<byte[]> map=new IntObjectOpenHashMap<>(delete*insertScale);
         long t1=System.currentTimeMillis();
         for(int i=0;i<delete;i++){
             for(int j=0;j<insertScale;j++){
                 byte[] bytes=new byte[recordLen];
                 System.arraycopy(byteUtil.getRandomBytes(),0,bytes,0,recordLen);
-                if(i%10000==0)
-                    System.out.println(Arrays.toString(bytes));
+//                if(i%10000==0)
+//                    System.out.println(Arrays.toString(bytes));
                 map.put(i*insertScale+j,bytes);
             }
         }

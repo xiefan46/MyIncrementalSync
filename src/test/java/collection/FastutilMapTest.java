@@ -43,7 +43,7 @@ public class FastutilMapTest {
         Random r=new Random();
         //fastUtil
         Int2ObjectMap<byte[][]> map=new Int2ObjectOpenHashMap(delete*insertScale);
-        //hp pc
+        //hppc
        // IntObjectOpenHashMap<byte[][]> map=new IntObjectOpenHashMap<>(delete*insertScale);
         //gs map
         //IntObjectHashMap<byte[][]> map=new IntObjectHashMap<>(delete*insertScale);
